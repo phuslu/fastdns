@@ -20,7 +20,7 @@ func Error(rw ResponseWriter, req *Request, code RCODE) {
 	rw.Write(b.B)
 }
 
-func HostRecord(rw ResponseWriter, req *Request, ips []net.IP, ttl uint16) {
+func HostRecord(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
 
@@ -36,11 +36,11 @@ func HostRecord(rw ResponseWriter, req *Request, ips []net.IP, ttl uint16) {
 				// NAME
 				0xc0, 0x0c,
 				// TYPE
-				0x00, byte(QTypeA),
+				byte(QTypeA >> 8), byte(QTypeA),
 				// CLASS
-				0x00, byte(req.Question.QClass),
+				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
 				// TTL
-				0x00, 0x00, byte(ttl >> 8), byte(ttl),
+				byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 				// RDLENGTH
 				0x00, 0x04,
 				// RDATA
@@ -53,11 +53,11 @@ func HostRecord(rw ResponseWriter, req *Request, ips []net.IP, ttl uint16) {
 				// NAME
 				0xc0, 0x0c,
 				// TYPE
-				0x00, byte(QTypeA),
+				byte(QTypeA >> 8), byte(QTypeA),
 				// CLASS
-				0x00, byte(req.Question.QClass),
+				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
 				// TTL
-				0x00, 0x00, byte(ttl >> 8), byte(ttl),
+				byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 				// RDLENGTH
 				0x00, 0x10,
 				// RDATA
@@ -73,5 +73,5 @@ func HostRecord(rw ResponseWriter, req *Request, ips []net.IP, ttl uint16) {
 	rw.Write(b.B)
 }
 
-func CNAMERecord(rw ResponseWriter, req *Request, cname []string, ips []net.IP, ttl uint16) {
+func CNAMERecord(rw ResponseWriter, req *Request, cname []string, ips []net.IP, ttl uint32) {
 }
