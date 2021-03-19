@@ -1,6 +1,6 @@
 package fastdns
 
-func decodeQName(dst []byte, qname []byte) []byte {
+func decodeQName(dst []byte, qname QName) []byte {
 	var i byte
 	for i < 255 {
 		n := qname[i]

@@ -26,6 +26,8 @@ const (
 	OpCodeStatus OpCode = 2
 )
 
+type QName []byte
+
 type QType uint16
 
 const (
