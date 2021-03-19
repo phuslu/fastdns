@@ -2,14 +2,9 @@ package fastdns
 
 import (
 	"errors"
-	"fmt"
 	"net"
-	"net/http"
-	_ "net/http/pprof"
 	"os"
-	"os/exec"
 	"runtime"
-	"strconv"
 	"time"
 )
 
@@ -17,39 +12,23 @@ type Server struct {
 	Handler Handler
 	Logger  Logger
 
-	HTTPPortBase uint16
-	HTTPHandler  http.Handler
-
-	conn *net.UDPConn
+	childIndex int
+	conn       *net.UDPConn
 }
 
 func (s *Server) ListenAndServe(addr string) error {
-	childIndex, _ := strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
-	if childIndex == 0 {
-		return s.prefork(addr)
-	}
-
-	runtime.GOMAXPROCS(1)
-	err := Taskset((childIndex - 1) / runtime.NumCPU())
-	if err != nil {
-		s.Logger.Printf("dnsserver(%d) set cpu affinity=%d failed: %+v", childIndex, childIndex-1, err)
+	if s.childIndex == 0 {
+		return s.spwan(addr)
 	}
 
 	conn, err := ListenUDP("udp", addr)
 	if err != nil {
-		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", childIndex, addr, err)
+		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", s.childIndex, addr, err)
 		return err
 	}
 	s.conn = conn
 
-	if s.HTTPPortBase > 0 {
-		host, _, _ := net.SplitHostPort(addr)
-		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+childIndex)
-		go http.ListenAndServe(httpAddr, s.HTTPHandler)
-		s.Logger.Printf("dnsserver(%d) pid(%d) serving http on port %s", childIndex, os.Getpid(), httpAddr)
-	}
-
-	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", childIndex, os.Getpid(), conn.LocalAddr())
+	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", s.childIndex, os.Getpid(), conn.LocalAddr())
 
 	pool := newGoroutinePool(1 * time.Minute)
 	for {
@@ -82,19 +61,9 @@ func (s *Server) ListenAndServe(addr string) error {
 	return nil
 }
 
-func (s *Server) fork(index int) (*exec.Cmd, error) {
-	/* #nosec G204 */
-	cmd := exec.Command(os.Args[0], os.Args[1:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = append([]string{fmt.Sprintf("FASTDNS_CHILD_INDEX=%d", index)}, os.Environ()...)
-	return cmd, cmd.Start()
-}
-
-func (s *Server) prefork(addr string) (err error) {
+func (s *Server) spwan(addr string) (err error) {
 	type racer struct {
 		index int
-		pid   int
 		err   error
 	}
 
@@ -104,48 +73,37 @@ func (s *Server) prefork(addr string) (err error) {
 	}
 
 	ch := make(chan racer, maxProcs)
-	childs := make(map[int]*exec.Cmd)
 
-	defer func() {
-		for _, proc := range childs {
-			_ = proc.Process.Kill()
-		}
-	}()
-
-	for i := 1; i <= maxProcs; i++ {
-		var cmd *exec.Cmd
-		if cmd, err = s.fork(i); err != nil {
-			s.Logger.Printf("failed to start a child prefork process, error: %v\n", err)
-			return
-		}
-
-		childs[cmd.Process.Pid] = cmd
+	for i := 1; i < runtime.NumCPU(); i++ {
 		go func(index int) {
-			ch <- racer{index, cmd.Process.Pid, cmd.Wait()}
+			server := &Server{
+				Handler:    s.Handler,
+				Logger:     s.Logger,
+				childIndex: i,
+			}
+			err := server.ListenAndServe(addr)
+			ch <- racer{index, err}
 		}(i)
 	}
 
 	var exited int
 	for sig := range ch {
-		delete(childs, sig.pid)
-
-		s.Logger.Printf("one of the child prefork processes exited with error: %v", sig.err)
+		s.Logger.Printf("one of the child workers exited with error: %v", sig.err)
 
 		if exited++; exited > 200 {
-			s.Logger.Printf("child prefork processes exit too many times, "+
-				"which exceeds the value of RecoverThreshold(%d), "+
-				"exiting the master process.\n", exited)
-			err = errors.New("child prefork processes exit too many times")
+			s.Logger.Printf("child workers exit too many times(%d)", exited)
+			err = errors.New("child workers exit too many times")
 			break
 		}
 
-		var cmd *exec.Cmd
-		if cmd, err = s.fork(sig.index); err != nil {
-			break
-		}
-		childs[cmd.Process.Pid] = cmd
 		go func(index int) {
-			ch <- racer{index, cmd.Process.Pid, cmd.Wait()}
+			server := &Server{
+				Handler:    s.Handler,
+				Logger:     s.Logger,
+				childIndex: index,
+			}
+			err := server.ListenAndServe(addr)
+			ch <- racer{index, err}
 		}(sig.index)
 	}
 

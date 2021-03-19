@@ -28,7 +28,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 }
 
 func main() {
-	server := &fastdns.Server{
+	server := &fastdns.ForkServer{
 		Handler: &DNSHandler{
 			Debug: os.Getenv("DEBUG") != "",
 		},
