@@ -12,8 +12,8 @@ type Server struct {
 	Handler Handler
 	Logger  Logger
 
-	childIndex int
-	conn       *net.UDPConn
+	index int
+	conn  *net.UDPConn
 }
 
 func (s *Server) ListenAndServe(addr string) error {
@@ -62,7 +62,7 @@ func (s *Server) ListenAndServe(addr string) error {
 }
 
 func (s *Server) Index() (index int) {
-	index = s.childIndex
+	index = s.index
 	return
 }
 
@@ -82,9 +82,9 @@ func (s *Server) spwan(addr string) (err error) {
 	for i := 1; i < runtime.NumCPU(); i++ {
 		go func(index int) {
 			server := &Server{
-				Handler:    s.Handler,
-				Logger:     s.Logger,
-				childIndex: i,
+				Handler: s.Handler,
+				Logger:  s.Logger,
+				index:   i,
 			}
 			err := server.ListenAndServe(addr)
 			ch <- racer{index, err}
@@ -103,9 +103,9 @@ func (s *Server) spwan(addr string) (err error) {
 
 		go func(index int) {
 			server := &Server{
-				Handler:    s.Handler,
-				Logger:     s.Logger,
-				childIndex: index,
+				Handler: s.Handler,
+				Logger:  s.Logger,
+				index:   index,
 			}
 			err := server.ListenAndServe(addr)
 			ch <- racer{index, err}

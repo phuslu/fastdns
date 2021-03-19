@@ -20,12 +20,12 @@ type ForkServer struct {
 	HTTPPortBase uint16
 	HTTPHandler  http.Handler
 
-	childIndex int
-	conn       *net.UDPConn
+	index int
+	conn  *net.UDPConn
 }
 
 func (s *ForkServer) ListenAndServe(addr string) error {
-	s.childIndex, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
+	s.index, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
 	if s.Index() == 0 {
 		return s.prefork(addr)
 	}
@@ -84,7 +84,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 }
 
 func (s *ForkServer) Index() (index int) {
-	index = s.childIndex
+	index = s.index
 	return
 }
 
