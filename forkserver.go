@@ -32,7 +32,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 	}
 
 	runtime.GOMAXPROCS(1)
-	err := taskset((s.Index() - 1) / runtime.NumCPU())
+	err := taskset((s.Index() - 1) % runtime.NumCPU())
 	if err != nil {
 		s.Logger.Printf("dnsserver(%d) set cpu affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
 	}

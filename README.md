@@ -36,6 +36,9 @@ func main() {
 		HTTPPortBase: 9000,
 	}
 
-	server.ListenAndServe(":53")
+	err := server.ListenAndServe(":53")
+	if err != nil {
+		log.Fatalf("dnsserver error: %+v", err)
+	}
 }
 ```
