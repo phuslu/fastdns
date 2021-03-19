@@ -84,12 +84,12 @@ func (s *Server) spwan(addr string) (err error) {
 
 	ch := make(chan racer, maxProcs)
 
-	for i := 1; i < runtime.NumCPU(); i++ {
+	for i := 1; i <= runtime.NumCPU(); i++ {
 		go func(index int) {
 			server := &Server{
 				Handler: s.Handler,
 				Logger:  s.Logger,
-				index:   i,
+				index:   index,
 			}
 			err := server.ListenAndServe(addr)
 			ch <- racer{index, err}
