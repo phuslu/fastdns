@@ -8,7 +8,7 @@ func CNAMERecord(rw ResponseWriter, req *Request, cnames []string, ips []net.IP,
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
 
-	b.B = AppendRequestToResponse(b.B[:0], req, NOERROR, 1, uint16(len(cnames)+len(ips)), 0, 0)
+	b.B = AppendRequestToResponse(b.B[:0], req, NOERROR, 1, Count(len(cnames)+len(ips)), 0, 0)
 
 	offset := 12
 	for _, cname := range cnames {

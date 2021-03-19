@@ -8,7 +8,7 @@ func HostRecord(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
 
-	b.B = AppendRequestToResponse(b.B[:0], req, NOERROR, 1, uint16(len(ips)), 0, 0)
+	b.B = AppendRequestToResponse(b.B[:0], req, NOERROR, 1, Count(len(ips)), 0, 0)
 
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {

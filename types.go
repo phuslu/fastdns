@@ -96,3 +96,5 @@ const (
 	QClassHS      QClass = 4
 	QClassANY     QClass = 255
 )
+
+type Count uint16
