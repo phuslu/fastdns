@@ -8,10 +8,7 @@ func Error(rw ResponseWriter, req *Request, code RCODE) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
 
-	req.Header.QR = 1
-	req.Header.RCODE = code
-	req.Header.QDCount = 0
-	b.B = AppendRequest(b.B[:0], req)
+	b.B = AppendRequestToResponse(b.B[:0], req, code, 0, 0, 0, 0)
 
 	rw.Write(b.B)
 }
