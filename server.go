@@ -24,7 +24,7 @@ type Server struct {
 }
 
 func (s *Server) ListenAndServe(addr string) error {
-	childIndex := GetChildIndex()
+	childIndex, _ := strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
 	if childIndex == 0 {
 		return s.prefork(addr)
 	}
@@ -82,22 +82,12 @@ func (s *Server) ListenAndServe(addr string) error {
 	return nil
 }
 
-const (
-	recoverThreshold = 100
-	envChildIndex    = "FASTDNS_CHILD_INDEX"
-)
-
-func GetChildIndex() (index int) {
-	index, _ = strconv.Atoi(os.Getenv(envChildIndex))
-	return
-}
-
 func (s *Server) fork(index int) (*exec.Cmd, error) {
 	/* #nosec G204 */
 	cmd := exec.Command(os.Args[0], os.Args[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = append([]string{fmt.Sprintf("%s=%d", envChildIndex, index)}, os.Environ()...)
+	cmd.Env = append([]string{fmt.Sprintf("FASTDNS_CHILD_INDEX=%d", index)}, os.Environ()...)
 	return cmd, cmd.Start()
 }
 
@@ -141,7 +131,7 @@ func (s *Server) prefork(addr string) (err error) {
 
 		s.Logger.Printf("one of the child prefork processes exited with error: %v", sig.err)
 
-		if exited++; exited > recoverThreshold {
+		if exited++; exited > 200 {
 			s.Logger.Printf("child prefork processes exit too many times, "+
 				"which exceeds the value of RecoverThreshold(%d), "+
 				"exiting the master process.\n", exited)
