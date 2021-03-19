@@ -14,6 +14,7 @@ import (
 )
 
 type ForkServer struct {
+	Network string
 	Handler Handler
 	Logger  Logger
 
@@ -31,12 +32,16 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 	}
 
 	runtime.GOMAXPROCS(1)
-	err := Taskset((s.Index() - 1) / runtime.NumCPU())
+	err := taskset((s.Index() - 1) / runtime.NumCPU())
 	if err != nil {
 		s.Logger.Printf("dnsserver(%d) set cpu affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
 	}
 
-	conn, err := ListenUDP("udp", addr)
+	if s.Network == "" {
+		s.Network = "udp"
+	}
+
+	conn, err := listen(s.Network, addr)
 	if err != nil {
 		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err

@@ -9,6 +9,7 @@ import (
 )
 
 type Server struct {
+	Network string
 	Handler Handler
 	Logger  Logger
 
@@ -21,7 +22,11 @@ func (s *Server) ListenAndServe(addr string) error {
 		return s.spwan(addr)
 	}
 
-	conn, err := ListenUDP("udp", addr)
+	if s.Network == "" {
+		s.Network = "udp"
+	}
+
+	conn, err := listen(s.Network, addr)
 	if err != nil {
 		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err

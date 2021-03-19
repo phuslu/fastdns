@@ -9,7 +9,7 @@ import (
 	"unsafe"
 )
 
-func ListenUDP(network, address string) (*net.UDPConn, error) {
+func listen(network, address string) (*net.UDPConn, error) {
 	lc := &net.ListenConfig{
 		Control: func(network, address string, conn syscall.RawConn) error {
 			return conn.Control(func(fd uintptr) {
@@ -27,7 +27,7 @@ func ListenUDP(network, address string) (*net.UDPConn, error) {
 	return conn.(*net.UDPConn), nil
 }
 
-func Taskset(cpu int) error {
+func taskset(cpu int) error {
 	const SYS_SCHED_SETAFFINITY = 203
 
 	mask := make([]byte, 128)

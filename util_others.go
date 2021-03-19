@@ -7,7 +7,7 @@ import (
 	"net"
 )
 
-func ListenUDP(network, address string) (*net.UDPConn, error) {
+func listen(network, address string) (*net.UDPConn, error) {
 	laddr, err := net.ResolveUDPAddr(network, address)
 	if err != nil {
 		return nil, err
@@ -16,6 +16,6 @@ func ListenUDP(network, address string) (*net.UDPConn, error) {
 	return net.ListenUDP(network, laddr)
 }
 
-func Taskset(cpu int) error {
+func taskset(cpu int) error {
 	return errors.New("not implemented")
 }
