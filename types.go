@@ -21,65 +21,76 @@ const (
 type OpCode byte
 
 const (
-	OpCodeQuery OpCode = iota
-	OpCodeIquery
-	OpCodeStatus
+	OpCodeQuery  OpCode = 0
+	OpCodeIquery OpCode = 1
+	OpCodeStatus OpCode = 2
 )
 
 type QType uint16
 
 const (
-	QTypeUnknown QType = iota
-
-	// Host address
-	QTypeA
-
-	// Authoritative name server
-	QTypeNS
-
-	QTypeMD
-	QTypeMF
-
-	// Canonical name for an alias
-	QTypeCNAME
-
-	// Marks the start of a zone of authority
-	QTypeSOA
-
-	QTypeMB
-	QTypeMG
-	QTypeMR
-	QTypeNULL
-	QTypeWKS
-
-	// Domain name pointer
-	QTypePTR
-	QTypeHINFO
-	QTypeMINFO
-
-	// Mail exchange
-	QTypeMX
-	QTypeTXT
-	QTypeAXFR  QType = 252
-	QTypeMAILB QType = 253
-	QTypeMAILA QType = 254
-
-	// All records
-	QTypeWildcard QType = 255
+	QTypeUnknown    QType = 0
+	QTypeA          QType = 1
+	QTypeNS         QType = 2
+	QTypeMD         QType = 3
+	QTypeMF         QType = 4
+	QTypeCNAME      QType = 5
+	QTypeSOA        QType = 6
+	QTypeMB         QType = 7
+	QTypeMG         QType = 8
+	QTypeMR         QType = 9
+	QTypeNULL       QType = 10
+	QTypeWKS        QType = 11
+	QTypePTR        QType = 12
+	QTypeHINFO      QType = 13
+	QTypeMINFO      QType = 14
+	QTypeM          QType = 15
+	QTypeMX         QType = 15
+	QTypeTXT        QType = 16
+	QTypeRP         QType = 17
+	QTypeAFSDB      QType = 18
+	QTypeSIG        QType = 24
+	QTypeKEY        QType = 25
+	QTypeAAAA       QType = 28
+	QTypeLOC        QType = 29
+	QTypeSRV        QType = 33
+	QTypeNAPTR      QType = 35
+	QTypeCERT       QType = 37
+	QTypeDNAME      QType = 39
+	QTypeAPL        QType = 42
+	QTypeDS         QType = 43
+	QTypeSSHFP      QType = 44
+	QTypeIPSECKEY   QType = 45
+	QTypeRRSIG      QType = 46
+	QTypeNSEC       QType = 47
+	QTypeDNSKEY     QType = 48
+	QTypeDHCID      QType = 49
+	QTypeNSEC3      QType = 50
+	QTypeNSEC3PARAM QType = 51
+	QTypeHIP        QType = 55
+	QTypeCDS        QType = 59
+	QTypeCDNSKEY    QType = 60
+	QTypeOPENPGPKEY QType = 61
+	QTypeSPF        QType = 99
+	QTypeTKEY       QType = 249
+	QTypeTSIG       QType = 250
+	QTypeAXFR       QType = 252
+	QTypeMAILB      QType = 253
+	QTypeMAILA      QType = 254
+	QTypeANY        QType = 255
+	QTypeURI        QType = 256
+	QTypeCAA        QType = 257
+	QTypeTA         QType = 32768
+	QTypeDLV        QType = 32769
 )
 
 type QClass uint16
 
 const (
-	QClassUnknown QClass = iota
-
-	// Internet
-	QClassIN
-
-	QClassCS
-	QClassCH
-	QClassHS
-
-	// Any class
-	QClassWildcard QClass = 255
+	QClassUnknown QClass = 0
+	QClassIN      QClass = 1
+	QClassCS      QClass = 2
+	QClassCH      QClass = 3
+	QClassHS      QClass = 4
+	QClassANY     QClass = 255
 )
