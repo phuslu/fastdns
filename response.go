@@ -23,7 +23,7 @@ func (rw *responseWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-func AppendRequestToResponse(dst []byte, req *Request, rcode RCODE, qd, an, ns, ar Count) []byte {
+func AppendHeaderQuestionToResponse(dst []byte, req *Request, rcode RCODE, qd, an, ns, ar Count) []byte {
 	var header [12]byte
 
 	// ID
@@ -79,7 +79,7 @@ func AppendRequestToResponse(dst []byte, req *Request, rcode RCODE, qd, an, ns, 
 	return dst
 }
 
-func AppendHostRecordsToResponse(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte {
+func AppendHostToResponse(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte {
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
 			_ = ip4[3]
@@ -124,7 +124,7 @@ func AppendHostRecordsToResponse(dst []byte, req *Request, ips []net.IP, ttl uin
 	return dst
 }
 
-func AppendCNameRecordsToResponse(dst []byte, req *Request, cnames []string, ips []net.IP, ttl uint32) []byte {
+func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.IP, ttl uint32) []byte {
 	offset := 12
 	// CName Records
 	for _, cname := range cnames {

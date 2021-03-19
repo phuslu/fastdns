@@ -24,7 +24,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 		return
 	}
 
-	fastdns.HostRecord(rw, req, []net.IP{net.IP{8, 8, 8, 8}}, 300)
+	fastdns.Host(rw, req, []net.IP{net.IP{8, 8, 8, 8}}, 300)
 }
 
 func main() {
