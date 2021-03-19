@@ -153,10 +153,10 @@ func ParseRequest(payload []byte, req *Request) error {
 	req.Header.RA = (b >> 7) & 0b00000001
 
 	// QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT
-	req.Header.QDCount = uint16(payload[4]<<8) | uint16(payload[5])
-	req.Header.ANCount = uint16(payload[6]<<8) | uint16(payload[7])
-	req.Header.NSCount = uint16(payload[8]<<8) | uint16(payload[9])
-	req.Header.ARCount = uint16(payload[10]<<8) | uint16(payload[11])
+	req.Header.QDCount = uint16(payload[4])<<8 | uint16(payload[5])
+	req.Header.ANCount = uint16(payload[6])<<8 | uint16(payload[7])
+	req.Header.NSCount = uint16(payload[8])<<8 | uint16(payload[9])
+	req.Header.ARCount = uint16(payload[10])<<8 | uint16(payload[11])
 
 	if req.Header.QDCount != 1 {
 		return ErrInvalidHeader
@@ -176,8 +176,8 @@ func ParseRequest(payload []byte, req *Request) error {
 	_ = payload[i+4]
 
 	req.Question.QName = append(req.Question.QName[:0], payload[:i+1]...)
-	req.Question.QType = QType(uint16(payload[i+2]) | uint16(payload[i+1]<<8))
-	req.Question.QClass = QClass(uint16(payload[i+4]) | uint16(payload[i+3]<<8))
+	req.Question.QType = QType(uint16(payload[i+1])<<8 | uint16(payload[i+2]))
+	req.Question.QClass = QClass(uint16(payload[i+3])<<8 | uint16(payload[i+4]))
 
 	return nil
 }

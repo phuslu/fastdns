@@ -63,7 +63,6 @@ func (s *Server) ListenAndServe(addr string) error {
 		})
 	}
 
-	return nil
 }
 
 func (s *Server) Index() (index int) {

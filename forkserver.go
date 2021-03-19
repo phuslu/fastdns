@@ -85,7 +85,6 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 		})
 	}
 
-	return nil
 }
 
 func (s *ForkServer) Index() (index int) {
