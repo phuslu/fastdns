@@ -10,5 +10,5 @@ func Error(rw ResponseWriter, req *Request, code RCODE) {
 
 	b.B = AppendRequestToResponse(b.B[:0], req, code, 0, 0, 0, 0)
 
-	rw.Write(b.B)
+	_, _ = rw.Write(b.B)
 }

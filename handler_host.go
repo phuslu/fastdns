@@ -51,5 +51,5 @@ func HostRecord(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 		}
 	}
 
-	rw.Write(b.B)
+	_, _ = rw.Write(b.B)
 }

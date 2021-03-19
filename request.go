@@ -198,7 +198,7 @@ func AppendRequest(dst []byte, req *Request) []byte {
 	b |= byte(req.Header.OpCode) << (7 - (1 + 3))
 	b |= req.Header.AA << (7 - 5)
 	b |= req.Header.TC << (7 - 6)
-	b |= req.Header.RD << (7 - 7)
+	b |= req.Header.RD
 	header[2] = b
 
 	// second 8bit part of the second row

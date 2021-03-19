@@ -51,8 +51,10 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 	if s.HTTPPortBase > 0 {
 		host, _, _ := net.SplitHostPort(addr)
 		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+s.Index())
-		go http.ListenAndServe(httpAddr, s.HTTPHandler)
-		s.Logger.Printf("dnsserver(%d) pid(%d) serving http on port %s", s.Index(), os.Getpid(), httpAddr)
+		go func() {
+			s.Logger.Printf("dnsserver(%d) pid(%d) serving http on port %s", s.Index(), os.Getpid(), httpAddr)
+			_ = http.ListenAndServe(httpAddr, s.HTTPHandler)
+		}()
 	}
 
 	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())

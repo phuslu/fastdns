@@ -72,5 +72,5 @@ func CNAMERecord(rw ResponseWriter, req *Request, cnames []string, ips []net.IP,
 		}
 	}
 
-	rw.Write(b.B)
+	_, _ = rw.Write(b.B)
 }

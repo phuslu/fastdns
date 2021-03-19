@@ -1,13 +1,5 @@
 package fastdns
 
-import (
-	"unsafe"
-)
-
-func b2s(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
 func decodeQName(dst []byte, qname []byte) []byte {
 	var i byte
 	for i < 255 {

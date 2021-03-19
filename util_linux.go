@@ -14,7 +14,7 @@ func listen(network, address string) (*net.UDPConn, error) {
 		Control: func(network, address string, conn syscall.RawConn) error {
 			return conn.Control(func(fd uintptr) {
 				const SO_REUSEPORT = 15
-				syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, SO_REUSEPORT, 1)
+				_ = syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, SO_REUSEPORT, 1)
 			})
 		},
 	}
