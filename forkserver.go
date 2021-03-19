@@ -34,7 +34,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 	runtime.GOMAXPROCS(1)
 	err := taskset((s.Index() - 1) % runtime.NumCPU())
 	if err != nil {
-		s.Logger.Printf("dnsserver(%d) set cpu affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
+		s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
 	}
 
 	if s.Network == "" {
@@ -43,7 +43,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 
 	conn, err := listen(s.Network, addr)
 	if err != nil {
-		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", s.Index(), addr, err)
+		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err
 	}
 	s.conn = conn
@@ -52,12 +52,12 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 		host, _, _ := net.SplitHostPort(addr)
 		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+s.Index())
 		go func() {
-			s.Logger.Printf("dnsserver(%d) pid(%d) serving http on port %s", s.Index(), os.Getpid(), httpAddr)
+			s.Logger.Printf("forkserver-%d pid-%d serving http on port %s", s.Index(), os.Getpid(), httpAddr)
 			_ = http.ListenAndServe(httpAddr, s.HTTPHandler)
 		}()
 	}
 
-	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
+	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
 	pool := newGoroutinePool(1 * time.Minute)
 	for {
@@ -127,7 +127,7 @@ func (s *ForkServer) prefork(addr string) (err error) {
 	for i := 1; i <= maxProcs; i++ {
 		var cmd *exec.Cmd
 		if cmd, err = s.fork(i); err != nil {
-			s.Logger.Printf("failed to start a child prefork process, error: %v\n", err)
+			s.Logger.Printf("forkserver failed to start a child process, error: %v\n", err)
 			return
 		}
 
@@ -141,11 +141,11 @@ func (s *ForkServer) prefork(addr string) (err error) {
 	for sig := range ch {
 		delete(childs, sig.pid)
 
-		s.Logger.Printf("one of the child prefork processes exited with error: %v", sig.err)
+		s.Logger.Printf("forkserver one of the child processes exited with error: %v", sig.err)
 
 		if exited++; exited > 200 {
-			s.Logger.Printf("child workers exit too many times(%d)", exited)
-			err = errors.New("child workers exit too many times")
+			s.Logger.Printf("forkserver child workers exit too many times(%d)", exited)
+			err = errors.New("forkserver child workers exit too many times")
 			break
 		}
 

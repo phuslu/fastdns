@@ -28,12 +28,12 @@ func (s *Server) ListenAndServe(addr string) error {
 
 	conn, err := listen(s.Network, addr)
 	if err != nil {
-		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", s.Index(), addr, err)
+		s.Logger.Printf("server-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err
 	}
 	s.conn = conn
 
-	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
+	s.Logger.Printf("server-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
 	pool := newGoroutinePool(1 * time.Minute)
 	for {
@@ -97,11 +97,11 @@ func (s *Server) spwan(addr string) (err error) {
 
 	var exited int
 	for sig := range ch {
-		s.Logger.Printf("one of the child workers exited with error: %v", sig.err)
+		s.Logger.Printf("server one of the child workers exited with error: %v", sig.err)
 
 		if exited++; exited > 200 {
-			s.Logger.Printf("child workers exit too many times(%d)", exited)
-			err = errors.New("child workers exit too many times")
+			s.Logger.Printf("server child workers exit too many times(%d)", exited)
+			err = errors.New("server child workers exit too many times")
 			break
 		}
 
