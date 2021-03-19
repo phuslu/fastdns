@@ -5,8 +5,7 @@ import (
 )
 
 type ResponseWriter interface {
-	Conn() *net.UDPConn
-	RemoteAddr() *net.UDPAddr
+	RemoteAddr() net.Addr
 	Write([]byte) (int, error)
 }
 
@@ -15,11 +14,7 @@ type responseWriter struct {
 	addr *net.UDPAddr
 }
 
-func (rw *responseWriter) Conn() *net.UDPConn {
-	return rw.conn
-}
-
-func (rw *responseWriter) RemoteAddr() *net.UDPAddr {
+func (rw *responseWriter) RemoteAddr() net.Addr {
 	return rw.addr
 }
 
