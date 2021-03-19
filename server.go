@@ -17,18 +17,18 @@ type Server struct {
 }
 
 func (s *Server) ListenAndServe(addr string) error {
-	if s.childIndex == 0 {
+	if s.Index() == 0 {
 		return s.spwan(addr)
 	}
 
 	conn, err := ListenUDP("udp", addr)
 	if err != nil {
-		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", s.childIndex, addr, err)
+		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err
 	}
 	s.conn = conn
 
-	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", s.childIndex, os.Getpid(), conn.LocalAddr())
+	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
 	pool := newGoroutinePool(1 * time.Minute)
 	for {
@@ -59,6 +59,11 @@ func (s *Server) ListenAndServe(addr string) error {
 	}
 
 	return nil
+}
+
+func (s *Server) Index() (index int) {
+	index = s.childIndex
+	return
 }
 
 func (s *Server) spwan(addr string) (err error) {

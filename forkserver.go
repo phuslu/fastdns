@@ -20,36 +20,37 @@ type ForkServer struct {
 	HTTPPortBase uint16
 	HTTPHandler  http.Handler
 
-	conn *net.UDPConn
+	childIndex int
+	conn       *net.UDPConn
 }
 
 func (s *ForkServer) ListenAndServe(addr string) error {
-	childIndex, _ := strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
-	if childIndex == 0 {
+	s.childIndex, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
+	if s.Index() == 0 {
 		return s.prefork(addr)
 	}
 
 	runtime.GOMAXPROCS(1)
-	err := Taskset((childIndex - 1) / runtime.NumCPU())
+	err := Taskset((s.Index() - 1) / runtime.NumCPU())
 	if err != nil {
-		s.Logger.Printf("dnsserver(%d) set cpu affinity=%d failed: %+v", childIndex, childIndex-1, err)
+		s.Logger.Printf("dnsserver(%d) set cpu affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
 	}
 
 	conn, err := ListenUDP("udp", addr)
 	if err != nil {
-		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", childIndex, addr, err)
+		s.Logger.Printf("dnsserver(%d) listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err
 	}
 	s.conn = conn
 
 	if s.HTTPPortBase > 0 {
 		host, _, _ := net.SplitHostPort(addr)
-		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+childIndex)
+		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+s.Index())
 		go http.ListenAndServe(httpAddr, s.HTTPHandler)
-		s.Logger.Printf("dnsserver(%d) pid(%d) serving http on port %s", childIndex, os.Getpid(), httpAddr)
+		s.Logger.Printf("dnsserver(%d) pid(%d) serving http on port %s", s.Index(), os.Getpid(), httpAddr)
 	}
 
-	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", childIndex, os.Getpid(), conn.LocalAddr())
+	s.Logger.Printf("dnsserver(%d) pid(%d) serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
 	pool := newGoroutinePool(1 * time.Minute)
 	for {
@@ -80,6 +81,11 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 	}
 
 	return nil
+}
+
+func (s *ForkServer) Index() (index int) {
+	index = s.childIndex
+	return
 }
 
 func (s *ForkServer) fork(index int) (*exec.Cmd, error) {
