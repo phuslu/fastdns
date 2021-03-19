@@ -53,7 +53,7 @@ func HostRecord(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 				// NAME
 				0xc0, 0x0c,
 				// TYPE
-				0x00, byte(QTypeA),
+				0x00, byte(QTypeAAAA),
 				// CLASS
 				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
 				// TTL
@@ -112,7 +112,7 @@ func CNAMERecord(rw ResponseWriter, req *Request, cnames []string, ips []net.IP,
 				// NAME
 				0xc0, byte(offset),
 				// TYPE
-				byte(QTypeA >> 8), byte(QTypeA),
+				0x00, byte(QTypeA),
 				// CLASS
 				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
 				// TTL
@@ -129,7 +129,7 @@ func CNAMERecord(rw ResponseWriter, req *Request, cnames []string, ips []net.IP,
 				// NAME
 				0xc0, byte(offset),
 				// TYPE
-				byte(QTypeA >> 8), byte(QTypeA),
+				0x00, byte(QTypeAAAA),
 				// CLASS
 				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
 				// TTL
