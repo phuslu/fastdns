@@ -4,13 +4,27 @@ import (
 	"net"
 )
 
-type ResponseWriter struct {
-	Conn       *net.UDPConn
-	RemoteAddr *net.UDPAddr
+type ResponseWriter interface {
+	Conn() *net.UDPConn
+	RemoteAddr() *net.UDPAddr
+	Write([]byte) (int, error)
 }
 
-func (rw *ResponseWriter) Write(p []byte) (n int, err error) {
-	n, _, err = rw.Conn.WriteMsgUDP(p, nil, rw.RemoteAddr)
+type responseWriter struct {
+	conn *net.UDPConn
+	addr *net.UDPAddr
+}
+
+func (rw *responseWriter) Conn() *net.UDPConn {
+	return rw.conn
+}
+
+func (rw *responseWriter) RemoteAddr() *net.UDPAddr {
+	return rw.addr
+}
+
+func (rw *responseWriter) Write(p []byte) (n int, err error) {
+	n, _, err = rw.conn.WriteMsgUDP(p, nil, rw.addr)
 	return
 }
 

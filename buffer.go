@@ -26,6 +26,7 @@ func AcquireByteBuffer() *ByteBuffer {
 }
 
 func ReleaseByteBuffer(b *ByteBuffer) {
+	// see https://github.com/golang/go/issues/23199
 	if len(b.B) > 65536 {
 		return
 	}
