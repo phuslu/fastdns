@@ -100,9 +100,7 @@ func CNAMERecord(rw ResponseWriter, req *Request, cnames []string, ips []net.IP,
 		// set offset
 		offset += len(b.B)
 		// RDATA
-		b.B = append(b.B, '.')
-		b.B = append(b.B, cname...)
-		b.B = append(b.B, 0)
+		b.B = encodeDomain(b.B, cname)
 	}
 
 	for _, ip := range ips {

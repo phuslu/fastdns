@@ -116,27 +116,11 @@ type Request struct {
 }
 
 func (req *Request) GetQName() string {
-	return string(appendQName(make([]byte, 0, 256), req.Question.QName))
+	return string(decodeQName(make([]byte, 0, 256), req.Question.QName))
 }
 
 func (req *Request) AppendQName(dst []byte) []byte {
-	return appendQName(dst, req.Question.QName)
-}
-
-func appendQName(dst, qname []byte) []byte {
-	var i byte
-	for i < 255 {
-		n := qname[i]
-		if n == 0 {
-			break
-		}
-		if i != 0 {
-			dst = append(dst, '.')
-		}
-		dst = append(dst, qname[i+1:i+n+1]...)
-		i += n + 1
-	}
-	return dst
+	return decodeQName(dst, req.Question.QName)
 }
 
 var (
