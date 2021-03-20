@@ -69,11 +69,11 @@ func AppendHeaderQuestionToResponse(dst []byte, req *Request, rcode RCODE, qd, a
 	// question
 	if qd != 0 {
 		// QNAME
-		dst = append(dst, req.Question.QName...)
+		dst = append(dst, req.Question.Name...)
 		// QTYPE
-		dst = append(dst, byte(req.Question.QType>>8), byte(req.Question.QType&0xff))
+		dst = append(dst, byte(req.Question.Type>>8), byte(req.Question.Type&0xff))
 		// QCLASS
-		dst = append(dst, byte(req.Question.QClass>>8), byte(req.Question.QClass&0xff))
+		dst = append(dst, byte(req.Question.Class>>8), byte(req.Question.Class&0xff))
 	}
 
 	return dst
@@ -89,7 +89,7 @@ func AppendHostToResponse(dst []byte, req *Request, ips []net.IP, ttl uint32) []
 				// TYPE
 				0x00, byte(QTypeA),
 				// CLASS
-				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
+				byte(req.Question.Class >> 8), byte(req.Question.Class),
 				// TTL
 				byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 				// RDLENGTH
@@ -106,7 +106,7 @@ func AppendHostToResponse(dst []byte, req *Request, ips []net.IP, ttl uint32) []
 				// TYPE
 				0x00, byte(QTypeAAAA),
 				// CLASS
-				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
+				byte(req.Question.Class >> 8), byte(req.Question.Class),
 				// TTL
 				byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 				// RDLENGTH
@@ -134,7 +134,7 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 			// TYPE
 			0x00, byte(QTypeCNAME),
 			// CLASS
-			byte(req.Question.QClass >> 8), byte(req.Question.QClass),
+			byte(req.Question.Class >> 8), byte(req.Question.Class),
 			// TTL
 			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 			// RDLENGTH
@@ -156,7 +156,7 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 				// TYPE
 				0x00, byte(QTypeA),
 				// CLASS
-				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
+				byte(req.Question.Class >> 8), byte(req.Question.Class),
 				// TTL
 				byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 				// RDLENGTH
@@ -173,7 +173,7 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 				// TYPE
 				0x00, byte(QTypeAAAA),
 				// CLASS
-				byte(req.Question.QClass >> 8), byte(req.Question.QClass),
+				byte(req.Question.Class >> 8), byte(req.Question.Class),
 				// TTL
 				byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 				// RDLENGTH

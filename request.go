@@ -104,23 +104,23 @@ type Request struct {
 	   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	*/
 	Question struct {
-		// QName refers to the raw domain name to be resolved in the query.
-		QName QName
+		// QName refers to the raw query name to be resolved in the query.
+		Name QName
 
 		// QTYPE specifies the type of the query to perform.
-		QType QType
+		Type QType
 
 		// QCLASS
-		QClass QClass
+		Class QClass
 	}
 }
 
 func (req *Request) GetDomainName() string {
-	return string(decodeQName(make([]byte, 0, 256), req.Question.QName))
+	return string(decodeQName(make([]byte, 0, 256), req.Question.Name))
 }
 
 func (req *Request) AppendDomainName(dst []byte) []byte {
-	return decodeQName(dst, req.Question.QName)
+	return decodeQName(dst, req.Question.Name)
 }
 
 var (
@@ -175,9 +175,9 @@ func ParseRequest(payload []byte, req *Request) error {
 	}
 	_ = payload[i+4]
 
-	req.Question.QName = append(req.Question.QName[:0], payload[:i+1]...)
-	req.Question.QType = QType(uint16(payload[i+1])<<8 | uint16(payload[i+2]))
-	req.Question.QClass = QClass(uint16(payload[i+3])<<8 | uint16(payload[i+4]))
+	req.Question.Name = append(req.Question.Name[:0], payload[:i+1]...)
+	req.Question.Type = QType(uint16(payload[i+1])<<8 | uint16(payload[i+2]))
+	req.Question.Class = QClass(uint16(payload[i+3])<<8 | uint16(payload[i+4]))
 
 	return nil
 }
@@ -228,11 +228,11 @@ func AppendRequest(dst []byte, req *Request) []byte {
 	// question
 	if req.Header.QDCount != 0 {
 		// QNAME
-		dst = append(dst, req.Question.QName...)
+		dst = append(dst, req.Question.Name...)
 		// QTYPE
-		dst = append(dst, byte(req.Question.QType>>8), byte(req.Question.QType&0xff))
+		dst = append(dst, byte(req.Question.Type>>8), byte(req.Question.Type&0xff))
 		// QCLASS
-		dst = append(dst, byte(req.Question.QClass>>8), byte(req.Question.QClass&0xff))
+		dst = append(dst, byte(req.Question.Class>>8), byte(req.Question.Class&0xff))
 	}
 
 	return dst
@@ -241,7 +241,7 @@ func AppendRequest(dst []byte, req *Request) []byte {
 var reqPool = sync.Pool{
 	New: func() interface{} {
 		req := new(Request)
-		req.Question.QName = make([]byte, 0, 256)
+		req.Question.Name = make([]byte, 0, 256)
 		return req
 	},
 }
