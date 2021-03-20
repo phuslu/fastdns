@@ -115,11 +115,11 @@ type Request struct {
 	}
 }
 
-func (req *Request) GetQName() string {
+func (req *Request) GetDomainName() string {
 	return string(decodeQName(make([]byte, 0, 256), req.Question.QName))
 }
 
-func (req *Request) AppendQName(dst []byte) []byte {
+func (req *Request) AppendDomainName(dst []byte) []byte {
 	return decodeQName(dst, req.Question.QName)
 }
 
