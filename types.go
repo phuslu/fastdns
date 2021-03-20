@@ -1,7 +1,6 @@
 package fastdns
 
 type QName []byte
-type QCount uint16
 
 // RCODE denotes a 4bit field that specifies the response
 // code for a query.

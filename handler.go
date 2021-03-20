@@ -22,7 +22,7 @@ func Host(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 	defer ReleaseByteBuffer(b)
 
 	b.B = b.B[:0]
-	b.B = AppendHeaderQuestionToResponse(b.B, req, NOERROR, 1, QCount(len(ips)), 0, 0)
+	b.B = AppendHeaderQuestionToResponse(b.B, req, NOERROR, 1, uint16(len(ips)), 0, 0)
 	b.B = AppendHostToResponse(b.B, req, ips, ttl)
 
 	_, _ = rw.Write(b.B)
@@ -33,7 +33,7 @@ func CNAME(rw ResponseWriter, req *Request, cnames []string, ips []net.IP, ttl u
 	defer ReleaseByteBuffer(b)
 
 	b.B = b.B[:0]
-	b.B = AppendHeaderQuestionToResponse(b.B, req, NOERROR, 1, QCount(len(cnames)+len(ips)), 0, 0)
+	b.B = AppendHeaderQuestionToResponse(b.B, req, NOERROR, 1, uint16(len(cnames)+len(ips)), 0, 0)
 	b.B = AppendCNameToResponse(b.B, req, cnames, ips, ttl)
 
 	_, _ = rw.Write(b.B)
