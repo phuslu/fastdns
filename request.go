@@ -76,19 +76,19 @@ type Request struct {
 		RCODE RCODE
 
 		// QDCOUNT specifies the number of entries in the question section
-		QDCount Count
+		QDCount QCount
 
 		// ANCount specifies the number of resource records (RR) in the answer
 		// section
-		ANCount Count
+		ANCount QCount
 
 		// NSCount specifies the number of name server resource records in the
 		// authority section
-		NSCount Count
+		NSCount QCount
 
 		// ARCount specifies the number of resource records in the additional
 		// records section
-		ARCount Count
+		ARCount QCount
 	}
 
 	/*
@@ -153,10 +153,10 @@ func ParseRequest(payload []byte, req *Request) error {
 	req.Header.RA = (b >> 7) & 0b00000001
 
 	// QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT
-	req.Header.QDCount = Count(payload[4])<<8 | Count(payload[5])
-	req.Header.ANCount = Count(payload[6])<<8 | Count(payload[7])
-	req.Header.NSCount = Count(payload[8])<<8 | Count(payload[9])
-	req.Header.ARCount = Count(payload[10])<<8 | Count(payload[11])
+	req.Header.QDCount = QCount(payload[4])<<8 | QCount(payload[5])
+	req.Header.ANCount = QCount(payload[6])<<8 | QCount(payload[7])
+	req.Header.NSCount = QCount(payload[8])<<8 | QCount(payload[9])
+	req.Header.ARCount = QCount(payload[10])<<8 | QCount(payload[11])
 
 	if req.Header.QDCount != 1 {
 		return ErrInvalidHeader

@@ -97,4 +97,4 @@ const (
 	QClassANY     QClass = 255
 )
 
-type Count uint16
+type QCount uint16

@@ -23,7 +23,7 @@ func (rw *responseWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-func AppendHeaderQuestionToResponse(dst []byte, req *Request, rcode RCODE, qd, an, ns, ar Count) []byte {
+func AppendHeaderQuestionToResponse(dst []byte, req *Request, rcode RCODE, qd, an, ns, ar QCount) []byte {
 	var header [12]byte
 
 	// ID
