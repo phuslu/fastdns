@@ -28,7 +28,7 @@ type ForkServer struct {
 func (s *ForkServer) ListenAndServe(addr string) error {
 	s.index, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
 	if s.Index() == 0 {
-		return s.prefork(addr)
+		return s.fork(addr)
 	}
 
 	runtime.GOMAXPROCS(1)
@@ -94,7 +94,7 @@ func (s *ForkServer) Index() (index int) {
 	return
 }
 
-func (s *ForkServer) fork(index int) (*exec.Cmd, error) {
+func fork(index int) (*exec.Cmd, error) {
 	/* #nosec G204 */
 	cmd := exec.Command(os.Args[0], os.Args[1:]...)
 	cmd.Stdout = os.Stdout
@@ -103,7 +103,7 @@ func (s *ForkServer) fork(index int) (*exec.Cmd, error) {
 	return cmd, cmd.Start()
 }
 
-func (s *ForkServer) prefork(addr string) (err error) {
+func (s *ForkServer) fork(addr string) (err error) {
 	type racer struct {
 		index int
 		pid   int
@@ -126,7 +126,7 @@ func (s *ForkServer) prefork(addr string) (err error) {
 
 	for i := 1; i <= maxProcs; i++ {
 		var cmd *exec.Cmd
-		if cmd, err = s.fork(i); err != nil {
+		if cmd, err = fork(i); err != nil {
 			s.Logger.Printf("forkserver failed to start a child process, error: %v\n", err)
 			return
 		}
@@ -150,7 +150,7 @@ func (s *ForkServer) prefork(addr string) (err error) {
 		}
 
 		var cmd *exec.Cmd
-		if cmd, err = s.fork(sig.index); err != nil {
+		if cmd, err = fork(sig.index); err != nil {
 			break
 		}
 		childs[cmd.Process.Pid] = cmd
