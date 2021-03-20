@@ -1,5 +1,8 @@
 package fastdns
 
+type QName []byte
+type QCount uint16
+
 // RCODE denotes a 4bit field that specifies the response
 // code for a query.
 type RCODE byte
@@ -17,6 +20,32 @@ const (
 	NOTZONE  RCODE = 9 // Name not in zone
 )
 
+func (rcode RCODE) String() string {
+	switch rcode {
+	case NOERROR:
+		return "NOERROR"
+	case FORMERR:
+		return "FORMERR"
+	case SERVFAIL:
+		return "SERVFAIL"
+	case NXDOMAIN:
+		return "NXDOMAIN"
+	case NOTIMP:
+		return "NOTIMP"
+	case REFUSED:
+		return "REFUSED"
+	case YXDOMAIN:
+		return "YXDOMAIN"
+	case XRRSET:
+		return "XRRSET"
+	case NOTAUTH:
+		return "NOTAUTH"
+	case NOTZONE:
+		return "NOTZONE"
+	}
+	return ""
+}
+
 // OpCode denotes a 4bit field that specified the query type.
 type OpCode byte
 
@@ -26,7 +55,46 @@ const (
 	OpCodeStatus OpCode = 2
 )
 
-type QName []byte
+func (c OpCode) String() string {
+	switch c {
+	case OpCodeQuery:
+		return "Query"
+	case OpCodeIquery:
+		return "Iquery"
+	case OpCodeStatus:
+		return "Status"
+	}
+	return ""
+}
+
+type QClass uint16
+
+const (
+	QClassUnknown QClass = 0
+	QClassIN      QClass = 1
+	QClassCS      QClass = 2
+	QClassCH      QClass = 3
+	QClassHS      QClass = 4
+	QClassANY     QClass = 255
+)
+
+func (qc QClass) String() string {
+	switch qc {
+	case QClassUnknown:
+		return "Unknown"
+	case QClassIN:
+		return "IN"
+	case QClassCS:
+		return "CS"
+	case QClassCH:
+		return "CH"
+	case QClassHS:
+		return "HS"
+	case QClassANY:
+		return "ANY"
+	}
+	return ""
+}
 
 type QType uint16
 
@@ -46,7 +114,6 @@ const (
 	QTypePTR        QType = 12
 	QTypeHINFO      QType = 13
 	QTypeMINFO      QType = 14
-	QTypeM          QType = 15
 	QTypeMX         QType = 15
 	QTypeTXT        QType = 16
 	QTypeRP         QType = 17
@@ -86,15 +153,112 @@ const (
 	QTypeDLV        QType = 32769
 )
 
-type QClass uint16
-
-const (
-	QClassUnknown QClass = 0
-	QClassIN      QClass = 1
-	QClassCS      QClass = 2
-	QClassCH      QClass = 3
-	QClassHS      QClass = 4
-	QClassANY     QClass = 255
-)
-
-type QCount uint16
+func (qt QType) String() string {
+	switch qt {
+	case QTypeUnknown:
+		return "Unknown"
+	case QTypeA:
+		return "A"
+	case QTypeNS:
+		return "NS"
+	case QTypeMD:
+		return "MD"
+	case QTypeMF:
+		return "MF"
+	case QTypeCNAME:
+		return "CNAME"
+	case QTypeSOA:
+		return "SOA"
+	case QTypeMB:
+		return "MB"
+	case QTypeMG:
+		return "MG"
+	case QTypeMR:
+		return "MR"
+	case QTypeNULL:
+		return "NULL"
+	case QTypeWKS:
+		return "WKS"
+	case QTypePTR:
+		return "PTR"
+	case QTypeHINFO:
+		return "HINFO"
+	case QTypeMINFO:
+		return "MINFO"
+	case QTypeMX:
+		return "MX"
+	case QTypeTXT:
+		return "TXT"
+	case QTypeRP:
+		return "RP"
+	case QTypeAFSDB:
+		return "AFSDB"
+	case QTypeSIG:
+		return "SIG"
+	case QTypeKEY:
+		return "KEY"
+	case QTypeAAAA:
+		return "AAAA"
+	case QTypeLOC:
+		return "LOC"
+	case QTypeSRV:
+		return "SRV"
+	case QTypeNAPTR:
+		return "NAPTR"
+	case QTypeCERT:
+		return "CERT"
+	case QTypeDNAME:
+		return "DNAME"
+	case QTypeAPL:
+		return "APL"
+	case QTypeDS:
+		return "DS"
+	case QTypeSSHFP:
+		return "SSHFP"
+	case QTypeIPSECKEY:
+		return "IPSECKEY"
+	case QTypeRRSIG:
+		return "RRSIG"
+	case QTypeNSEC:
+		return "NSEC"
+	case QTypeDNSKEY:
+		return "DNSKEY"
+	case QTypeDHCID:
+		return "DHCID"
+	case QTypeNSEC3:
+		return "NSEC3"
+	case QTypeNSEC3PARAM:
+		return "NSEC3PARAM"
+	case QTypeHIP:
+		return "HIP"
+	case QTypeCDS:
+		return "CDS"
+	case QTypeCDNSKEY:
+		return "CDNSKEY"
+	case QTypeOPENPGPKEY:
+		return "OPENPGPKEY"
+	case QTypeSPF:
+		return "SPF"
+	case QTypeTKEY:
+		return "TKEY"
+	case QTypeTSIG:
+		return "TSIG"
+	case QTypeAXFR:
+		return "AXFR"
+	case QTypeMAILB:
+		return "MAILB"
+	case QTypeMAILA:
+		return "MAILA"
+	case QTypeANY:
+		return "ANY"
+	case QTypeURI:
+		return "URI"
+	case QTypeCAA:
+		return "CAA"
+	case QTypeTA:
+		return "TA"
+	case QTypeDLV:
+		return "DLV"
+	}
+	return ""
+}

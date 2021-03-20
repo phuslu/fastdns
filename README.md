@@ -1,6 +1,8 @@
 ## Usage
 
 ```go
+package main
+
 import (
 	"log"
 	"net"
@@ -16,7 +18,8 @@ type DNSHandler struct {
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 	domain := req.GetDomainName()
 	if h.Debug {
-		log.Printf("addr=%s domain=%s req=%+v\n", rw.RemoteAddr().String(), domain, req)
+		log.Printf("addr=%s domain=%s class=%s type=%s\n", rw.RemoteAddr().String(),
+			domain, req.Question.QClass, req.Question.QType)
 	}
 
 	if req.Question.QType != fastdns.QTypeA {
