@@ -16,10 +16,9 @@ type DNSHandler struct {
 }
 
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
-	domain := req.GetDomainName()
+	addr, name := rw.RemoteAddr(), req.GetDomainName()
 	if h.Debug {
-		log.Printf("addr=%s domain=%s class=%s type=%s\n", rw.RemoteAddr().String(),
-			domain, req.Question.QClass, req.Question.QType)
+		log.Printf("%s] %s: CLASS %s TYPE %s\n", addr, name, req.Question.QClass, req.Question.QType)
 	}
 
 	if req.Question.QType != fastdns.QTypeA {
