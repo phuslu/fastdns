@@ -83,7 +83,7 @@ func (s *Server) spwan(addr string) (err error) {
 
 	ch := make(chan racer, maxProcs)
 
-	for i := 1; i <= runtime.NumCPU(); i++ {
+	for i := 1; i <= maxProcs; i++ {
 		go func(index int) {
 			server := &Server{
 				Handler: s.Handler,
