@@ -23,7 +23,7 @@ func (rw *responseWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-func AppendHeaderQuestionToResponse(dst []byte, req *Request, rcode RCODE, qd, an, ns, ar uint16) []byte {
+func AppendHeaderQuestion(dst []byte, req *Request, rcode RCODE, qd, an, ns, ar uint16) []byte {
 	var header [12]byte
 
 	// ID
@@ -79,7 +79,7 @@ func AppendHeaderQuestionToResponse(dst []byte, req *Request, rcode RCODE, qd, a
 	return dst
 }
 
-func AppendHostToResponse(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte {
+func AppendHostRecord(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte {
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
 			_ = ip4[3]
@@ -124,7 +124,7 @@ func AppendHostToResponse(dst []byte, req *Request, ips []net.IP, ttl uint32) []
 	return dst
 }
 
-func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.IP, ttl uint32) []byte {
+func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, ttl uint32) []byte {
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {
@@ -196,7 +196,7 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 	return dst
 }
 
-func AppendSRVToResponse(dst []byte, req *Request, srv string, priovrity, weight, port uint16, ttl uint32) []byte {
+func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, port uint16, ttl uint32) []byte {
 	// SRV Records
 	answer := [...]byte{
 		// NAME
