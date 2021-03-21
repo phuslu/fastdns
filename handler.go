@@ -11,6 +11,25 @@ type Handler interface {
 	ServeDNS(rw ResponseWriter, req *Request)
 }
 
+type ResponseWriter interface {
+	RemoteAddr() net.Addr
+	Write([]byte) (int, error)
+}
+
+type responseWriter struct {
+	conn *net.UDPConn
+	addr *net.UDPAddr
+}
+
+func (rw *responseWriter) RemoteAddr() net.Addr {
+	return rw.addr
+}
+
+func (rw *responseWriter) Write(p []byte) (n int, err error) {
+	n, _, err = rw.conn.WriteMsgUDP(p, nil, rw.addr)
+	return
+}
+
 func Error(rw ResponseWriter, req *Request, code RCODE) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
