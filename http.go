@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// HTTPHandlerFunc converts fastdns.Handler to a http.Hander for DoH servers
 func HTTPHandlerFunc(h Handler) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		b := AcquireByteBuffer()
