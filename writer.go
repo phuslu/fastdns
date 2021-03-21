@@ -138,14 +138,14 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 			// TTL
 			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 			// RDLENGTH
-			0x00, byte(1 + len(cname) + 1),
+			0x00, byte(len(cname) + 2),
 		}
 		dst = append(dst, answer[:]...)
 		// set offset
 		if i == 0 {
 			offset += len(req.Question.Name) + 2 + 2
 		} else {
-			offset += 1 + len(cname) + 1
+			offset += len(cname) + 2
 		}
 		offset += len(answer)
 		// RDATA
@@ -208,7 +208,7 @@ func AppendSRVToResponse(dst []byte, req *Request, srv string, priovrity, weight
 		// TTL
 		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 		// RDLENGTH
-		0x00, byte(2 + 2 + 2 + 1 + len(srv) + 1),
+		byte((8 + len(srv)) >> 8), byte(8 + len(srv)),
 		// PRIOVRITY
 		byte(priovrity >> 8), byte(priovrity),
 		// WEIGHT
