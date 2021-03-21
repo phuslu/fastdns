@@ -125,12 +125,12 @@ func AppendHostToResponse(dst []byte, req *Request, ips []net.IP, ttl uint32) []
 }
 
 func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.IP, ttl uint32) []byte {
-	offset := 12
+	offset := 0x0c
 	// CName Records
-	for _, cname := range cnames {
+	for i, cname := range cnames {
 		answer := [...]byte{
 			// NAME
-			0xc0, byte(offset),
+			0xc0 | byte(offset>>8), byte(offset),
 			// TYPE
 			0x00, byte(QTypeCNAME),
 			// CLASS
@@ -142,7 +142,12 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 		}
 		dst = append(dst, answer[:]...)
 		// set offset
-		offset += len(dst)
+		if i == 0 {
+			offset += len(req.Question.Name) + 2 + 2
+		} else {
+			offset += 1 + len(cname) + 1
+		}
+		offset += len(answer)
 		// RDATA
 		dst = encodeDomain(dst, cname)
 	}
@@ -152,7 +157,7 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 			_ = ip4[3]
 			answer := [...]byte{
 				// NAME
-				0xc0, byte(offset),
+				0xc0 | byte(offset>>8), byte(offset),
 				// TYPE
 				0x00, byte(QTypeA),
 				// CLASS
@@ -169,7 +174,7 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 			_ = ip[15]
 			answer := [...]byte{
 				// NAME
-				0xc0, byte(offset),
+				0xc0 | byte(offset>>8), byte(offset),
 				// TYPE
 				0x00, byte(QTypeAAAA),
 				// CLASS

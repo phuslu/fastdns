@@ -1,8 +1,11 @@
 package fastdns
 
 import (
+	"fmt"
 	"net"
 )
+
+var _ = fmt.Printf
 
 type Handler interface {
 	ServeDNS(rw ResponseWriter, req *Request)
@@ -35,6 +38,8 @@ func CNAME(rw ResponseWriter, req *Request, cnames []string, ips []net.IP, ttl u
 	b.B = b.B[:0]
 	b.B = AppendHeaderQuestionToResponse(b.B, req, NOERROR, 1, uint16(len(cnames)+len(ips)), 0, 0)
 	b.B = AppendCNameToResponse(b.B, req, cnames, ips, ttl)
+
+	// fmt.Printf("%x\n", b.B)
 
 	_, _ = rw.Write(b.B)
 }
