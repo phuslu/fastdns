@@ -1,5 +1,6 @@
 package fastdns
 
+// QName refers to the raw query name to be resolved in the query.
 type QName []byte
 
 // RCODE denotes a 4bit field that specifies the response
@@ -7,16 +8,26 @@ type QName []byte
 type RCODE byte
 
 const (
-	NOERROR  RCODE = 0 // DNS Query completed successfully
-	FORMERR  RCODE = 1 // DNS Query Format Error
-	SERVFAIL RCODE = 2 // Server failed to complete the DNS request
-	NXDOMAIN RCODE = 3 // Domain name does not exist.
-	NOTIMP   RCODE = 4 // Function not implemented
-	REFUSED  RCODE = 5 // The server refused to answer for the query
-	YXDOMAIN RCODE = 6 // Name that should not exist, does exist
-	XRRSET   RCODE = 7 // RRset that should not exist, does exist
-	NOTAUTH  RCODE = 8 // Server not authoritative for the zone
-	NOTZONE  RCODE = 9 // Name not in zone
+	// NOERROR indicates DNS Query completed successfully
+	NOERROR RCODE = 0
+	// FORMERR indicates DNS Query Format Error
+	FORMERR RCODE = 1
+	// SERVFAIL indicates Server failed to complete the DNS request
+	SERVFAIL RCODE = 2
+	// NXDOMAIN indicates Domain name does not exist.
+	NXDOMAIN RCODE = 3
+	// NOTIMP indicates Function not implemented
+	NOTIMP RCODE = 4
+	// REFUSED indicates The server refused to answer for the query
+	REFUSED RCODE = 5
+	// YXDOMAIN indicates Name that should not exist, does exist
+	YXDOMAIN RCODE = 6
+	// XRRSET indicates RRset that should not exist, does exist
+	XRRSET RCODE = 7
+	// NOTAUTH indicates Server not authoritative for the zone
+	NOTAUTH RCODE = 8
+	// NOTZONE indicates Name not in zone
+	NOTZONE RCODE = 9
 )
 
 func (rcode RCODE) String() string {
