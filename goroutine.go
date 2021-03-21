@@ -43,7 +43,7 @@ const (
 func newGoroutinePool(idleTimeout time.Duration) *goroutinePool {
 	pool := &goroutinePool{
 		idleTimeout: idleTimeout,
-		stack:       make([]*goroutine, 0, 20000),
+		stack:       make([]*goroutine, 0, 200000),
 	}
 	return pool
 }
