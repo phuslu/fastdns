@@ -1,4 +1,8 @@
-## Usage
+# fastdns - fast dns server for go
+
+[![godoc][godoc-img]][godoc] [![release][release-img]][release] [![goreport][goreport-img]][goreport] [![coverage][coverage-img]][coverage]
+
+## Getting Started
 
 ```go
 package main
@@ -50,3 +54,12 @@ func main() {
 	}
 }
 ```
+
+[godoc-img]: http://img.shields.io/badge/godoc-reference-blue.svg
+[godoc]: https://godoc.org/github.com/phuslu/fastdns
+[release-img]: https://img.shields.io/github/v/tag/phuslu/fastdns?label=release
+[release]: https://github.com/phuslu/fastdns/releases
+[goreport-img]: https://goreportcard.com/badge/github.com/phuslu/fastdns
+[goreport]: https://goreportcard.com/report/github.com/phuslu/fastdns
+[coverage-img]: http://gocover.io/_badge/github.com/phuslu/fastdns
+[coverage]: https://gocover.io/github.com/phuslu/fastdns
