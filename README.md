@@ -2,6 +2,19 @@
 
 [![godoc][godoc-img]][godoc] [![release][release-img]][release] [![goreport][goreport-img]][goreport] [![coverage][coverage-img]][coverage]
 
+
+## Features
+
+* Dependency Free
+* Simple Interface, similar with net/http
+* High Performance
+    - prefork + reuse_port + set_affinity
+    - goroutine pool
+    - memory pool
+    - 0-allocs dns request parser
+    - 0-allocs dns records marshaller
+
+
 ## Getting Started
 
 ```go
