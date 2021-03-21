@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Build
         run: |
+          set -ex
           git clone --depth=1 https://github.com/${GITHUB_REPOSITORY}
           cd $(basename ${GITHUB_REPOSITORY})
           go vet
