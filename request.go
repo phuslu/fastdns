@@ -162,6 +162,7 @@ func ParseRequest(payload []byte, req *Request) error {
 		return ErrInvalidHeader
 	}
 
+	// QNAME
 	payload = payload[12:]
 	var i int
 	for i, b = range payload {
@@ -169,15 +170,15 @@ func ParseRequest(payload []byte, req *Request) error {
 			break
 		}
 	}
-
 	if i+5 > len(payload) {
 		return ErrInvalidQuestion
 	}
-	_ = payload[i+4]
-
 	req.Question.Name = append(req.Question.Name[:0], payload[:i+1]...)
-	req.Question.Type = QType(uint16(payload[i+1])<<8 | uint16(payload[i+2]))
-	req.Question.Class = QClass(uint16(payload[i+3])<<8 | uint16(payload[i+4]))
+
+	// QTYPE, QCLASS
+	payload = payload[i:]
+	req.Question.Class = QClass(uint16(payload[4]) | uint16(payload[3])<<8)
+	req.Question.Type = QType(uint16(payload[2]) | uint16(payload[1])<<8)
 
 	return nil
 }
