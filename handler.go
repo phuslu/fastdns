@@ -58,3 +58,16 @@ func SRV(rw ResponseWriter, req *Request, srv string, priovrity, weight, port ui
 
 	_, _ = rw.Write(b.B)
 }
+
+func TXT(rw ResponseWriter, req *Request, txt string, ttl uint32) {
+	b := AcquireByteBuffer()
+	defer ReleaseByteBuffer(b)
+
+	b.B = b.B[:0]
+	b.B = AppendHeaderQuestion(b.B, req, NOERROR, 1, 1, 0, 0)
+	b.B = AppendTXTRecord(b.B, req, txt, ttl)
+
+	// fmt.Printf("%x\n", b.B)
+
+	_, _ = rw.Write(b.B)
+}

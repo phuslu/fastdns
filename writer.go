@@ -222,3 +222,35 @@ func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, po
 
 	return dst
 }
+
+func AppendTXTRecord(dst []byte, req *Request, txt string, ttl uint32) []byte {
+	length := len(txt)
+	answer := [...]byte{
+		// NAME
+		0xc0, 0x0c,
+		// TYPE
+		0x00, byte(QTypeTXT),
+		// CLASS
+		byte(req.Question.Class >> 8), byte(req.Question.Class),
+		// TTL
+		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+		// RDLENGTH
+		byte(length >> 8), byte(length),
+	}
+	dst = append(dst, answer[:]...)
+
+	for len(txt) > 0xff {
+		// TXT Length
+		dst = append(dst, 0xff)
+		// TXT
+		dst = append(dst, txt[:0xff]...)
+		txt = txt[0xff:]
+	}
+
+	// TXT Length
+	dst = append(dst, byte(len(txt)))
+	// TXT
+	dst = append(dst, txt...)
+
+	return dst
+}
