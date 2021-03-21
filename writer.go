@@ -195,3 +195,30 @@ func AppendCNameToResponse(dst []byte, req *Request, cnames []string, ips []net.
 
 	return dst
 }
+
+func AppendSRVToResponse(dst []byte, req *Request, srv string, priovrity, weight, port uint16, ttl uint32) []byte {
+	// SRV Records
+	answer := [...]byte{
+		// NAME
+		0xc0, 0x0c,
+		// TYPE
+		0x00, byte(QTypeSRV),
+		// CLASS
+		byte(req.Question.Class >> 8), byte(req.Question.Class),
+		// TTL
+		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+		// RDLENGTH
+		0x00, byte(2 + 2 + 2 + 1 + len(srv) + 1),
+		// PRIOVRITY
+		byte(priovrity >> 8), byte(priovrity),
+		// WEIGHT
+		byte(weight >> 8), byte(weight),
+		// PORT
+		byte(port >> 8), byte(port),
+	}
+	dst = append(dst, answer[:]...)
+	// RDATA
+	dst = encodeDomain(dst, srv)
+
+	return dst
+}
