@@ -1,6 +1,7 @@
 package fastdns
 
 import (
+	"runtime"
 	"testing"
 )
 
@@ -33,5 +34,40 @@ func TestEncodeDomain(t *testing.T) {
 		if got, want := string(encodeDomain(nil, c.Domain)), c.QName; got != want {
 			t.Errorf("encodeDomain(%v) error got=%s want=%s", c.Domain, got, want)
 		}
+	}
+}
+
+func TestListen(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
+
+	_, err := listen("udp", ":65537")
+	if err == nil {
+		t.Errorf("listen(:65537) at shall return error but empty")
+	}
+
+	var addr = ":19841"
+	for i := 1; i <= 64; i++ {
+		_, err := listen("udp", addr)
+		if err != nil {
+			t.Errorf("listen(%+v) at %d times got error: %+v", addr, i, err)
+		}
+	}
+}
+
+func TestTastset(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
+
+	err := taskset(1023)
+	if err == nil {
+		t.Errorf("taskset(65537) shall return error but empty")
+	}
+
+	err = taskset(0)
+	if err != nil {
+		t.Errorf("taskset(0) error: %+v", err)
 	}
 }
