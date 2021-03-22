@@ -6,30 +6,6 @@ import (
 	"testing"
 )
 
-//nolint
-type Header struct {
-	ID      uint16
-	QR      byte
-	OpCode  OpCode
-	AA      byte
-	TC      byte
-	RD      byte
-	RA      byte
-	Z       byte
-	RCODE   RCODE
-	QDCount uint16
-	ANCount uint16
-	NSCount uint16
-	ARCount uint16
-}
-
-//nolint
-type Question struct {
-	Name  QName
-	Type  QType
-	Class QClass
-}
-
 func TestParseRequestOK(t *testing.T) {
 	var cases = []struct {
 		Hex     string
