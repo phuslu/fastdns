@@ -204,6 +204,26 @@ func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, po
 	return dst
 }
 
+func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
+	answer := [...]byte{
+		// NAME
+		0xc0, 0x0c,
+		// TYPE
+		0x00, byte(QTypePTR),
+		// CLASS
+		byte(req.Question.Class >> 8), byte(req.Question.Class),
+		// TTL
+		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+		// RDLENGTH
+		00, byte(len(ptr)),
+	}
+	dst = append(dst, answer[:]...)
+	// PTR
+	dst = encodeDomain(dst, ptr)
+
+	return dst
+}
+
 func AppendTXTRecord(dst []byte, req *Request, txt string, ttl uint32) []byte {
 	length := len(txt)
 	answer := [...]byte{
