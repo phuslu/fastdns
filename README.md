@@ -45,6 +45,8 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 		fastdns.Host(rw, req, []net.IP{net.ParseIP("::1")}, 300)
 	case fastdns.QTypeSRV:
 		fastdns.SRV(rw, req, "service1.example.com", 1000, 1000, 80, 300)
+	case fastdns.QTypePTR:
+		fastdns.PTR(rw, req, "ptr.example.com", 0)
 	case fastdns.QTypeTXT:
 		fastdns.TXT(rw, req, "iamatxtrecord", 300)
 	default:
