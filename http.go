@@ -38,6 +38,6 @@ func HTTPHandlerFunc(h Handler) http.HandlerFunc {
 
 		rw.Header().Set("content-type", "application/dns-message")
 		rw.Header().Set("content-length", strconv.Itoa(len(mem.data)))
-		rw.Write(mem.data)
+		_, _ = rw.Write(mem.data)
 	}
 }
