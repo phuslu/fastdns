@@ -16,9 +16,12 @@ func TestForkServerHost(t *testing.T) {
 		return
 	}
 
+	testMode = true
+
 	s := &ForkServer{
-		Handler: &mockServerHandler{},
-		Logger:  log.New(os.Stdout, "", 0),
+		Handler:      &mockServerHandler{},
+		Logger:       log.New(os.Stdout, "", 0),
+		HTTPPortBase: 23000,
 	}
 
 	const addr = "127.0.0.1:5353"

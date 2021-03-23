@@ -110,10 +110,7 @@ func (s *ForkServer) fork(addr string) (err error) {
 		err   error
 	}
 
-	maxProcs := runtime.GOMAXPROCS(0)
-	if runtime.GOOS != "linux" {
-		maxProcs = 1
-	}
+	maxProcs := getMaxProcs()
 
 	ch := make(chan racer, maxProcs)
 	childs := make(map[int]*exec.Cmd)

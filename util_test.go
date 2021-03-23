@@ -71,3 +71,20 @@ func TestTastset(t *testing.T) {
 		t.Errorf("taskset(0) error: %+v", err)
 	}
 }
+
+func TestGetMaxProcs(t *testing.T) {
+	mode := testMode
+	defer func() { testMode = mode }()
+
+	if runtime.GOOS == "linux" {
+		testMode = false
+		if getMaxProcs() != runtime.NumCPU() {
+			t.Errorf("getMaxProcs shall return %d in live mode", runtime.NumCPU())
+		}
+	}
+
+	testMode = true
+	if getMaxProcs() != 1 {
+		t.Errorf("getMaxProcs shall return 1 in test mode")
+	}
+}

@@ -23,6 +23,8 @@ func TestServerHost(t *testing.T) {
 		return
 	}
 
+	testMode = true
+
 	s := &Server{
 		Handler: &mockServerHandler{},
 		Logger:  log.New(os.Stdout, "", 0),
@@ -96,5 +98,5 @@ func TestServerParseRequestError(t *testing.T) {
 		t.Errorf("dial to %+v return error: %+v", addr, err)
 	}
 
-	_, _ = conn.Write([]byte{0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+	_, _ = conn.Write([]byte{0x00, 0x02, 0x01, 0x00, 0x00, 0x00})
 }
