@@ -1,6 +1,7 @@
 package fastdns
 
 import (
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -12,38 +13,31 @@ func HTTPHandlerFunc(h Handler) http.HandlerFunc {
 		b := AcquireByteBuffer()
 		defer ReleaseByteBuffer(b)
 
-		b.B = b.B[:cap(b.B)]
-		n, err := req.Body.Read(b.B)
+		b.B = b.B[:0]
+		_, err := io.Copy(b, req.Body)
 		if err != nil {
+			http.Error(rw, "bad request", http.StatusBadRequest)
 			return
 		}
-		b.B = b.B[:n]
 
 		r := AcquireRequest()
 		defer ReleaseRequest(r)
 
 		err = ParseRequest(b.B, r)
 		if err != nil {
+			http.Error(rw, "bad request", http.StatusBadRequest)
 			return
 		}
 
 		ip, port, _ := net.SplitHostPort(req.RemoteAddr)
 		addr := &net.TCPAddr{IP: net.ParseIP(ip)}
 		addr.Port, _ = strconv.Atoi(port)
+		mem := &memResponseWriter{addr: addr}
 
-		h.ServeDNS(&httpResponseWriter{rw, addr}, r)
+		h.ServeDNS(mem, r)
+
+		rw.Header().Set("content-type", "application/dns-message")
+		rw.Header().Set("content-length", strconv.Itoa(len(mem.data)))
+		rw.Write(mem.data)
 	}
-}
-
-type httpResponseWriter struct {
-	rw   http.ResponseWriter
-	addr net.Addr
-}
-
-func (rw *httpResponseWriter) RemoteAddr() net.Addr {
-	return rw.addr
-}
-
-func (rw *httpResponseWriter) Write(p []byte) (n int, err error) {
-	return rw.rw.Write(p)
 }
