@@ -224,6 +224,36 @@ func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
 	return dst
 }
 
+type MXRecord struct {
+	Priority uint16
+	Host     string
+}
+
+func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte {
+	// MX Records
+	for _, rr := range mx {
+		answer := [...]byte{
+			// NAME
+			0xc0, 0x0c,
+			// TYPE
+			0x00, byte(QTypeMX),
+			// CLASS
+			byte(req.Question.Class >> 8), byte(req.Question.Class),
+			// TTL
+			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+			// RDLENGTH
+			byte((4 + len(rr.Host)) >> 8), byte(4 + len(rr.Host)),
+			// PRIOVRITY
+			byte(rr.Priority >> 8), byte(rr.Priority),
+		}
+		dst = append(dst, answer[:]...)
+		// RDATA
+		dst = encodeDomain(dst, rr.Host)
+	}
+
+	return dst
+}
+
 func AppendTXTRecord(dst []byte, req *Request, txt string, ttl uint32) []byte {
 	length := len(txt)
 	answer := [...]byte{

@@ -106,6 +106,19 @@ func PTR(rw ResponseWriter, req *Request, ptr string, ttl uint32) {
 	_, _ = rw.Write(b.B)
 }
 
+func MX(rw ResponseWriter, req *Request, mx []MXRecord, ttl uint32) {
+	b := AcquireByteBuffer()
+	defer ReleaseByteBuffer(b)
+
+	b.B = b.B[:0]
+	b.B = AppendHeaderQuestion(b.B, req, NOERROR, 1, 1, 0, 0)
+	b.B = AppendMXRecord(b.B, req, mx, ttl)
+
+	// fmt.Printf("%x\n", b.B)
+
+	_, _ = rw.Write(b.B)
+}
+
 func TXT(rw ResponseWriter, req *Request, txt string, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
