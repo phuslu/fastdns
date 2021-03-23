@@ -4,7 +4,7 @@ import (
 	"runtime"
 )
 
-func decodeQName(dst []byte, qname QName) []byte {
+func decodeQName(dst []byte, qname []byte) []byte {
 	var i byte
 	for i < 255 {
 		n := qname[i]

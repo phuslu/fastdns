@@ -23,7 +23,7 @@ var mockHandlerRequest = &Request{
 		ARCount: 0x00,
 	},
 	Question{
-		Name:  QName("\x02hk\x04phus\x02lu\x00"),
+		Name:  []byte("\x02hk\x04phus\x02lu\x00"),
 		Type:  QTypeA,
 		Class: QClassIN,
 	},

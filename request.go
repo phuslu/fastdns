@@ -105,7 +105,7 @@ type Request struct {
 	*/
 	Question struct {
 		// QName refers to the raw query name to be resolved in the query.
-		Name QName
+		Name []byte
 
 		// QTYPE specifies the type of the query to perform.
 		Type QType

@@ -26,7 +26,7 @@ type Header struct {
 
 //nolint
 type Question struct {
-	Name  QName
+	Name  []byte
 	Type  QType
 	Class QClass
 }
@@ -77,7 +77,7 @@ func TestAppendHeaderQuestion(t *testing.T) {
 					ARCount: 0x00,
 				},
 				Question{
-					Name:  QName("\x011\x0250\x03168\x03192\x07in-addr\x04arpa\x00"),
+					Name:  []byte("\x011\x0250\x03168\x03192\x07in-addr\x04arpa\x00"),
 					Type:  QTypePTR,
 					Class: QClassIN,
 				},
@@ -124,7 +124,7 @@ func TestAppendHeaderQuestion(t *testing.T) {
 					ARCount: 0x00,
 				},
 				Question{
-					Name:  QName("\x02hk\x04phus\x02lu\x00"),
+					Name:  []byte("\x02hk\x04phus\x02lu\x00"),
 					Type:  QTypeA,
 					Class: QClassIN,
 				},

@@ -1,8 +1,5 @@
 package fastdns
 
-// QName refers to the raw query name to be resolved in the query.
-type QName []byte
-
 // RCODE denotes a 4bit field that specifies the response
 // code for a query.
 type RCODE byte
