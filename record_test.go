@@ -11,13 +11,13 @@ import (
 type Header struct {
 	ID      uint16
 	QR      byte
-	OpCode  OpCode
+	Opcode  Opcode
 	AA      byte
 	TC      byte
 	RD      byte
 	RA      byte
 	Z       byte
-	RCODE   RCODE
+	RCODE   Rcode
 	QDCount uint16
 	ANCount uint16
 	NSCount uint16
@@ -27,8 +27,8 @@ type Header struct {
 //nolint
 type Question struct {
 	Name  []byte
-	Type  QType
-	Class QClass
+	Type  Type
+	Class Class
 }
 
 func TestAppendHeaderQuestion(t *testing.T) {
@@ -64,7 +64,7 @@ func TestAppendHeaderQuestion(t *testing.T) {
 				Header{
 					ID:      0x0001,
 					QR:      0x00,
-					OpCode:  0x0000,
+					Opcode:  0x0000,
 					AA:      0x00,
 					TC:      0x00,
 					RD:      0x01,
@@ -78,8 +78,8 @@ func TestAppendHeaderQuestion(t *testing.T) {
 				},
 				Question{
 					Name:  []byte("\x011\x0250\x03168\x03192\x07in-addr\x04arpa\x00"),
-					Type:  QTypePTR,
-					Class: QClassIN,
+					Type:  TypePTR,
+					Class: ClassINET,
 				},
 			},
 		},
@@ -111,7 +111,7 @@ func TestAppendHeaderQuestion(t *testing.T) {
 				Header{
 					ID:      0x0002,
 					QR:      0x00,
-					OpCode:  0x0000,
+					Opcode:  0x0000,
 					AA:      0x00,
 					TC:      0x00,
 					RD:      0x01,
@@ -125,15 +125,15 @@ func TestAppendHeaderQuestion(t *testing.T) {
 				},
 				Question{
 					Name:  []byte("\x02hk\x04phus\x02lu\x00"),
-					Type:  QTypeA,
-					Class: QClassIN,
+					Type:  TypeA,
+					Class: ClassINET,
 				},
 			},
 		},
 	}
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendHeaderQuestion(nil, c.Request, NOERROR, 1, 1, 0, 0)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendHeaderQuestion(nil, c.Request, RcodeSuccess, 1, 1, 0, 0)), c.Hex; got != want {
 			t.Errorf("AppendHeaderQuestion(%v) error got=%#v want=%#v", c.Request, got, want)
 		}
 	}
@@ -158,7 +158,7 @@ func TestAppendHostRecord(t *testing.T) {
 	}
 
 	req := new(Request)
-	req.Question.Class = QClassIN
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
 		if got, want := hex.EncodeToString(AppendHostRecord(nil, req, c.IPs, c.TTL)), c.Hex; got != want {
@@ -197,7 +197,7 @@ func TestAppendCNameRecord(t *testing.T) {
 
 	req := new(Request)
 	req.Question.Name = encodeDomain(nil, "ip.phus.lu")
-	req.Question.Class = QClassIN
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
 		if got, want := hex.EncodeToString(AppendCNameRecord(nil, req, c.CNAMEs, c.IPs, c.TTL)), c.Hex; got != want {
@@ -235,7 +235,7 @@ func TestAppendSRVRecord(t *testing.T) {
 	}
 
 	req := new(Request)
-	req.Question.Class = QClassIN
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
 		if got, want := hex.EncodeToString(AppendSRVRecord(nil, req, c.SRV, c.Priovrity, c.Weight, c.Port, c.TTL)), c.Hex; got != want {
@@ -264,7 +264,7 @@ func TestAppendPTRRecord(t *testing.T) {
 	}
 
 	req := new(Request)
-	req.Question.Class = QClassIN
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
 		if got, want := hex.EncodeToString(AppendPTRRecord(nil, req, c.PTR, c.TTL)), c.Hex; got != want {
@@ -298,7 +298,7 @@ func TestAppendTXTRecord(t *testing.T) {
 	}
 
 	req := new(Request)
-	req.Question.Class = QClassIN
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
 		if got, want := hex.EncodeToString(AppendTXTRecord(nil, req, c.TXT, c.TTL)), c.Hex; got != want {

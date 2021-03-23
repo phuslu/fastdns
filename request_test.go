@@ -41,7 +41,7 @@ func TestParseRequestOK(t *testing.T) {
 				Header{
 					ID:      0x0001,
 					QR:      0x00,
-					OpCode:  0x0000,
+					Opcode:  0x0000,
 					AA:      0x00,
 					TC:      0x00,
 					RD:      0x01,
@@ -55,8 +55,8 @@ func TestParseRequestOK(t *testing.T) {
 				},
 				Question{
 					Name:  []byte("\x011\x0250\x03168\x03192\x07in-addr\x04arpa\x00"),
-					Type:  QTypePTR,
-					Class: QClassIN,
+					Type:  TypePTR,
+					Class: ClassINET,
 				},
 			},
 		},
@@ -89,7 +89,7 @@ func TestParseRequestOK(t *testing.T) {
 				Header{
 					ID:      0x0002,
 					QR:      0x00,
-					OpCode:  0x0000,
+					Opcode:  0x0000,
 					AA:      0x00,
 					TC:      0x00,
 					RD:      0x01,
@@ -103,8 +103,8 @@ func TestParseRequestOK(t *testing.T) {
 				},
 				Question{
 					Name:  []byte("\x02hk\x04phus\x02lu\x00"),
-					Type:  QTypeA,
-					Class: QClassIN,
+					Type:  TypeA,
+					Class: ClassINET,
 				},
 			},
 		},
@@ -198,7 +198,7 @@ func TestAppendRequest(t *testing.T) {
 				Header{
 					ID:      0x0001,
 					QR:      0x00,
-					OpCode:  0x0000,
+					Opcode:  0x0000,
 					AA:      0x00,
 					TC:      0x00,
 					RD:      0x01,
@@ -212,8 +212,8 @@ func TestAppendRequest(t *testing.T) {
 				},
 				Question{
 					Name:  []byte("\x011\x0250\x03168\x03192\x07in-addr\x04arpa\x00"),
-					Type:  QTypePTR,
-					Class: QClassIN,
+					Type:  TypePTR,
+					Class: ClassINET,
 				},
 			},
 		},
@@ -245,7 +245,7 @@ func TestAppendRequest(t *testing.T) {
 				Header{
 					ID:      0x0002,
 					QR:      0x00,
-					OpCode:  0x0000,
+					Opcode:  0x0000,
 					AA:      0x00,
 					TC:      0x00,
 					RD:      0x01,
@@ -259,8 +259,8 @@ func TestAppendRequest(t *testing.T) {
 				},
 				Question{
 					Name:  []byte("\x02hk\x04phus\x02lu\x00"),
-					Type:  QTypeA,
-					Class: QClassIN,
+					Type:  TypeA,
+					Class: ClassINET,
 				},
 			},
 		},

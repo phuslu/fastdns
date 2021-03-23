@@ -4,133 +4,177 @@ import (
 	"testing"
 )
 
-func TestRCODE(t *testing.T) {
+func TestRcode(t *testing.T) {
 	var cases = []struct {
-		RCODE  RCODE
+		Rcode  Rcode
 		String string
 	}{
-		{NOERROR, "NOERROR"},
-		{FORMERR, "FORMERR"},
-		{SERVFAIL, "SERVFAIL"},
-		{NXDOMAIN, "NXDOMAIN"},
-		{NOTIMP, "NOTIMP"},
-		{REFUSED, "REFUSED"},
-		{YXDOMAIN, "YXDOMAIN"},
-		{XRRSET, "XRRSET"},
-		{NOTAUTH, "NOTAUTH"},
-		{NOTZONE, "NOTZONE"},
-		{RCODE(255), ""},
+		{RcodeSuccess, "Success"},
+		{RcodeFormatError, "FormatError"},
+		{RcodeServerFailure, "ServerFailure"},
+		{RcodeNameError, "NameError"},
+		{RcodeNotImplemented, "NotImplemented"},
+		{RcodeRefused, "Refused"},
+		{RcodeYXDomain, "YXDomain"},
+		{RcodeYXRrset, "YXRrset"},
+		{RcodeNXRrset, "NXRrset"},
+		{RcodeNotAuth, "NotAuth"},
+		{RcodeNotZone, "NotZone"},
+		{RcodeBadSig, "BadSig"},
+		// {RcodeBadVers, "BadVers"},
+		{RcodeBadKey, "BadKey"},
+		{RcodeBadTime, "BadTime"},
+		{RcodeBadMode, "BadMode"},
+		{RcodeBadName, "BadName"},
+		{RcodeBadAlg, "BadAlg"},
+		{RcodeBadTrunc, "BadTrunc"},
+		{RcodeBadCookie, "BadCookie"},
+		{Rcode(253), ""},
 	}
 
 	for _, c := range cases {
-		if got, want := c.RCODE.String(), c.String; got != want {
-			t.Errorf("RCODE.String(%v) error got=%s want=%s", c.RCODE, got, want)
+		if got, want := c.Rcode.String(), c.String; got != want {
+			t.Errorf("Rcode.String(%v) error got=%s want=%s", c.Rcode, got, want)
 		}
 	}
 }
 
-func TestOpCode(t *testing.T) {
+func TestOpcode(t *testing.T) {
 	var cases = []struct {
-		OpCode OpCode
+		Opcode Opcode
 		String string
 	}{
-		{OpCodeQuery, "Query"},
-		{OpCodeIquery, "Iquery"},
-		{OpCodeStatus, "Status"},
-		{OpCode(255), ""},
+		{OpcodeQuery, "Query"},
+		{OpcodeIQuery, "IQuery"},
+		{OpcodeStatus, "Status"},
+		{OpcodeNotify, "Notify"},
+		{OpcodeUpdate, "Update"},
+		{Opcode(255), ""},
 	}
 
 	for _, c := range cases {
-		if got, want := c.OpCode.String(), c.String; got != want {
-			t.Errorf("OpCode.String(%v) error got=%s want=%s", c.OpCode, got, want)
+		if got, want := c.Opcode.String(), c.String; got != want {
+			t.Errorf("Opcode.String(%v) error got=%s want=%s", c.Opcode, got, want)
 		}
 	}
 }
 
-func TestQClass(t *testing.T) {
+func TestClass(t *testing.T) {
 	var cases = []struct {
-		QClass QClass
+		Class  Class
 		String string
 	}{
-		{QClassUnknown, "Unknown"},
-		{QClassIN, "IN"},
-		{QClassCS, "CS"},
-		{QClassCH, "CH"},
-		{QClassHS, "HS"},
-		{QClassANY, "ANY"},
-		{QClass(254), ""},
+		{ClassINET, "IN"},
+		{ClassCSNET, "CS"},
+		{ClassCHAOS, "CH"},
+		{ClassHESIOD, "HS"},
+		{ClassNONE, "NONE"},
+		{ClassANY, "ANY"},
+		{Class(253), ""},
 	}
 
 	for _, c := range cases {
-		if got, want := c.QClass.String(), c.String; got != want {
-			t.Errorf("QClass.String(%v) error got=%s want=%s", c.QClass, got, want)
+		if got, want := c.Class.String(), c.String; got != want {
+			t.Errorf("Class.String(%v) error got=%s want=%s", c.Class, got, want)
 		}
 	}
 }
 
-func TestQType(t *testing.T) {
+func TestType(t *testing.T) {
 	var cases = []struct {
-		QType  QType
+		Type   Type
 		String string
 	}{
-		{QTypeUnknown, "Unknown"},
-		{QTypeA, "A"},
-		{QTypeNS, "NS"},
-		{QTypeMD, "MD"},
-		{QTypeMF, "MF"},
-		{QTypeCNAME, "CNAME"},
-		{QTypeSOA, "SOA"},
-		{QTypeMB, "MB"},
-		{QTypeMG, "MG"},
-		{QTypeMR, "MR"},
-		{QTypeNULL, "NULL"},
-		{QTypeWKS, "WKS"},
-		{QTypePTR, "PTR"},
-		{QTypeHINFO, "HINFO"},
-		{QTypeMINFO, "MINFO"},
-		{QTypeMX, "MX"},
-		{QTypeTXT, "TXT"},
-		{QTypeRP, "RP"},
-		{QTypeAFSDB, "AFSDB"},
-		{QTypeSIG, "SIG"},
-		{QTypeKEY, "KEY"},
-		{QTypeAAAA, "AAAA"},
-		{QTypeLOC, "LOC"},
-		{QTypeSRV, "SRV"},
-		{QTypeNAPTR, "NAPTR"},
-		{QTypeCERT, "CERT"},
-		{QTypeDNAME, "DNAME"},
-		{QTypeAPL, "APL"},
-		{QTypeDS, "DS"},
-		{QTypeSSHFP, "SSHFP"},
-		{QTypeIPSECKEY, "IPSECKEY"},
-		{QTypeRRSIG, "RRSIG"},
-		{QTypeNSEC, "NSEC"},
-		{QTypeDNSKEY, "DNSKEY"},
-		{QTypeDHCID, "DHCID"},
-		{QTypeNSEC3, "NSEC3"},
-		{QTypeNSEC3PARAM, "NSEC3PARAM"},
-		{QTypeHIP, "HIP"},
-		{QTypeCDS, "CDS"},
-		{QTypeCDNSKEY, "CDNSKEY"},
-		{QTypeOPENPGPKEY, "OPENPGPKEY"},
-		{QTypeSPF, "SPF"},
-		{QTypeTKEY, "TKEY"},
-		{QTypeTSIG, "TSIG"},
-		{QTypeAXFR, "AXFR"},
-		{QTypeMAILB, "MAILB"},
-		{QTypeMAILA, "MAILA"},
-		{QTypeANY, "ANY"},
-		{QTypeURI, "URI"},
-		{QTypeCAA, "CAA"},
-		{QTypeTA, "TA"},
-		{QTypeDLV, "DLV"},
-		{QType(65534), ""},
+		{TypeNone, "None"},
+		{TypeA, "A"},
+		{TypeNS, "NS"},
+		{TypeMD, "MD"},
+		{TypeMF, "MF"},
+		{TypeCNAME, "CNAME"},
+		{TypeSOA, "SOA"},
+		{TypeMB, "MB"},
+		{TypeMG, "MG"},
+		{TypeMR, "MR"},
+		{TypeNULL, "NULL"},
+		{TypePTR, "PTR"},
+		{TypeHINFO, "HINFO"},
+		{TypeMINFO, "MINFO"},
+		{TypeMX, "MX"},
+		{TypeTXT, "TXT"},
+		{TypeRP, "RP"},
+		{TypeAFSDB, "AFSDB"},
+		{TypeX25, "X25"},
+		{TypeISDN, "ISDN"},
+		{TypeRT, "RT"},
+		{TypeNSAPPTR, "NSAPPTR"},
+		{TypeSIG, "SIG"},
+		{TypeKEY, "KEY"},
+		{TypePX, "PX"},
+		{TypeGPOS, "GPOS"},
+		{TypeAAAA, "AAAA"},
+		{TypeLOC, "LOC"},
+		{TypeNXT, "NXT"},
+		{TypeEID, "EID"},
+		{TypeNIMLOC, "NIMLOC"},
+		{TypeSRV, "SRV"},
+		{TypeATMA, "ATMA"},
+		{TypeNAPTR, "NAPTR"},
+		{TypeKX, "KX"},
+		{TypeCERT, "CERT"},
+		{TypeDNAME, "DNAME"},
+		{TypeOPT, "OPT"},
+		{TypeAPL, "APL"},
+		{TypeDS, "DS"},
+		{TypeSSHFP, "SSHFP"},
+		{TypeRRSIG, "RRSIG"},
+		{TypeNSEC, "NSEC"},
+		{TypeDNSKEY, "DNSKEY"},
+		{TypeDHCID, "DHCID"},
+		{TypeNSEC3, "NSEC3"},
+		{TypeNSEC3PARAM, "NSEC3PARAM"},
+		{TypeTLSA, "TLSA"},
+		{TypeSMIMEA, "SMIMEA"},
+		{TypeHIP, "HIP"},
+		{TypeNINFO, "NINFO"},
+		{TypeRKEY, "RKEY"},
+		{TypeTALINK, "TALINK"},
+		{TypeCDS, "CDS"},
+		{TypeCDNSKEY, "CDNSKEY"},
+		{TypeOPENPGPKEY, "OPENPGPKEY"},
+		{TypeCSYNC, "CSYNC"},
+		{TypeZONEMD, "ZONEMD"},
+		{TypeSVCB, "SVCB"},
+		{TypeHTTPS, "HTTPS"},
+		{TypeSPF, "SPF"},
+		{TypeUINFO, "UINFO"},
+		{TypeUID, "UID"},
+		{TypeGID, "GID"},
+		{TypeUNSPEC, "UNSPEC"},
+		{TypeNID, "NID"},
+		{TypeL32, "L32"},
+		{TypeL64, "L64"},
+		{TypeLP, "LP"},
+		{TypeEUI48, "EUI48"},
+		{TypeEUI64, "EUI64"},
+		{TypeURI, "URI"},
+		{TypeCAA, "CAA"},
+		{TypeAVC, "AVC"},
+		{TypeTKEY, "TKEY"},
+		{TypeTSIG, "TSIG"},
+		{TypeIXFR, "IXFR"},
+		{TypeAXFR, "AXFR"},
+		{TypeMAILB, "MAILB"},
+		{TypeMAILA, "MAILA"},
+		{TypeANY, "ANY"},
+		{TypeTA, "TA"},
+		{TypeDLV, "DLV"},
+		{TypeReserved, "Reserved"},
+		{Type(65534), ""},
 	}
 
 	for _, c := range cases {
-		if got, want := c.QType.String(), c.String; got != want {
-			t.Errorf("QType.String(%v) error got=%s want=%s", c.QType, got, want)
+		if got, want := c.Type.String(), c.String; got != want {
+			t.Errorf("Type.String(%v) error got=%s want=%s", c.Type, got, want)
 		}
 	}
 }

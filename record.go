@@ -4,7 +4,7 @@ import (
 	"net"
 )
 
-func AppendHeaderQuestion(dst []byte, req *Request, rcode RCODE, qd, an, ns, ar uint16) []byte {
+func AppendHeaderQuestion(dst []byte, req *Request, rcode Rcode, qd, an, ns, ar uint16) []byte {
 	var header [12]byte
 
 	// ID
@@ -12,12 +12,12 @@ func AppendHeaderQuestion(dst []byte, req *Request, rcode RCODE, qd, an, ns, ar 
 	header[1] = byte(req.Header.ID & 0xff)
 
 	// QR :		0
-	// OpCode:	1 2 3 4
+	// Opcode:	1 2 3 4
 	// AA:		5
 	// TC:		6
 	// RD:		7
 	b := byte(1) << (7 - 0)
-	b |= byte(req.Header.OpCode) << (7 - (1 + 3))
+	b |= byte(req.Header.Opcode) << (7 - (1 + 3))
 	b |= req.Header.AA << (7 - 5)
 	b |= req.Header.TC << (7 - 6)
 	b |= req.Header.RD
@@ -68,7 +68,7 @@ func AppendHostRecord(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte
 				// NAME
 				0xc0, 0x0c,
 				// TYPE
-				0x00, byte(QTypeA),
+				0x00, byte(TypeA),
 				// CLASS
 				byte(req.Question.Class >> 8), byte(req.Question.Class),
 				// TTL
@@ -85,7 +85,7 @@ func AppendHostRecord(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte
 				// NAME
 				0xc0, 0x0c,
 				// TYPE
-				0x00, byte(QTypeAAAA),
+				0x00, byte(TypeAAAA),
 				// CLASS
 				byte(req.Question.Class >> 8), byte(req.Question.Class),
 				// TTL
@@ -113,7 +113,7 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 			// NAME
 			0xc0 | byte(offset>>8), byte(offset),
 			// TYPE
-			0x00, byte(QTypeCNAME),
+			0x00, byte(TypeCNAME),
 			// CLASS
 			byte(req.Question.Class >> 8), byte(req.Question.Class),
 			// TTL
@@ -140,7 +140,7 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 				// NAME
 				0xc0 | byte(offset>>8), byte(offset),
 				// TYPE
-				0x00, byte(QTypeA),
+				0x00, byte(TypeA),
 				// CLASS
 				byte(req.Question.Class >> 8), byte(req.Question.Class),
 				// TTL
@@ -157,7 +157,7 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 				// NAME
 				0xc0 | byte(offset>>8), byte(offset),
 				// TYPE
-				0x00, byte(QTypeAAAA),
+				0x00, byte(TypeAAAA),
 				// CLASS
 				byte(req.Question.Class >> 8), byte(req.Question.Class),
 				// TTL
@@ -183,7 +183,7 @@ func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, po
 		// NAME
 		0xc0, 0x0c,
 		// TYPE
-		0x00, byte(QTypeSRV),
+		0x00, byte(TypeSRV),
 		// CLASS
 		byte(req.Question.Class >> 8), byte(req.Question.Class),
 		// TTL
@@ -209,7 +209,7 @@ func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
 		// NAME
 		0xc0, 0x0c,
 		// TYPE
-		0x00, byte(QTypePTR),
+		0x00, byte(TypePTR),
 		// CLASS
 		byte(req.Question.Class >> 8), byte(req.Question.Class),
 		// TTL
@@ -236,7 +236,7 @@ func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte 
 			// NAME
 			0xc0, 0x0c,
 			// TYPE
-			0x00, byte(QTypeMX),
+			0x00, byte(TypeMX),
 			// CLASS
 			byte(req.Question.Class >> 8), byte(req.Question.Class),
 			// TTL
@@ -260,7 +260,7 @@ func AppendTXTRecord(dst []byte, req *Request, txt string, ttl uint32) []byte {
 		// NAME
 		0xc0, 0x0c,
 		// TYPE
-		0x00, byte(QTypeTXT),
+		0x00, byte(TypeTXT),
 		// CLASS
 		byte(req.Question.Class >> 8), byte(req.Question.Class),
 		// TTL

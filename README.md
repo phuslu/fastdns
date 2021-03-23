@@ -39,18 +39,18 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 	}
 
 	switch req.Question.Type {
-	case fastdns.QTypeA:
+	case fastdns.TypeA:
 		fastdns.CNAME(rw, req, []string{"a.example.com"}, []net.IP{net.IP{8, 8, 8, 8}}, 300)
-	case fastdns.QTypeAAAA:
+	case fastdns.TypeAAAA:
 		fastdns.Host(rw, req, []net.IP{net.ParseIP("::1")}, 300)
-	case fastdns.QTypeSRV:
+	case fastdns.TypeSRV:
 		fastdns.SRV(rw, req, "service1.example.com", 1000, 1000, 80, 300)
-	case fastdns.QTypePTR:
+	case fastdns.TypePTR:
 		fastdns.PTR(rw, req, "ptr.example.com", 0)
-	case fastdns.QTypeTXT:
+	case fastdns.TypeTXT:
 		fastdns.TXT(rw, req, "iamatxtrecord", 300)
 	default:
-		fastdns.Error(rw, req, fastdns.NXDOMAIN)
+		fastdns.Error(rw, req, fastdns.RcodeNameError)
 	}
 }
 

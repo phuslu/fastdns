@@ -19,7 +19,7 @@ type Request struct {
 		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		    |                      ID                       |
 		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		    |QR|   OpCode  |AA|TC|RD|RA|   Z    |   RCODE   |
+		    |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
 		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		    |                    QDCOUNT                    |
 		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -41,13 +41,13 @@ type Request struct {
 		// 1bit
 		QR byte
 
-		// OpCode is a 4bit field that specifies the query type.
+		// Opcode is a 4bit field that specifies the query type.
 		// Possible values are:
 		// 0		- standard query		(QUERY)
 		// 1		- inverse query			(IQUERY)
 		// 2		- server status request		(STATUS)
 		// 3 to 15	- reserved for future use
-		OpCode OpCode
+		Opcode Opcode
 
 		// AA indicates whether this is an (A)nswer from an (A)uthoritative
 		// server.
@@ -73,7 +73,7 @@ type Request struct {
 
 		// RCODE contains the (R)esponse (CODE) - it's a 4bit field that is
 		// set as part of responses.
-		RCODE RCODE
+		RCODE Rcode
 
 		// QDCOUNT specifies the number of entries in the question section
 		QDCount uint16
@@ -108,10 +108,10 @@ type Request struct {
 		Name []byte
 
 		// QTYPE specifies the type of the query to perform.
-		Type QType
+		Type Type
 
 		// QCLASS
-		Class QClass
+		Class Class
 	}
 }
 
@@ -138,17 +138,17 @@ func ParseRequest(payload []byte, req *Request) error {
 	// ID
 	req.Header.ID = uint16(payload[1]) | uint16(payload[0])<<8
 
-	// RD, TC, AA, OpCode, QR
+	// RD, TC, AA, Opcode, QR
 	b := payload[2]
 	req.Header.RD = b & 0b00000001
 	req.Header.TC = (b >> 1) & 0b00000001
 	req.Header.AA = (b >> 2) & 0b00000001
-	req.Header.OpCode = OpCode((b >> 3) & 0b00001111)
+	req.Header.Opcode = Opcode((b >> 3) & 0b00001111)
 	req.Header.QR = (b >> 7) & 0b00000001
 
 	// RA, Z, RCODE
 	b = payload[3]
-	req.Header.RCODE = RCODE(b & 0b00001111)
+	req.Header.RCODE = Rcode(b & 0b00001111)
 	req.Header.Z = (b >> 4) & 0b00000111
 	req.Header.RA = (b >> 7) & 0b00000001
 
@@ -177,8 +177,8 @@ func ParseRequest(payload []byte, req *Request) error {
 
 	// QTYPE, QCLASS
 	payload = payload[i:]
-	req.Question.Class = QClass(uint16(payload[4]) | uint16(payload[3])<<8)
-	req.Question.Type = QType(uint16(payload[2]) | uint16(payload[1])<<8)
+	req.Question.Class = Class(uint16(payload[4]) | uint16(payload[3])<<8)
+	req.Question.Type = Type(uint16(payload[2]) | uint16(payload[1])<<8)
 
 	return nil
 }
@@ -191,12 +191,12 @@ func AppendRequest(dst []byte, req *Request) []byte {
 	header[1] = byte(req.Header.ID & 0xff)
 
 	// QR :		0
-	// OpCode:	1 2 3 4
+	// Opcode:	1 2 3 4
 	// AA:		5
 	// TC:		6
 	// RD:		7
 	b := req.Header.QR << (7 - 0)
-	b |= byte(req.Header.OpCode) << (7 - (1 + 3))
+	b |= byte(req.Header.Opcode) << (7 - (1 + 3))
 	b |= req.Header.AA << (7 - 5)
 	b |= req.Header.TC << (7 - 6)
 	b |= req.Header.RD

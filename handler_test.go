@@ -10,7 +10,7 @@ var mockHandlerRequest = &Request{
 	Header{
 		ID:      0x0002,
 		QR:      0x00,
-		OpCode:  0x0000,
+		Opcode:  0x0000,
 		AA:      0x00,
 		TC:      0x00,
 		RD:      0x01,
@@ -24,8 +24,8 @@ var mockHandlerRequest = &Request{
 	},
 	Question{
 		Name:  []byte("\x02hk\x04phus\x02lu\x00"),
-		Type:  QTypeA,
-		Class: QClassIN,
+		Type:  TypeA,
+		Class: ClassINET,
 	},
 }
 
@@ -49,11 +49,11 @@ func TestHandlerResponseWriter(t *testing.T) {
 func TestHandlerError(t *testing.T) {
 	var cases = []struct {
 		Hex   string
-		RCODE RCODE
+		Rcode Rcode
 	}{
 		{
 			"000281030000000000000000",
-			NXDOMAIN,
+			RcodeNameError,
 		},
 	}
 
@@ -62,9 +62,9 @@ func TestHandlerError(t *testing.T) {
 		t.Errorf("memResponseWriter shall return empty addr")
 	}
 	for _, c := range cases {
-		Error(rw, mockHandlerRequest, c.RCODE)
+		Error(rw, mockHandlerRequest, c.Rcode)
 		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
-			t.Errorf("Error(%v) error got=%#v want=%#v", c.RCODE, got, want)
+			t.Errorf("Error(%v) error got=%#v want=%#v", c.Rcode, got, want)
 		}
 	}
 }

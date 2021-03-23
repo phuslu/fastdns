@@ -1,271 +1,396 @@
 package fastdns
 
-// RCODE denotes a 4bit field that specifies the response
+// Rcode denotes a 4bit field that specifies the response
 // code for a query.
-type RCODE byte
+type Rcode byte
 
 const (
-	// NOERROR indicates DNS Query completed successfully
-	NOERROR RCODE = 0
-	// FORMERR indicates DNS Query Format Error
-	FORMERR RCODE = 1
-	// SERVFAIL indicates Server failed to complete the DNS request
-	SERVFAIL RCODE = 2
-	// NXDOMAIN indicates Domain name does not exist.
-	NXDOMAIN RCODE = 3
-	// NOTIMP indicates Function not implemented
-	NOTIMP RCODE = 4
-	// REFUSED indicates The server refused to answer for the query
-	REFUSED RCODE = 5
-	// YXDOMAIN indicates Name that should not exist, does exist
-	YXDOMAIN RCODE = 6
-	// XRRSET indicates RRset that should not exist, does exist
-	XRRSET RCODE = 7
-	// NOTAUTH indicates Server not authoritative for the zone
-	NOTAUTH RCODE = 8
-	// NOTZONE indicates Name not in zone
-	NOTZONE RCODE = 9
+	// Message Response Codes, see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
+	RcodeSuccess        Rcode = 0  // RcodeNameError   - No Error                          [DNS]
+	RcodeFormatError    Rcode = 1  // FormErr   - Format Error                      [DNS]
+	RcodeServerFailure  Rcode = 2  // ServFail  - Server Failure                    [DNS]
+	RcodeNameError      Rcode = 3  // NXDomain  - Non-Existent Domain               [DNS]
+	RcodeNotImplemented Rcode = 4  // NotImp    - Not Implemented                   [DNS]
+	RcodeRefused        Rcode = 5  // Refused   - Query Refused                     [DNS]
+	RcodeYXDomain       Rcode = 6  // YXDomain  - Name Exists when it should not    [DNS Update]
+	RcodeYXRrset        Rcode = 7  // YXRRSet   - RR Set Exists when it should not  [DNS Update]
+	RcodeNXRrset        Rcode = 8  // NXRRSet   - RR Set that should exist does not [DNS Update]
+	RcodeNotAuth        Rcode = 9  // NotAuth   - Server Not Authoritative for zone [DNS Update]
+	RcodeNotZone        Rcode = 10 // NotZone   - Name not contained in zone        [DNS Update/TSIG]
+	RcodeBadSig         Rcode = 16 // BADSIG    - TSIG Signature Failure            [TSIG]
+	RcodeBadVers        Rcode = 16 // BADVERS   - Bad OPT Version                   [EDNS0]
+	RcodeBadKey         Rcode = 17 // BADKEY    - Key not recognized                [TSIG]
+	RcodeBadTime        Rcode = 18 // BADTIME   - Signature out of time window      [TSIG]
+	RcodeBadMode        Rcode = 19 // BADMODE   - Bad TKEY Mode                     [TKEY]
+	RcodeBadName        Rcode = 20 // BADNAME   - Duplicate key name                [TKEY]
+	RcodeBadAlg         Rcode = 21 // BADALG    - Algorithm not supported           [TKEY]
+	RcodeBadTrunc       Rcode = 22 // BADTRUNC  - Bad Truncation                    [TSIG]
+	RcodeBadCookie      Rcode = 23 // BADCOOKIE - Bad/missing Server Cookie         [DNS Cookies]
 )
 
-func (rcode RCODE) String() string {
-	switch rcode {
-	case NOERROR:
-		return "NOERROR"
-	case FORMERR:
-		return "FORMERR"
-	case SERVFAIL:
-		return "SERVFAIL"
-	case NXDOMAIN:
-		return "NXDOMAIN"
-	case NOTIMP:
-		return "NOTIMP"
-	case REFUSED:
-		return "REFUSED"
-	case YXDOMAIN:
-		return "YXDOMAIN"
-	case XRRSET:
-		return "XRRSET"
-	case NOTAUTH:
-		return "NOTAUTH"
-	case NOTZONE:
-		return "NOTZONE"
-	}
-	return ""
-}
-
-// OpCode denotes a 4bit field that specified the query type.
-type OpCode byte
-
-const (
-	OpCodeQuery  OpCode = 0
-	OpCodeIquery OpCode = 1
-	OpCodeStatus OpCode = 2
-)
-
-func (c OpCode) String() string {
+func (c Rcode) String() string {
 	switch c {
-	case OpCodeQuery:
+	case RcodeSuccess:
+		return "Success"
+	case RcodeFormatError:
+		return "FormatError"
+	case RcodeServerFailure:
+		return "ServerFailure"
+	case RcodeNameError:
+		return "NameError"
+	case RcodeNotImplemented:
+		return "NotImplemented"
+	case RcodeRefused:
+		return "Refused"
+	case RcodeYXDomain:
+		return "YXDomain"
+	case RcodeYXRrset:
+		return "YXRrset"
+	case RcodeNXRrset:
+		return "NXRrset"
+	case RcodeNotAuth:
+		return "NotAuth"
+	case RcodeNotZone:
+		return "NotZone"
+	case RcodeBadSig:
+		return "BadSig"
+	// case RcodeBadVers:
+	// 	return "BadVers"
+	case RcodeBadKey:
+		return "BadKey"
+	case RcodeBadTime:
+		return "BadTime"
+	case RcodeBadMode:
+		return "BadMode"
+	case RcodeBadName:
+		return "BadName"
+	case RcodeBadAlg:
+		return "BadAlg"
+	case RcodeBadTrunc:
+		return "BadTrunc"
+	case RcodeBadCookie:
+		return "BadCookie"
+	}
+	return ""
+}
+
+// Opcode denotes a 4bit field that specified the query type.
+type Opcode byte
+
+const (
+	// Message Opcodes. There is no 3.
+	OpcodeQuery  Opcode = 0
+	OpcodeIQuery Opcode = 1
+	OpcodeStatus Opcode = 2
+	OpcodeNotify Opcode = 4
+	OpcodeUpdate Opcode = 5
+)
+
+func (c Opcode) String() string {
+	switch c {
+	case OpcodeQuery:
 		return "Query"
-	case OpCodeIquery:
-		return "Iquery"
-	case OpCodeStatus:
+	case OpcodeIQuery:
+		return "IQuery"
+	case OpcodeStatus:
 		return "Status"
+	case OpcodeNotify:
+		return "Notify"
+	case OpcodeUpdate:
+		return "Update"
 	}
 	return ""
 }
 
-type QClass uint16
+type Class uint16
 
 const (
-	QClassUnknown QClass = 0
-	QClassIN      QClass = 1
-	QClassCS      QClass = 2
-	QClassCH      QClass = 3
-	QClassHS      QClass = 4
-	QClassANY     QClass = 255
+	// valid Question.Qclass
+	ClassINET   Class = 1
+	ClassCSNET  Class = 2
+	ClassCHAOS  Class = 3
+	ClassHESIOD Class = 4
+	ClassNONE   Class = 254
+	ClassANY    Class = 255
 )
 
-func (qc QClass) String() string {
-	switch qc {
-	case QClassUnknown:
-		return "Unknown"
-	case QClassIN:
+func (c Class) String() string {
+	switch c {
+	case ClassINET:
 		return "IN"
-	case QClassCS:
+	case ClassCSNET:
 		return "CS"
-	case QClassCH:
+	case ClassCHAOS:
 		return "CH"
-	case QClassHS:
+	case ClassHESIOD:
 		return "HS"
-	case QClassANY:
+	case ClassNONE:
+		return "NONE"
+	case ClassANY:
 		return "ANY"
 	}
 	return ""
 }
 
-type QType uint16
+type Type uint16
 
 const (
-	QTypeUnknown    QType = 0
-	QTypeA          QType = 1
-	QTypeNS         QType = 2
-	QTypeMD         QType = 3
-	QTypeMF         QType = 4
-	QTypeCNAME      QType = 5
-	QTypeSOA        QType = 6
-	QTypeMB         QType = 7
-	QTypeMG         QType = 8
-	QTypeMR         QType = 9
-	QTypeNULL       QType = 10
-	QTypeWKS        QType = 11
-	QTypePTR        QType = 12
-	QTypeHINFO      QType = 13
-	QTypeMINFO      QType = 14
-	QTypeMX         QType = 15
-	QTypeTXT        QType = 16
-	QTypeRP         QType = 17
-	QTypeAFSDB      QType = 18
-	QTypeSIG        QType = 24
-	QTypeKEY        QType = 25
-	QTypeAAAA       QType = 28
-	QTypeLOC        QType = 29
-	QTypeSRV        QType = 33
-	QTypeNAPTR      QType = 35
-	QTypeCERT       QType = 37
-	QTypeDNAME      QType = 39
-	QTypeAPL        QType = 42
-	QTypeDS         QType = 43
-	QTypeSSHFP      QType = 44
-	QTypeIPSECKEY   QType = 45
-	QTypeRRSIG      QType = 46
-	QTypeNSEC       QType = 47
-	QTypeDNSKEY     QType = 48
-	QTypeDHCID      QType = 49
-	QTypeNSEC3      QType = 50
-	QTypeNSEC3PARAM QType = 51
-	QTypeHIP        QType = 55
-	QTypeCDS        QType = 59
-	QTypeCDNSKEY    QType = 60
-	QTypeOPENPGPKEY QType = 61
-	QTypeSPF        QType = 99
-	QTypeTKEY       QType = 249
-	QTypeTSIG       QType = 250
-	QTypeAXFR       QType = 252
-	QTypeMAILB      QType = 253
-	QTypeMAILA      QType = 254
-	QTypeANY        QType = 255
-	QTypeURI        QType = 256
-	QTypeCAA        QType = 257
-	QTypeTA         QType = 32768
-	QTypeDLV        QType = 32769
+	TypeNone       Type = 0
+	TypeA          Type = 1
+	TypeNS         Type = 2
+	TypeMD         Type = 3
+	TypeMF         Type = 4
+	TypeCNAME      Type = 5
+	TypeSOA        Type = 6
+	TypeMB         Type = 7
+	TypeMG         Type = 8
+	TypeMR         Type = 9
+	TypeNULL       Type = 10
+	TypePTR        Type = 12
+	TypeHINFO      Type = 13
+	TypeMINFO      Type = 14
+	TypeMX         Type = 15
+	TypeTXT        Type = 16
+	TypeRP         Type = 17
+	TypeAFSDB      Type = 18
+	TypeX25        Type = 19
+	TypeISDN       Type = 20
+	TypeRT         Type = 21
+	TypeNSAPPTR    Type = 23
+	TypeSIG        Type = 24
+	TypeKEY        Type = 25
+	TypePX         Type = 26
+	TypeGPOS       Type = 27
+	TypeAAAA       Type = 28
+	TypeLOC        Type = 29
+	TypeNXT        Type = 30
+	TypeEID        Type = 31
+	TypeNIMLOC     Type = 32
+	TypeSRV        Type = 33
+	TypeATMA       Type = 34
+	TypeNAPTR      Type = 35
+	TypeKX         Type = 36
+	TypeCERT       Type = 37
+	TypeDNAME      Type = 39
+	TypeOPT        Type = 41 // EDNS
+	TypeAPL        Type = 42
+	TypeDS         Type = 43
+	TypeSSHFP      Type = 44
+	TypeRRSIG      Type = 46
+	TypeNSEC       Type = 47
+	TypeDNSKEY     Type = 48
+	TypeDHCID      Type = 49
+	TypeNSEC3      Type = 50
+	TypeNSEC3PARAM Type = 51
+	TypeTLSA       Type = 52
+	TypeSMIMEA     Type = 53
+	TypeHIP        Type = 55
+	TypeNINFO      Type = 56
+	TypeRKEY       Type = 57
+	TypeTALINK     Type = 58
+	TypeCDS        Type = 59
+	TypeCDNSKEY    Type = 60
+	TypeOPENPGPKEY Type = 61
+	TypeCSYNC      Type = 62
+	TypeZONEMD     Type = 63
+	TypeSVCB       Type = 64
+	TypeHTTPS      Type = 65
+	TypeSPF        Type = 99
+	TypeUINFO      Type = 100
+	TypeUID        Type = 101
+	TypeGID        Type = 102
+	TypeUNSPEC     Type = 103
+	TypeNID        Type = 104
+	TypeL32        Type = 105
+	TypeL64        Type = 106
+	TypeLP         Type = 107
+	TypeEUI48      Type = 108
+	TypeEUI64      Type = 109
+	TypeURI        Type = 256
+	TypeCAA        Type = 257
+	TypeAVC        Type = 258
+	TypeTKEY       Type = 249
+	TypeTSIG       Type = 250
+	TypeIXFR       Type = 251
+	TypeAXFR       Type = 252
+	TypeMAILB      Type = 253
+	TypeMAILA      Type = 254
+	TypeANY        Type = 255
+	TypeTA         Type = 32768
+	TypeDLV        Type = 32769
+	TypeReserved   Type = 65535
 )
 
-func (qt QType) String() string {
-	switch qt {
-	case QTypeUnknown:
-		return "Unknown"
-	case QTypeA:
+func (t Type) String() string {
+	switch t {
+	case TypeNone:
+		return "None"
+	case TypeA:
 		return "A"
-	case QTypeNS:
+	case TypeNS:
 		return "NS"
-	case QTypeMD:
+	case TypeMD:
 		return "MD"
-	case QTypeMF:
+	case TypeMF:
 		return "MF"
-	case QTypeCNAME:
+	case TypeCNAME:
 		return "CNAME"
-	case QTypeSOA:
+	case TypeSOA:
 		return "SOA"
-	case QTypeMB:
+	case TypeMB:
 		return "MB"
-	case QTypeMG:
+	case TypeMG:
 		return "MG"
-	case QTypeMR:
+	case TypeMR:
 		return "MR"
-	case QTypeNULL:
+	case TypeNULL:
 		return "NULL"
-	case QTypeWKS:
-		return "WKS"
-	case QTypePTR:
+	case TypePTR:
 		return "PTR"
-	case QTypeHINFO:
+	case TypeHINFO:
 		return "HINFO"
-	case QTypeMINFO:
+	case TypeMINFO:
 		return "MINFO"
-	case QTypeMX:
+	case TypeMX:
 		return "MX"
-	case QTypeTXT:
+	case TypeTXT:
 		return "TXT"
-	case QTypeRP:
+	case TypeRP:
 		return "RP"
-	case QTypeAFSDB:
+	case TypeAFSDB:
 		return "AFSDB"
-	case QTypeSIG:
+	case TypeX25:
+		return "X25"
+	case TypeISDN:
+		return "ISDN"
+	case TypeRT:
+		return "RT"
+	case TypeNSAPPTR:
+		return "NSAPPTR"
+	case TypeSIG:
 		return "SIG"
-	case QTypeKEY:
+	case TypeKEY:
 		return "KEY"
-	case QTypeAAAA:
+	case TypePX:
+		return "PX"
+	case TypeGPOS:
+		return "GPOS"
+	case TypeAAAA:
 		return "AAAA"
-	case QTypeLOC:
+	case TypeLOC:
 		return "LOC"
-	case QTypeSRV:
+	case TypeNXT:
+		return "NXT"
+	case TypeEID:
+		return "EID"
+	case TypeNIMLOC:
+		return "NIMLOC"
+	case TypeSRV:
 		return "SRV"
-	case QTypeNAPTR:
+	case TypeATMA:
+		return "ATMA"
+	case TypeNAPTR:
 		return "NAPTR"
-	case QTypeCERT:
+	case TypeKX:
+		return "KX"
+	case TypeCERT:
 		return "CERT"
-	case QTypeDNAME:
+	case TypeDNAME:
 		return "DNAME"
-	case QTypeAPL:
+	case TypeOPT:
+		return "OPT"
+	case TypeAPL:
 		return "APL"
-	case QTypeDS:
+	case TypeDS:
 		return "DS"
-	case QTypeSSHFP:
+	case TypeSSHFP:
 		return "SSHFP"
-	case QTypeIPSECKEY:
-		return "IPSECKEY"
-	case QTypeRRSIG:
+	case TypeRRSIG:
 		return "RRSIG"
-	case QTypeNSEC:
+	case TypeNSEC:
 		return "NSEC"
-	case QTypeDNSKEY:
+	case TypeDNSKEY:
 		return "DNSKEY"
-	case QTypeDHCID:
+	case TypeDHCID:
 		return "DHCID"
-	case QTypeNSEC3:
+	case TypeNSEC3:
 		return "NSEC3"
-	case QTypeNSEC3PARAM:
+	case TypeNSEC3PARAM:
 		return "NSEC3PARAM"
-	case QTypeHIP:
+	case TypeTLSA:
+		return "TLSA"
+	case TypeSMIMEA:
+		return "SMIMEA"
+	case TypeHIP:
 		return "HIP"
-	case QTypeCDS:
+	case TypeNINFO:
+		return "NINFO"
+	case TypeRKEY:
+		return "RKEY"
+	case TypeTALINK:
+		return "TALINK"
+	case TypeCDS:
 		return "CDS"
-	case QTypeCDNSKEY:
+	case TypeCDNSKEY:
 		return "CDNSKEY"
-	case QTypeOPENPGPKEY:
+	case TypeOPENPGPKEY:
 		return "OPENPGPKEY"
-	case QTypeSPF:
+	case TypeCSYNC:
+		return "CSYNC"
+	case TypeZONEMD:
+		return "ZONEMD"
+	case TypeSVCB:
+		return "SVCB"
+	case TypeHTTPS:
+		return "HTTPS"
+	case TypeSPF:
 		return "SPF"
-	case QTypeTKEY:
-		return "TKEY"
-	case QTypeTSIG:
-		return "TSIG"
-	case QTypeAXFR:
-		return "AXFR"
-	case QTypeMAILB:
-		return "MAILB"
-	case QTypeMAILA:
-		return "MAILA"
-	case QTypeANY:
-		return "ANY"
-	case QTypeURI:
+	case TypeUINFO:
+		return "UINFO"
+	case TypeUID:
+		return "UID"
+	case TypeGID:
+		return "GID"
+	case TypeUNSPEC:
+		return "UNSPEC"
+	case TypeNID:
+		return "NID"
+	case TypeL32:
+		return "L32"
+	case TypeL64:
+		return "L64"
+	case TypeLP:
+		return "LP"
+	case TypeEUI48:
+		return "EUI48"
+	case TypeEUI64:
+		return "EUI64"
+	case TypeURI:
 		return "URI"
-	case QTypeCAA:
+	case TypeCAA:
 		return "CAA"
-	case QTypeTA:
+	case TypeAVC:
+		return "AVC"
+	case TypeTKEY:
+		return "TKEY"
+	case TypeTSIG:
+		return "TSIG"
+	case TypeIXFR:
+		return "IXFR"
+	case TypeAXFR:
+		return "AXFR"
+	case TypeMAILB:
+		return "MAILB"
+	case TypeMAILA:
+		return "MAILA"
+	case TypeANY:
+		return "ANY"
+	case TypeTA:
 		return "TA"
-	case QTypeDLV:
+	case TypeDLV:
 		return "DLV"
+	case TypeReserved:
+		return "Reserved"
 	}
 	return ""
 }

@@ -45,7 +45,7 @@ func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-func Error(rw ResponseWriter, req *Request, code RCODE) {
+func Error(rw ResponseWriter, req *Request, code Rcode) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
 
@@ -59,7 +59,7 @@ func Host(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 	defer ReleaseByteBuffer(b)
 
 	b.B = b.B[:0]
-	b.B = AppendHeaderQuestion(b.B, req, NOERROR, 1, uint16(len(ips)), 0, 0)
+	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, uint16(len(ips)), 0, 0)
 	b.B = AppendHostRecord(b.B, req, ips, ttl)
 
 	// fmt.Printf("%x\n", b.B)
@@ -72,7 +72,7 @@ func CNAME(rw ResponseWriter, req *Request, cnames []string, ips []net.IP, ttl u
 	defer ReleaseByteBuffer(b)
 
 	b.B = b.B[:0]
-	b.B = AppendHeaderQuestion(b.B, req, NOERROR, 1, uint16(len(cnames)+len(ips)), 0, 0)
+	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, uint16(len(cnames)+len(ips)), 0, 0)
 	b.B = AppendCNameRecord(b.B, req, cnames, ips, ttl)
 
 	// fmt.Printf("%x\n", b.B)
@@ -85,7 +85,7 @@ func SRV(rw ResponseWriter, req *Request, srv string, priovrity, weight, port ui
 	defer ReleaseByteBuffer(b)
 
 	b.B = b.B[:0]
-	b.B = AppendHeaderQuestion(b.B, req, NOERROR, 1, 1, 0, 0)
+	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, 1, 0, 0)
 	b.B = AppendSRVRecord(b.B, req, srv, priovrity, weight, port, ttl)
 
 	// fmt.Printf("%x\n", b.B)
@@ -98,7 +98,7 @@ func PTR(rw ResponseWriter, req *Request, ptr string, ttl uint32) {
 	defer ReleaseByteBuffer(b)
 
 	b.B = b.B[:0]
-	b.B = AppendHeaderQuestion(b.B, req, NOERROR, 1, 1, 0, 0)
+	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, 1, 0, 0)
 	b.B = AppendPTRRecord(b.B, req, ptr, ttl)
 
 	// fmt.Printf("%x\n", b.B)
@@ -111,7 +111,7 @@ func MX(rw ResponseWriter, req *Request, mx []MXRecord, ttl uint32) {
 	defer ReleaseByteBuffer(b)
 
 	b.B = b.B[:0]
-	b.B = AppendHeaderQuestion(b.B, req, NOERROR, 1, 1, 0, 0)
+	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, 1, 0, 0)
 	b.B = AppendMXRecord(b.B, req, mx, ttl)
 
 	// fmt.Printf("%x\n", b.B)
@@ -124,7 +124,7 @@ func TXT(rw ResponseWriter, req *Request, txt string, ttl uint32) {
 	defer ReleaseByteBuffer(b)
 
 	b.B = b.B[:0]
-	b.B = AppendHeaderQuestion(b.B, req, NOERROR, 1, 1, 0, 0)
+	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, 1, 0, 0)
 	b.B = AppendTXTRecord(b.B, req, txt, ttl)
 
 	// fmt.Printf("%x\n", b.B)

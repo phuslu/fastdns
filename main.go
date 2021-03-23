@@ -20,8 +20,8 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 		log.Printf("%s] %s: CLASS %s TYPE %s\n", addr, name, req.Question.Class, req.Question.Type)
 	}
 
-	if req.Question.Type != fastdns.QTypeA {
-		fastdns.Error(rw, req, fastdns.NXDOMAIN)
+	if req.Question.Type != fastdns.TypeA {
+		fastdns.Error(rw, req, fastdns.RcodeNameError)
 		return
 	}
 
