@@ -30,6 +30,21 @@ func (rw *responseWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
+type memResponseWriter struct {
+	data []byte
+	addr net.Addr
+}
+
+func (rw *memResponseWriter) RemoteAddr() net.Addr {
+	return rw.addr
+}
+
+func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
+	rw.data = append(rw.data, p...)
+	n = len(p)
+	return
+}
+
 func Error(rw ResponseWriter, req *Request, code RCODE) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
