@@ -12,7 +12,7 @@ import (
 	"strconv"
 )
 
-// Server implements a prefork DNS server.
+// ForkServer implements a prefork DNS server.
 type ForkServer struct {
 	Network string
 	Handler Handler
