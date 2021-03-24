@@ -144,6 +144,28 @@ func TestHandlerSRV(t *testing.T) {
 	}
 }
 
+func TestHandlerMX(t *testing.T) {
+	var cases = []struct {
+		Hex string
+		MX  string
+		TTL uint32
+	}{
+		{
+			"00028100000100010000000002686b0470687573026c750000010001c00c000f00010000012c0013000a03707472076578616d706c65036f726700",
+			"ptr.example.org",
+			300,
+		},
+	}
+
+	rw := &memResponseWriter{}
+	for _, c := range cases {
+		MX(rw, mockHandlerRequest, []MXRecord{{10, c.MX}}, c.TTL)
+		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
+			t.Errorf("MX(%v) error got=%#v want=%#v", c.MX, got, want)
+		}
+	}
+}
+
 func TestHandlerPTR(t *testing.T) {
 	var cases = []struct {
 		Hex string

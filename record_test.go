@@ -245,6 +245,35 @@ func TestAppendSRVRecord(t *testing.T) {
 
 }
 
+func TestAppendMXRecord(t *testing.T) {
+	cases := []struct {
+		Hex string
+		MX  string
+		TTL uint32
+	}{
+		{
+			"c00c000f00010000012c000e000a02686b0470687573026c7500",
+			"hk.phus.lu",
+			300,
+		},
+		{
+			"c00c000f00010000012c000e000a0273670470687573026c7500",
+			"sg.phus.lu",
+			300,
+		},
+	}
+
+	req := new(Request)
+	req.Question.Class = ClassINET
+
+	for _, c := range cases {
+		if got, want := hex.EncodeToString(AppendMXRecord(nil, req, []MXRecord{{10, c.MX}}, c.TTL)), c.Hex; got != want {
+			t.Errorf("AppendMXRecord(%v) error got=%#v want=%#v", c.MX, got, want)
+		}
+	}
+
+}
+
 func TestAppendPTRRecord(t *testing.T) {
 	cases := []struct {
 		Hex string
