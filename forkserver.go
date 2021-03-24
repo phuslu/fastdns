@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
-	"time"
 )
 
 type ForkServer struct {
@@ -22,7 +21,6 @@ type ForkServer struct {
 	HTTPHandler  http.Handler
 
 	index int
-	conn  *net.UDPConn
 }
 
 func (s *ForkServer) ListenAndServe(addr string) error {
@@ -46,7 +44,6 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err
 	}
-	s.conn = conn
 
 	if s.HTTPPortBase > 0 {
 		host, _, _ := net.SplitHostPort(addr)
@@ -59,42 +56,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 
 	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
-	pool := &workerPool{
-		WorkerFunc: func(rw ResponseWriter, b *ByteBuffer) error {
-			defer ReleaseByteBuffer(b)
-
-			req := AcquireRequest()
-			defer ReleaseRequest(req)
-
-			err := ParseRequest(b.B, req)
-			if err != nil {
-				return err
-			}
-
-			s.Handler.ServeDNS(rw, req)
-			return nil
-		},
-		MaxWorkersCount:       200000,
-		LogAllErrors:          false,
-		MaxIdleWorkerDuration: 2 * time.Minute,
-		Logger:                s.Logger,
-	}
-	pool.Start()
-
-	for {
-		b := AcquireByteBuffer()
-
-		b.B = b.B[:cap(b.B)]
-		n, addr, err := conn.ReadFromUDP(b.B)
-		b.B = b.B[:n]
-
-		if err != nil {
-			time.Sleep(10 * time.Millisecond)
-			continue
-		}
-		pool.Serve(&udpResponseWriter{conn, addr}, b)
-	}
-
+	return serve(conn, s.Handler, s.Logger)
 }
 
 func (s *ForkServer) Index() (index int) {
