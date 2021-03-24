@@ -34,16 +34,20 @@ func TestHandlerResponseWriter(t *testing.T) {
 		addr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
 	}
 
-	if s := rw.RemoteAddr().String(); s != "1.1.1.1:53" {
-		t.Errorf("response writer return error address: %+v", s)
-	}
-
 	var err error
 	rw.conn, err = net.DialUDP("udp", nil, rw.RemoteAddr().(*net.UDPAddr))
 	if err != nil {
 		t.Errorf("response writer dial udp error: %+v", err)
 	}
 	_, _ = rw.Write([]byte("test"))
+
+	if s := rw.RemoteAddr().String(); s != "1.1.1.1:53" {
+		t.Errorf("response writer return error remote address: %+v", s)
+	}
+
+	if s := rw.LocalAddr().String(); s == "" {
+		t.Errorf("response writer return empty local address")
+	}
 }
 
 func TestHandlerError(t *testing.T) {
