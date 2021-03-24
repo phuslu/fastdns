@@ -255,7 +255,7 @@ func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
 }
 
 func AppendTXTRecord(dst []byte, req *Request, txt string, ttl uint32) []byte {
-	length := len(txt)
+	length := len(txt) + (len(txt)+0xff)/0x100
 	answer := [...]byte{
 		// NAME
 		0xc0, 0x0c,
