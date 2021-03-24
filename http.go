@@ -29,10 +29,14 @@ func HTTPHandlerFunc(h Handler) http.HandlerFunc {
 			return
 		}
 
+		// remote addr
 		ip, port, _ := net.SplitHostPort(req.RemoteAddr)
-		addr := &net.TCPAddr{IP: net.ParseIP(ip)}
-		addr.Port, _ = strconv.Atoi(port)
-		mem := &memResponseWriter{addr: addr}
+		raddr := &net.TCPAddr{IP: net.ParseIP(ip)}
+		raddr.Port, _ = strconv.Atoi(port)
+		// local addr
+		laddr := req.Context().Value(http.LocalAddrContextKey).(net.Addr)
+		// in-memory response writer
+		mem := &memResponseWriter{raddr: raddr, laddr: laddr}
 
 		h.ServeDNS(mem, r)
 

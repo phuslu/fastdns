@@ -61,6 +61,9 @@ func TestHandlerError(t *testing.T) {
 	if rw.RemoteAddr() != nil {
 		t.Errorf("memResponseWriter shall return empty addr")
 	}
+	if rw.LocalAddr() != nil {
+		t.Errorf("memResponseWriter shall return empty addr")
+	}
 	for _, c := range cases {
 		Error(rw, mockHandlerRequest, c.Rcode)
 		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {

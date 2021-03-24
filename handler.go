@@ -36,16 +36,17 @@ func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
 }
 
 type memResponseWriter struct {
-	data []byte
-	addr net.Addr
+	data  []byte
+	raddr net.Addr
+	laddr net.Addr
 }
 
 func (rw *memResponseWriter) RemoteAddr() net.Addr {
-	return rw.addr
+	return rw.raddr
 }
 
 func (rw *memResponseWriter) LocalAddr() net.Addr {
-	return nil
+	return rw.laddr
 }
 
 func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
