@@ -16,16 +16,16 @@ type ResponseWriter interface {
 	Write([]byte) (int, error)
 }
 
-type responseWriter struct {
+type udpResponseWriter struct {
 	conn *net.UDPConn
 	addr *net.UDPAddr
 }
 
-func (rw *responseWriter) RemoteAddr() net.Addr {
+func (rw *udpResponseWriter) RemoteAddr() net.Addr {
 	return rw.addr
 }
 
-func (rw *responseWriter) Write(p []byte) (n int, err error) {
+func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
 	n, _, err = rw.conn.WriteMsgUDP(p, nil, rw.addr)
 	return
 }

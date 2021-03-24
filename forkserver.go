@@ -83,7 +83,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 				return
 			}
 
-			s.Handler.ServeDNS(&responseWriter{conn, addr}, req)
+			s.Handler.ServeDNS(&udpResponseWriter{conn, addr}, req)
 		})
 	}
 

@@ -30,7 +30,7 @@ var mockHandlerRequest = &Request{
 }
 
 func TestHandlerResponseWriter(t *testing.T) {
-	rw := &responseWriter{
+	rw := &udpResponseWriter{
 		addr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
 	}
 

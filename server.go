@@ -58,7 +58,7 @@ func (s *Server) ListenAndServe(addr string) error {
 				return
 			}
 
-			s.Handler.ServeDNS(&responseWriter{conn, addr}, req)
+			s.Handler.ServeDNS(&udpResponseWriter{conn, addr}, req)
 		})
 	}
 
