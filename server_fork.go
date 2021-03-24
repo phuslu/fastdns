@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" // enabling pprof
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
 )
 
+// Server implements a prefork DNS server.
 type ForkServer struct {
 	Network string
 	Handler Handler
@@ -23,6 +24,7 @@ type ForkServer struct {
 	index int
 }
 
+// ListenAndServe serves DNS requests from the given UDP addr.
 func (s *ForkServer) ListenAndServe(addr string) error {
 	s.index, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
 	if s.Index() == 0 {
@@ -59,6 +61,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 	return serve(conn, s.Handler, s.Logger)
 }
 
+// Index indicates the index of Server instances.
 func (s *ForkServer) Index() (index int) {
 	index = s.index
 	return

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Server implements a mutli-listener DNS server.
 type Server struct {
 	Network string
 	Handler Handler
@@ -15,6 +16,7 @@ type Server struct {
 	index int
 }
 
+// ListenAndServe serves DNS requests from the given UDP addr.
 func (s *Server) ListenAndServe(addr string) error {
 	if s.Index() == 0 {
 		return s.spwan(addr)
@@ -35,6 +37,7 @@ func (s *Server) ListenAndServe(addr string) error {
 	return serve(conn, s.Handler, s.Logger)
 }
 
+// Index indicates the index of Server instances.
 func (s *Server) Index() (index int) {
 	index = s.index
 	return
