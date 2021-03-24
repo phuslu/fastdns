@@ -39,7 +39,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 
 	switch req.Question.Type {
 	case fastdns.TypeA:
-		fastdns.CNAME(rw, req, []string{"a.example.com"}, []net.IP{net.IP{8, 8, 8, 8}}, 300)
+		fastdns.CNAME(rw, req, []string{"a.example.com"}, []net.IP{{8, 8, 8, 8}}, 300)
 	case fastdns.TypeAAAA:
 		fastdns.Host(rw, req, []net.IP{net.ParseIP("::1")}, 300)
 	case fastdns.TypeSRV:
