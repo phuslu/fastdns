@@ -13,6 +13,7 @@ type Handler interface {
 
 type ResponseWriter interface {
 	RemoteAddr() net.Addr
+	LocalAddr() net.Addr
 	Write([]byte) (int, error)
 }
 
@@ -23,6 +24,10 @@ type udpResponseWriter struct {
 
 func (rw *udpResponseWriter) RemoteAddr() net.Addr {
 	return rw.addr
+}
+
+func (rw *udpResponseWriter) LocalAddr() net.Addr {
+	return rw.conn.LocalAddr()
 }
 
 func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
@@ -37,6 +42,10 @@ type memResponseWriter struct {
 
 func (rw *memResponseWriter) RemoteAddr() net.Addr {
 	return rw.addr
+}
+
+func (rw *memResponseWriter) LocalAddr() net.Addr {
+	return nil
 }
 
 func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
