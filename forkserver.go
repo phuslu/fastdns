@@ -59,7 +59,28 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 
 	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
-	pool := newGoroutinePool(1 * time.Minute)
+	pool := &workerPool{
+		WorkerFunc: func(rw ResponseWriter, b *ByteBuffer) error {
+			defer ReleaseByteBuffer(b)
+
+			req := AcquireRequest()
+			defer ReleaseRequest(req)
+
+			err := ParseRequest(b.B, req)
+			if err != nil {
+				return err
+			}
+
+			s.Handler.ServeDNS(rw, req)
+			return nil
+		},
+		MaxWorkersCount:       200000,
+		LogAllErrors:          false,
+		MaxIdleWorkerDuration: 2 * time.Minute,
+		Logger:                s.Logger,
+	}
+	pool.Start()
+
 	for {
 		b := AcquireByteBuffer()
 
@@ -71,20 +92,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 			time.Sleep(10 * time.Millisecond)
 			continue
 		}
-
-		pool.Go(func() {
-			defer ReleaseByteBuffer(b)
-
-			req := AcquireRequest()
-			defer ReleaseRequest(req)
-
-			err := ParseRequest(b.B, req)
-			if err != nil {
-				return
-			}
-
-			s.Handler.ServeDNS(&udpResponseWriter{conn, addr}, req)
-		})
+		pool.Serve(&udpResponseWriter{conn, addr}, b)
 	}
 
 }
