@@ -45,12 +45,14 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 		fastdns.Host(rw, req, []net.IP{net.ParseIP("::1")}, 300)
 	case fastdns.TypeSRV:
 		fastdns.SRV(rw, req, "service1.example.com", 1000, 1000, 80, 300)
+	case fastdns.TypeMX:
+		fastdns.MX(rw, req, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}}, 60)
 	case fastdns.TypePTR:
 		fastdns.PTR(rw, req, "ptr.example.com", 0)
 	case fastdns.TypeTXT:
 		fastdns.TXT(rw, req, "iamatxtrecord", 300)
 	default:
-		fastdns.Error(rw, req, fastdns.RcodeNameError)
+		fastdns.Error(rw, req, fastdns.RcodeNotImplemented)
 	}
 }
 
