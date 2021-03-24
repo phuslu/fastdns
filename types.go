@@ -4,9 +4,9 @@ package fastdns
 // code for a query.
 type Rcode byte
 
+// Message Response Codes, see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
 const (
-	// Message Response Codes, see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
-	RcodeSuccess        Rcode = 0  // RcodeNameError   - No Error                          [DNS]
+	RcodeSuccess        Rcode = 0  // Success   - No Error                          [DNS]
 	RcodeFormatError    Rcode = 1  // FormErr   - Format Error                      [DNS]
 	RcodeServerFailure  Rcode = 2  // ServFail  - Server Failure                    [DNS]
 	RcodeNameError      Rcode = 3  // NXDomain  - Non-Existent Domain               [DNS]
@@ -77,8 +77,8 @@ func (c Rcode) String() string {
 // Opcode denotes a 4bit field that specified the query type.
 type Opcode byte
 
+// Wire constants and supported types.
 const (
-	// Message Opcodes. There is no 3.
 	OpcodeQuery  Opcode = 0
 	OpcodeIQuery Opcode = 1
 	OpcodeStatus Opcode = 2
@@ -102,10 +102,11 @@ func (c Opcode) String() string {
 	return ""
 }
 
+// Class is a DNS class.
 type Class uint16
 
+// Wire constants and supported types.
 const (
-	// valid Question.Qclass
 	ClassINET   Class = 1
 	ClassCSNET  Class = 2
 	ClassCHAOS  Class = 3
@@ -132,8 +133,10 @@ func (c Class) String() string {
 	return ""
 }
 
+// Type is a DNS type.
 type Type uint16
 
+// Wire constants and supported types.
 const (
 	TypeNone       Type = 0
 	TypeA          Type = 1
