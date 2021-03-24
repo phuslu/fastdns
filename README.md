@@ -9,8 +9,7 @@
 * Simple Interface, similar with net/http
 * High Performance
     - prefork + reuse_port + set_affinity
-    - goroutine pool
-    - memory pool
+    - worker pool + memory pool
     - 0-allocs dns request parser
     - 0-allocs dns records marshaller
 
