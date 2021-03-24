@@ -103,19 +103,6 @@ func SRV(rw ResponseWriter, req *Request, srv string, priovrity, weight, port ui
 	_, _ = rw.Write(b.B)
 }
 
-func PTR(rw ResponseWriter, req *Request, ptr string, ttl uint32) {
-	b := AcquireByteBuffer()
-	defer ReleaseByteBuffer(b)
-
-	b.B = b.B[:0]
-	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, 1, 0, 0)
-	b.B = AppendPTRRecord(b.B, req, ptr, ttl)
-
-	// fmt.Printf("%x\n", b.B)
-
-	_, _ = rw.Write(b.B)
-}
-
 func MX(rw ResponseWriter, req *Request, mx []MXRecord, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
@@ -123,6 +110,19 @@ func MX(rw ResponseWriter, req *Request, mx []MXRecord, ttl uint32) {
 	b.B = b.B[:0]
 	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, uint16(len(mx)), 0, 0)
 	b.B = AppendMXRecord(b.B, req, mx, ttl)
+
+	// fmt.Printf("%x\n", b.B)
+
+	_, _ = rw.Write(b.B)
+}
+
+func PTR(rw ResponseWriter, req *Request, ptr string, ttl uint32) {
+	b := AcquireByteBuffer()
+	defer ReleaseByteBuffer(b)
+
+	b.B = b.B[:0]
+	b.B = AppendHeaderQuestion(b.B, req, RcodeSuccess, 1, 1, 0, 0)
+	b.B = AppendPTRRecord(b.B, req, ptr, ttl)
 
 	// fmt.Printf("%x\n", b.B)
 

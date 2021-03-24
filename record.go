@@ -204,26 +204,6 @@ func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, po
 	return dst
 }
 
-func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
-	answer := [...]byte{
-		// NAME
-		0xc0, 0x0c,
-		// TYPE
-		0x00, byte(TypePTR),
-		// CLASS
-		byte(req.Question.Class >> 8), byte(req.Question.Class),
-		// TTL
-		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
-		// RDLENGTH
-		00, byte(len(ptr)),
-	}
-	dst = append(dst, answer[:]...)
-	// PTR
-	dst = encodeDomain(dst, ptr)
-
-	return dst
-}
-
 type MXRecord struct {
 	Priority uint16
 	Host     string
@@ -250,6 +230,26 @@ func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte 
 		// RDATA
 		dst = encodeDomain(dst, rr.Host)
 	}
+
+	return dst
+}
+
+func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
+	answer := [...]byte{
+		// NAME
+		0xc0, 0x0c,
+		// TYPE
+		0x00, byte(TypePTR),
+		// CLASS
+		byte(req.Question.Class >> 8), byte(req.Question.Class),
+		// TTL
+		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+		// RDLENGTH
+		00, byte(2 + len(ptr)),
+	}
+	dst = append(dst, answer[:]...)
+	// PTR
+	dst = encodeDomain(dst, ptr)
 
 	return dst
 }
