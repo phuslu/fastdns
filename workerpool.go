@@ -2,7 +2,6 @@ package fastdns
 
 import (
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 )
@@ -14,8 +13,7 @@ import (
 // Such a scheme keeps CPU caches hot (in theory).
 type workerPool struct {
 	// Function for serving server connections.
-	// It must leave c unclosed.
-	WorkerFunc func(ResponseWriter, *ByteBuffer) error
+	WorkerFunc func(rw ResponseWriter, b *ByteBuffer) error
 
 	MaxWorkersCount int
 
@@ -223,12 +221,7 @@ func (wp *workerPool) workerFunc(ch *workerChan) {
 		}
 
 		if err = wp.WorkerFunc(item.rw, item.b); err != nil {
-			errStr := err.Error()
-			if wp.LogAllErrors || !(strings.Contains(errStr, "broken pipe") ||
-				strings.Contains(errStr, "reset by peer") ||
-				strings.Contains(errStr, "request headers: small read buffer") ||
-				strings.Contains(errStr, "unexpected EOF") ||
-				strings.Contains(errStr, "i/o timeout")) {
+			if wp.LogAllErrors || !(err == ErrInvalidHeader || err == ErrInvalidQuestion) {
 				wp.Logger.Printf("error when serving connection %q<->%q: %s", item.rw.LocalAddr(), item.rw.RemoteAddr(), err)
 			}
 		}
