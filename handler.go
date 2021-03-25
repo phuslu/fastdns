@@ -7,10 +7,12 @@ import (
 
 var _ = fmt.Printf
 
+// Handler is implemented by any value that implements ServeDNS.
 type Handler interface {
 	ServeDNS(rw ResponseWriter, req *Request)
 }
 
+// A ResponseWriter interface is used by an DNS handler to construct an DNS response.
 type ResponseWriter interface {
 	RemoteAddr() net.Addr
 	LocalAddr() net.Addr
@@ -55,6 +57,7 @@ func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
+// Error replies to the request with the specified Rcode.
 func Error(rw ResponseWriter, req *Request, code Rcode) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
@@ -64,6 +67,7 @@ func Error(rw ResponseWriter, req *Request, code Rcode) {
 	_, _ = rw.Write(b.B)
 }
 
+// Host replies to the request with the specified Host records.
 func Host(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
@@ -77,6 +81,7 @@ func Host(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 	_, _ = rw.Write(b.B)
 }
 
+// CNAME replies to the request with the specified CName and Host records.
 func CNAME(rw ResponseWriter, req *Request, cnames []string, ips []net.IP, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
@@ -90,6 +95,7 @@ func CNAME(rw ResponseWriter, req *Request, cnames []string, ips []net.IP, ttl u
 	_, _ = rw.Write(b.B)
 }
 
+// SRV replies to the request with the specified SRV records.
 func SRV(rw ResponseWriter, req *Request, srv string, priovrity, weight, port uint16, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
@@ -103,6 +109,7 @@ func SRV(rw ResponseWriter, req *Request, srv string, priovrity, weight, port ui
 	_, _ = rw.Write(b.B)
 }
 
+// MX replies to the request with the specified MX records.
 func MX(rw ResponseWriter, req *Request, mx []MXRecord, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
@@ -116,6 +123,7 @@ func MX(rw ResponseWriter, req *Request, mx []MXRecord, ttl uint32) {
 	_, _ = rw.Write(b.B)
 }
 
+// PTR replies to the request with the specified PTR records.
 func PTR(rw ResponseWriter, req *Request, ptr string, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
@@ -129,6 +137,7 @@ func PTR(rw ResponseWriter, req *Request, ptr string, ttl uint32) {
 	_, _ = rw.Write(b.B)
 }
 
+// TXT replies to the request with the specified TXT records.
 func TXT(rw ResponseWriter, req *Request, txt string, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
