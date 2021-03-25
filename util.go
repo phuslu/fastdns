@@ -6,10 +6,8 @@ import (
 
 func decodeQName(dst []byte, qname []byte) []byte {
 	switch len(qname) {
-	case 0:
-		return nil
-	case 1:
-		return []byte{}
+	case 0, 1:
+		return dst
 	}
 
 	n := len(dst) + int(qname[0])
