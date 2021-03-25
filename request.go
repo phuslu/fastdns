@@ -134,7 +134,7 @@ var (
 )
 
 // ParseRequest parses dns request from payload into dst and returns the error.
-func ParseRequest(payload []byte, req *Request) error {
+func ParseRequest(dst *Request, payload []byte) error {
 	if len(payload) < 12 {
 		return ErrInvalidHeader
 	}
@@ -142,29 +142,29 @@ func ParseRequest(payload []byte, req *Request) error {
 	_ = payload[11]
 
 	// ID
-	req.Header.ID = uint16(payload[1]) | uint16(payload[0])<<8
+	dst.Header.ID = uint16(payload[1]) | uint16(payload[0])<<8
 
 	// RD, TC, AA, Opcode, QR
 	b := payload[2]
-	req.Header.RD = b & 0b00000001
-	req.Header.TC = (b >> 1) & 0b00000001
-	req.Header.AA = (b >> 2) & 0b00000001
-	req.Header.Opcode = Opcode((b >> 3) & 0b00001111)
-	req.Header.QR = (b >> 7) & 0b00000001
+	dst.Header.RD = b & 0b00000001
+	dst.Header.TC = (b >> 1) & 0b00000001
+	dst.Header.AA = (b >> 2) & 0b00000001
+	dst.Header.Opcode = Opcode((b >> 3) & 0b00001111)
+	dst.Header.QR = (b >> 7) & 0b00000001
 
 	// RA, Z, RCODE
 	b = payload[3]
-	req.Header.RCODE = Rcode(b & 0b00001111)
-	req.Header.Z = (b >> 4) & 0b00000111
-	req.Header.RA = (b >> 7) & 0b00000001
+	dst.Header.RCODE = Rcode(b & 0b00001111)
+	dst.Header.Z = (b >> 4) & 0b00000111
+	dst.Header.RA = (b >> 7) & 0b00000001
 
 	// QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT
-	req.Header.QDCount = uint16(payload[4])<<8 | uint16(payload[5])
-	req.Header.ANCount = uint16(payload[6])<<8 | uint16(payload[7])
-	req.Header.NSCount = uint16(payload[8])<<8 | uint16(payload[9])
-	req.Header.ARCount = uint16(payload[10])<<8 | uint16(payload[11])
+	dst.Header.QDCount = uint16(payload[4])<<8 | uint16(payload[5])
+	dst.Header.ANCount = uint16(payload[6])<<8 | uint16(payload[7])
+	dst.Header.NSCount = uint16(payload[8])<<8 | uint16(payload[9])
+	dst.Header.ARCount = uint16(payload[10])<<8 | uint16(payload[11])
 
-	if req.Header.QDCount != 1 {
+	if dst.Header.QDCount != 1 {
 		return ErrInvalidHeader
 	}
 
@@ -179,12 +179,12 @@ func ParseRequest(payload []byte, req *Request) error {
 	if i+5 > len(payload) {
 		return ErrInvalidQuestion
 	}
-	req.Question.Name = append(req.Question.Name[:0], payload[:i+1]...)
+	dst.Question.Name = append(dst.Question.Name[:0], payload[:i+1]...)
 
 	// QTYPE, QCLASS
 	payload = payload[i:]
-	req.Question.Class = Class(uint16(payload[4]) | uint16(payload[3])<<8)
-	req.Question.Type = Type(uint16(payload[2]) | uint16(payload[1])<<8)
+	dst.Question.Class = Class(uint16(payload[4]) | uint16(payload[3])<<8)
+	dst.Question.Type = Type(uint16(payload[2]) | uint16(payload[1])<<8)
 
 	return nil
 }

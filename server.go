@@ -97,7 +97,7 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger) error {
 			req := AcquireRequest()
 			defer ReleaseRequest(req)
 
-			err := ParseRequest(b.B, req)
+			err := ParseRequest(req, b.B)
 			if err != nil {
 				return err
 			}

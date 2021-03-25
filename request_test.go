@@ -116,7 +116,7 @@ func TestParseRequestOK(t *testing.T) {
 			t.Errorf("hex.DecodeString(%v) error: %+v", c.Hex, err)
 		}
 		req := AcquireRequest()
-		err = ParseRequest(payload, req)
+		err = ParseRequest(req, payload)
 		if err != nil {
 			t.Errorf("ParseRequest(%v) error: %+v", payload, err)
 		}
@@ -158,7 +158,7 @@ func TestParseRequestError(t *testing.T) {
 			t.Errorf("hex.DecodeString(%v) error: %+v", c.Hex, err)
 		}
 		var req Request
-		err = ParseRequest(payload, &req)
+		err = ParseRequest(&req, payload)
 		if err != c.Error {
 			t.Errorf("ParseRequest(%v) should error: %+v", payload, c.Error)
 		}

@@ -23,7 +23,7 @@ func HTTPHandlerFunc(h Handler) http.HandlerFunc {
 		r := AcquireRequest()
 		defer ReleaseRequest(r)
 
-		err = ParseRequest(b.B, r)
+		err = ParseRequest(r, b.B)
 		if err != nil {
 			http.Error(rw, "bad request", http.StatusBadRequest)
 			return
