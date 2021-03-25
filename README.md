@@ -71,6 +71,9 @@ func main() {
 }
 ```
 
+### Acknowledgment
+This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg/dns][miekg/dns].
+
 [godoc-img]: http://img.shields.io/badge/godoc-reference-blue.svg
 [godoc]: https://godoc.org/github.com/phuslu/fastdns
 [release-img]: https://img.shields.io/github/v/tag/phuslu/fastdns?label=release
@@ -79,3 +82,6 @@ func main() {
 [goreport]: https://goreportcard.com/report/github.com/phuslu/fastdns
 [coverage-img]: http://gocover.io/_badge/github.com/phuslu/fastdns
 [coverage]: https://gocover.io/github.com/phuslu/fastdns
+[fasthttp]: https://github.com/valyala/fasthttp
+[rawdns]: https://github.com/cirocosta/rawdns
+[miekg/dns]: https://github.com/miekg/dns
