@@ -4,6 +4,7 @@ import (
 	"net"
 )
 
+// AppendHeaderQuestion appends the dns request to dst with the specified QDCount/ANCount/NSCount/ARCount.
 func AppendHeaderQuestion(dst []byte, req *Request, rcode Rcode, qd, an, ns, ar uint16) []byte {
 	var header [12]byte
 
@@ -60,6 +61,7 @@ func AppendHeaderQuestion(dst []byte, req *Request, rcode Rcode, qd, an, ns, ar 
 	return dst
 }
 
+// AppendHostRecord appends the Host records to dst and returns the resulting dst.
 func AppendHostRecord(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte {
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
@@ -105,6 +107,7 @@ func AppendHostRecord(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte
 	return dst
 }
 
+// AppendCNameRecord appends the CNAME and Host records to dst and returns the resulting dst.
 func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, ttl uint32) []byte {
 	offset := 0x0c
 	// CName Records
@@ -177,6 +180,7 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 	return dst
 }
 
+// AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
 func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, port uint16, ttl uint32) []byte {
 	// SRV Records
 	answer := [...]byte{
@@ -204,11 +208,13 @@ func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, po
 	return dst
 }
 
+// MXRecord represents an DNS MXRecord contains Priority and Host.
 type MXRecord struct {
 	Priority uint16
 	Host     string
 }
 
+// AppendMXRecord appends the MX records to dst and returns the resulting dst.
 func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte {
 	// MX Records
 	for _, rr := range mx {
@@ -234,6 +240,7 @@ func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte 
 	return dst
 }
 
+// AppendPTRRecord appends the PTR records to dst and returns the resulting dst.
 func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
 	answer := [...]byte{
 		// NAME
@@ -254,6 +261,7 @@ func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
 	return dst
 }
 
+// AppendTXTRecord appends the TXT records to dst and returns the resulting dst.
 func AppendTXTRecord(dst []byte, req *Request, txt string, ttl uint32) []byte {
 	length := len(txt) + (len(txt)+0xff)/0x100
 	answer := [...]byte{
