@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// Request represents an DNS request received by a server or to be sent by a client.
 type Request struct {
 	/*
 		Header encapsulates the construct of the header part of the DNS
@@ -115,19 +116,24 @@ type Request struct {
 	}
 }
 
+// GetDomainName returns the client's normalized domain name.
 func (req *Request) GetDomainName() string {
 	return string(decodeQName(make([]byte, 0, 256), req.Question.Name))
 }
 
+// AppendDomainName appends the normalized domain name to dst and returns the resulting dst.
 func (req *Request) AppendDomainName(dst []byte) []byte {
 	return decodeQName(dst, req.Question.Name)
 }
 
 var (
-	ErrInvalidHeader   = errors.New("dns message does not have the expected header size")
+	// ErrInvalidHeader is returned when dns message does not have the expected header size.
+	ErrInvalidHeader = errors.New("dns message does not have the expected header size")
+	// ErrInvalidQuestion is returned when dns message does not have the expected question size.
 	ErrInvalidQuestion = errors.New("dns message does not have the expected question size")
 )
 
+// ParseRequest parses dns request from payload into dst and returns the error.
 func ParseRequest(payload []byte, req *Request) error {
 	if len(payload) < 12 {
 		return ErrInvalidHeader
@@ -183,6 +189,7 @@ func ParseRequest(payload []byte, req *Request) error {
 	return nil
 }
 
+// AppendRequest appends the dns request to dst and returns the resulting dst.
 func AppendRequest(dst []byte, req *Request) []byte {
 	var header [12]byte
 
@@ -247,10 +254,12 @@ var reqPool = sync.Pool{
 	},
 }
 
+// AcquireRequest returns new dns request.
 func AcquireRequest() *Request {
 	return reqPool.Get().(*Request)
 }
 
+// ReleaseRequest returnes the dns request to the pool.
 func ReleaseRequest(req *Request) {
 	reqPool.Put(req)
 }
