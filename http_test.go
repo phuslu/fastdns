@@ -12,7 +12,7 @@ import (
 func TestHTTPHandlerHost(t *testing.T) {
 	testMode = true
 
-	const addr = "127.0.0.1:53001"
+	const addr = "127.0.1.1:53001"
 
 	go func() {
 		h := &mockServerHandler{}
@@ -47,7 +47,7 @@ func TestHTTPHandlerHost(t *testing.T) {
 func TestHTTPHandlerError(t *testing.T) {
 	testMode = true
 
-	const addr = "127.0.0.1:53002"
+	const addr = "127.0.1.1:53002"
 
 	go func() {
 		h := &mockServerHandler{}

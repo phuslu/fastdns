@@ -30,7 +30,7 @@ func TestServerHost(t *testing.T) {
 		Logger:  log.New(os.Stdout, "", 0),
 	}
 
-	const addr = "127.0.0.1:5353"
+	const addr = "127.0.1.1:5353"
 
 	go func() {
 		err := s.ListenAndServe(addr)
@@ -63,7 +63,7 @@ func TestServerListenError(t *testing.T) {
 		Logger:  log.New(os.Stdout, "", 0),
 	}
 
-	const addr = "127.0.0.1:-1"
+	const addr = "127.0.1.1:-1"
 
 	err := s.ListenAndServe(addr)
 	if err == nil {
@@ -82,7 +82,7 @@ func TestServerParseRequestError(t *testing.T) {
 		Logger:  log.New(os.Stdout, "", 0),
 	}
 
-	const addr = "127.0.0.1:5353"
+	const addr = "127.0.1.1:5353"
 
 	go func() {
 		err := s.ListenAndServe(addr)
@@ -115,7 +115,7 @@ func TestServerForkHost(t *testing.T) {
 		HTTPPortBase: 23000,
 	}
 
-	const addr = "127.0.0.1:5353"
+	const addr = "127.0.1.1:5353"
 
 	go func() {
 		err := s.ListenAndServe(addr)
@@ -153,7 +153,7 @@ func TestServerForkParseRequestError(t *testing.T) {
 		Logger:  log.New(os.Stdout, "", 0),
 	}
 
-	const addr = "127.0.0.1:5353"
+	const addr = "127.0.1.1:5353"
 
 	go func() {
 		err := s.ListenAndServe(addr)
