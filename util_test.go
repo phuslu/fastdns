@@ -10,13 +10,14 @@ func TestDecodeQName(t *testing.T) {
 		Domain string
 		QName  string
 	}{
+		{"", "\x00"},
 		{"phus.lu", "\x04phus\x02lu\x00"},
 		{"splunk.phus.lu", "\x06splunk\x04phus\x02lu\x00"},
 	}
 
 	for _, c := range cases {
 		if got, want := string(decodeQName(nil, []byte(c.QName))), c.Domain; got != want {
-			t.Errorf("decodeQName(%v) error got=%s want=%s", c.QName, got, want)
+			t.Errorf("decodeQName(%v) error got=%#v want=%#v", c.QName, got, want)
 		}
 	}
 }
@@ -32,7 +33,7 @@ func TestEncodeDomain(t *testing.T) {
 
 	for _, c := range cases {
 		if got, want := string(encodeDomain(nil, c.Domain)), c.QName; got != want {
-			t.Errorf("encodeDomain(%v) error got=%s want=%s", c.Domain, got, want)
+			t.Errorf("encodeDomain(%v) error got=%#v want=%#v", c.Domain, got, want)
 		}
 	}
 }

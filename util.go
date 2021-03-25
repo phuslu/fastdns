@@ -5,18 +5,22 @@ import (
 )
 
 func decodeQName(dst []byte, qname []byte) []byte {
-	var i byte
-	for i < 255 {
-		n := qname[i]
-		if n == 0 {
-			break
-		}
-		if i != 0 {
-			dst = append(dst, '.')
-		}
-		dst = append(dst, qname[i+1:i+n+1]...)
-		i += n + 1
+	switch len(qname) {
+	case 0:
+		return nil
+	case 1:
+		return []byte{}
 	}
+
+	n := len(dst) + int(qname[0])
+	dst = append(dst, qname[1:]...)
+	for dst[n] != 0 {
+		offset := int(dst[n])
+		dst[n] = '.'
+		n += offset + 1
+	}
+	dst = dst[:len(dst)-1]
+
 	return dst
 }
 
