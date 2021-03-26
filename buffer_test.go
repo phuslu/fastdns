@@ -45,3 +45,38 @@ func TestByteBufferPrintf(t *testing.T) {
 		t.Errorf("bytebuffer printf result error: %s", b.B)
 	}
 }
+
+func TestByteBufferWriteTo(t *testing.T) {
+	b := AcquireByteBuffer()
+	b.B = b.B[:0]
+	defer ReleaseByteBuffer(b)
+
+	b.B = append(b.B, "hello world"...)
+	var sb strings.Builder
+
+	_, err := b.WriteTo(&sb)
+	if err != nil {
+		t.Errorf("bytebuffer copy result error: %+v", err)
+	}
+
+	if string(b.B) != "hello world" {
+		t.Errorf("bytebuffer copy result error: %s", b.B)
+	}
+}
+
+func TestByteBufferReadFrom(t *testing.T) {
+	b := AcquireByteBuffer()
+	b.B = b.B[:0]
+	defer ReleaseByteBuffer(b)
+
+	s := strings.Repeat("1", 2049)
+
+	_, err := b.ReadFrom(strings.NewReader(s))
+	if err != nil {
+		t.Errorf("bytebuffer copy result error: %+v", err)
+	}
+
+	if string(b.B) != s {
+		t.Errorf("bytebuffer copy result error: %s", b.B)
+	}
+}
