@@ -28,7 +28,8 @@ type ForkServer struct {
 // ListenAndServe serves DNS requests from the given UDP addr.
 func (s *ForkServer) ListenAndServe(addr string) error {
 	s.Index, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
-	if s.Index == 0 {
+	if s.Index == 0 && runtime.GOOS == "linux" {
+		// only prefork for linux(reuse_port)
 		return s.fork(addr)
 	}
 
@@ -78,7 +79,7 @@ func (s *ForkServer) fork(addr string) (err error) {
 		err   error
 	}
 
-	maxProcs := getMaxProcs()
+	maxProcs := runtime.NumCPU()
 
 	ch := make(chan racer, maxProcs)
 	childs := make(map[int]*exec.Cmd)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -19,7 +20,8 @@ type Server struct {
 
 // ListenAndServe serves DNS requests from the given UDP addr.
 func (s *Server) ListenAndServe(addr string) error {
-	if s.Index == 0 {
+	if s.Index == 0 && runtime.GOOS == "linux" {
+		// only prefork for linux(reuse_port)
 		return s.spwan(addr)
 	}
 
@@ -44,7 +46,7 @@ func (s *Server) spwan(addr string) (err error) {
 		err   error
 	}
 
-	maxProcs := getMaxProcs()
+	maxProcs := runtime.NumCPU()
 
 	ch := make(chan racer, maxProcs)
 

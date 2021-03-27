@@ -10,8 +10,6 @@ import (
 )
 
 func TestHTTPHandlerHost(t *testing.T) {
-	testMode = true
-
 	const addr = "127.0.1.1:53001"
 
 	go func() {
@@ -45,8 +43,6 @@ func TestHTTPHandlerHost(t *testing.T) {
 }
 
 func TestHTTPHandlerError(t *testing.T) {
-	testMode = true
-
 	const addr = "127.0.1.1:53002"
 
 	go func() {

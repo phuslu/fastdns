@@ -23,8 +23,6 @@ func TestServerHost(t *testing.T) {
 		return
 	}
 
-	testMode = true
-
 	s := &Server{
 		Handler: &mockServerHandler{},
 		Logger:  log.New(os.Stdout, "", 0),
@@ -106,8 +104,6 @@ func TestServerForkHost(t *testing.T) {
 		// On Windows, the resolver always uses C library functions, such as GetAddrInfo and DnsQuery.
 		return
 	}
-
-	testMode = true
 
 	s := &ForkServer{
 		Handler:      &mockServerHandler{},

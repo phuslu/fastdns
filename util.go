@@ -1,9 +1,5 @@
 package fastdns
 
-import (
-	"runtime"
-)
-
 func decodeQName(dst []byte, qname []byte) []byte {
 	switch len(qname) {
 	case 0, 1:
@@ -42,13 +38,4 @@ func encodeDomain(dst []byte, domain string) []byte {
 	dst = append(dst, 0)
 
 	return dst
-}
-
-var testMode bool
-
-func getMaxProcs() int {
-	if testMode || runtime.GOOS != "linux" {
-		return 1
-	}
-	return runtime.NumCPU()
 }
