@@ -1,0 +1,19 @@
+name: benchmark
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    branches:
+      - master
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Benchmark
+        run: |
+          set -ex
+          git clone --depth=1 https://github.com/${GITHUB_REPOSITORY}
+          cd $(basename ${GITHUB_REPOSITORY})
+          go test -v -run=none -benchmem -bench=.
