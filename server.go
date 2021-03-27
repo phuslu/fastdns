@@ -22,7 +22,7 @@ type Server struct {
 func (s *Server) ListenAndServe(addr string) error {
 	if s.Index == 0 && runtime.GOOS == "linux" {
 		// only prefork for linux(reuse_port)
-		return s.spwan(addr)
+		return s.spawn(addr)
 	}
 
 	if s.Network == "" {
@@ -40,7 +40,7 @@ func (s *Server) ListenAndServe(addr string) error {
 	return serve(conn, s.Handler, s.Logger)
 }
 
-func (s *Server) spwan(addr string) (err error) {
+func (s *Server) spawn(addr string) (err error) {
 	type racer struct {
 		index int
 		err   error

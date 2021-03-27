@@ -109,6 +109,7 @@ func TestServerForkHost(t *testing.T) {
 		Handler:      &mockServerHandler{},
 		Logger:       log.New(os.Stdout, "", 0),
 		HTTPPortBase: 23000,
+		Index:        1, // disable spawn
 	}
 
 	const addr = "127.0.1.1:5353"
@@ -147,6 +148,7 @@ func TestServerForkParseRequestError(t *testing.T) {
 	s := &ForkServer{
 		Handler: &mockServerHandler{},
 		Logger:  log.New(os.Stdout, "", 0),
+		Index:   1, // disable spawn
 	}
 
 	const addr = "127.0.1.1:5353"
