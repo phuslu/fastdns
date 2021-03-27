@@ -331,3 +331,101 @@ func TestAppendTXTRecord(t *testing.T) {
 	}
 
 }
+
+func BenchmarkAppendHostARecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Request)
+
+	if err := ParseRequest(req, payload); err != nil {
+		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+	}
+
+	ips := []net.IP{net.ParseIP("8.8.8.8")}
+	for i := 0; i < b.N; i++ {
+		payload = AppendHostRecord(payload[:0], req, ips, 3000)
+	}
+}
+
+func BenchmarkAppendHostAAAARecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Request)
+
+	if err := ParseRequest(req, payload); err != nil {
+		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+	}
+
+	ips := []net.IP{net.ParseIP("2001:4860:4860::8888")}
+	for i := 0; i < b.N; i++ {
+		payload = AppendHostRecord(payload[:0], req, ips, 3000)
+	}
+}
+
+func BenchmarkAppendCNameRecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Request)
+
+	if err := ParseRequest(req, payload); err != nil {
+		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+	}
+
+	cnames := []string{"cname.example.org"}
+	for i := 0; i < b.N; i++ {
+		payload = AppendCNameRecord(payload[:0], req, cnames, nil, 3000)
+	}
+}
+
+func BenchmarkAppendSRVRecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Request)
+
+	if err := ParseRequest(req, payload); err != nil {
+		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+	}
+
+	srv := "service1.example.org"
+	for i := 0; i < b.N; i++ {
+		payload = AppendSRVRecord(payload[:0], req, srv, 100, 100, 443, 3000)
+	}
+}
+
+func BenchmarkAppendPTRRecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Request)
+
+	if err := ParseRequest(req, payload); err != nil {
+		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+	}
+
+	ptr := "ptr.example.org"
+	for i := 0; i < b.N; i++ {
+		payload = AppendPTRRecord(payload[:0], req, ptr, 3000)
+	}
+}
+
+func BenchmarkAppendMXRecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Request)
+
+	if err := ParseRequest(req, payload); err != nil {
+		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+	}
+
+	mx := []MXRecord{{100, "mail.google.com"}}
+	for i := 0; i < b.N; i++ {
+		payload = AppendMXRecord(payload[:0], req, mx, 3000)
+	}
+}
+
+func BenchmarkAppendTXTRecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Request)
+
+	if err := ParseRequest(req, payload); err != nil {
+		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+	}
+
+	txt := "iamatxtrecord"
+	for i := 0; i < b.N; i++ {
+		payload = AppendTXTRecord(payload[:0], req, txt, 3000)
+	}
+}

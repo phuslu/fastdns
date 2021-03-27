@@ -272,3 +272,27 @@ func TestAppendRequest(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkParseRequest(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	var req Request
+
+	for i := 0; i < b.N; i++ {
+		if err := ParseRequest(&req, payload); err != nil {
+			b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+		}
+	}
+}
+
+func BenchmarkGetDomainName(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	var req Request
+
+	if err := ParseRequest(&req, payload); err != nil {
+		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		req.GetDomainName()
+	}
+}
