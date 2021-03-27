@@ -67,8 +67,8 @@ func Error(rw ResponseWriter, req *Request, code Rcode) {
 	_, _ = rw.Write(b.B)
 }
 
-// Host replies to the request with the specified Host records.
-func Host(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
+// HOST replies to the request with the specified Host records.
+func HOST(rw ResponseWriter, req *Request, ips []net.IP, ttl uint32) {
 	b := AcquireByteBuffer()
 	defer ReleaseByteBuffer(b)
 

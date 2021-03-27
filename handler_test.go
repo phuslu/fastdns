@@ -91,9 +91,9 @@ func TestHandlerHost(t *testing.T) {
 
 	rw := &memResponseWriter{}
 	for _, c := range cases {
-		Host(rw, mockHandlerRequest, []net.IP{c.IP}, c.TTL)
+		HOST(rw, mockHandlerRequest, []net.IP{c.IP}, c.TTL)
 		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
-			t.Errorf("Host(%v) error got=%#v want=%#v", c.IP, got, want)
+			t.Errorf("HOST(%v) error got=%#v want=%#v", c.IP, got, want)
 		}
 	}
 }
