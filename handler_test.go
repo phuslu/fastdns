@@ -213,3 +213,53 @@ func TestHandlerTXT(t *testing.T) {
 		}
 	}
 }
+
+type mockResponseWriter struct{}
+
+func (rw *mockResponseWriter) RemoteAddr() net.Addr { return nil }
+
+func (rw *mockResponseWriter) LocalAddr() net.Addr { return nil }
+
+func (rw *mockResponseWriter) Write(p []byte) (n int, err error) { return 0, nil }
+
+func BenchmarkHOST(b *testing.B) {
+	ips := []net.IP{net.ParseIP("8.8.8.8")}
+	for i := 0; i < b.N; i++ {
+		HOST(&mockResponseWriter{}, mockHandlerRequest, ips, 3000)
+	}
+}
+
+func BenchmarkCNAME(b *testing.B) {
+	cnames := []string{"cname.example.org"}
+	for i := 0; i < b.N; i++ {
+		CNAME(&mockResponseWriter{}, mockHandlerRequest, cnames, nil, 3000)
+	}
+}
+
+func BenchmarkSRV(b *testing.B) {
+	srv := "service1.example.org"
+	for i := 0; i < b.N; i++ {
+		SRV(&mockResponseWriter{}, mockHandlerRequest, srv, 100, 100, 443, 3000)
+	}
+}
+
+func BenchmarkPTR(b *testing.B) {
+	ptr := "ptr.example.org"
+	for i := 0; i < b.N; i++ {
+		PTR(&mockResponseWriter{}, mockHandlerRequest, ptr, 3000)
+	}
+}
+
+func BenchmarkMX(b *testing.B) {
+	mx := []MXRecord{{100, "mail.google.com"}}
+	for i := 0; i < b.N; i++ {
+		MX(&mockResponseWriter{}, mockHandlerRequest, mx, 3000)
+	}
+}
+
+func BenchmarkTXT(b *testing.B) {
+	txt := "iamatxtrecord"
+	for i := 0; i < b.N; i++ {
+		TXT(&mockResponseWriter{}, mockHandlerRequest, txt, 3000)
+	}
+}

@@ -71,18 +71,24 @@ func main() {
 }
 ```
 
-### High Performance
+## High Performance
 
 A Performance result as below, for daily benchmark results see [github actions][benchmark]
 ```
-BenchmarkAppendHostRecord-2     	51252039	        27.0 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendCNameRecord-2      	29154194	        41.7 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendSRVRecord-2        	26954487	        43.5 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendPTRRecord-2        	34947418	        35.3 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendMXRecord-2         	33740932	        36.5 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendTXTRecord-2        	66549254	        18.3 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseRequest-2           	51268648	        23.4 ns/op	       0 B/op	       0 allocs/op
-BenchmarkGetDomainName-2          	45560821	        26.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST                	18300020	        64.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME               	14566201	        79.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV                 	13888170	        85.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR                 	16008145	        74.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                  	16113841	        75.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT                 	19707327	        59.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendHostRecord    	64425776	        18.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendCNameRecord   	38052225	        32.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSRVRecord     	34691518	        35.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendPTRRecord     	43956312	        27.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendMXRecord      	39636494	        30.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendTXTRecord     	78097986	        15.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseRequest        	55123053	        21.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkGetDomainName       	58184686	        20.7 ns/op	       0 B/op	       0 allocs/op
 ```
 
 ## Acknowledgment
