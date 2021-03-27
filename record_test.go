@@ -332,7 +332,7 @@ func TestAppendTXTRecord(t *testing.T) {
 
 }
 
-func BenchmarkAppendHostARecord(b *testing.B) {
+func BenchmarkAppendHostRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Request)
 
@@ -341,20 +341,6 @@ func BenchmarkAppendHostARecord(b *testing.B) {
 	}
 
 	ips := []net.IP{net.ParseIP("8.8.8.8")}
-	for i := 0; i < b.N; i++ {
-		payload = AppendHostRecord(payload[:0], req, ips, 3000)
-	}
-}
-
-func BenchmarkAppendHostAAAARecord(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	req := new(Request)
-
-	if err := ParseRequest(req, payload); err != nil {
-		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
-	}
-
-	ips := []net.IP{net.ParseIP("2001:4860:4860::8888")}
 	for i := 0; i < b.N; i++ {
 		payload = AppendHostRecord(payload[:0], req, ips, 3000)
 	}

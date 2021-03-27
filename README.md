@@ -75,8 +75,7 @@ func main() {
 
 A Performance result as below, for daily benchmark results see [github actions][benchmark]
 ```
-BenchmarkAppendHostARecord-2      	51252039	        27.0 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendHostAAAARecord-2   	40536900	        27.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendHostRecord-2     	51252039	        27.0 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendCNameRecord-2      	29154194	        41.7 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendSRVRecord-2        	26954487	        43.5 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendPTRRecord-2        	34947418	        35.3 ns/op	       0 B/op	       0 allocs/op
