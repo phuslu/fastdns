@@ -3,14 +3,31 @@ package fastdns
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"testing"
 	"time"
 )
 
+func allocAddr() string {
+	for i := 20001; i < 50000; i++ {
+		addr := fmt.Sprintf("127.0.0.1:%d", i)
+		conn, err := net.Listen("tcp", addr)
+		if err == nil {
+			conn.Close()
+			return addr
+		}
+	}
+	return ""
+}
+
 func TestHTTPHandlerHost(t *testing.T) {
-	const addr = "127.0.1.1:53001"
+	addr := allocAddr()
+	if addr == "" {
+		t.Errorf("allocAddr() failed.")
+	}
 
 	go func() {
 		h := &mockServerHandler{}
@@ -29,8 +46,9 @@ func TestHTTPHandlerHost(t *testing.T) {
 	resp, err := http.Post("http://"+addr, "application/dns-message", bytes.NewReader(body))
 	if err != nil {
 		t.Errorf("post query=%s return error: %+v", query, err)
+	} else {
+		defer resp.Body.Close()
 	}
-	defer resp.Body.Close()
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -43,7 +61,10 @@ func TestHTTPHandlerHost(t *testing.T) {
 }
 
 func TestHTTPHandlerError(t *testing.T) {
-	const addr = "127.0.1.1:53002"
+	addr := allocAddr()
+	if addr == "" {
+		t.Errorf("allocAddr() failed.")
+	}
 
 	go func() {
 		h := &mockServerHandler{}
@@ -61,8 +82,9 @@ func TestHTTPHandlerError(t *testing.T) {
 	resp, err := http.Post("http://"+addr, "application/dns-message", bytes.NewReader(body))
 	if err != nil {
 		t.Errorf("post query=%s return error: %+v", query, err)
+	} else {
+		defer resp.Body.Close()
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Errorf("post query=%s shall return 400 status code, got: %d", query, resp.StatusCode)

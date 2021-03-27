@@ -71,7 +71,7 @@ func main() {
 }
 ```
 
-### Acknowledgment
+## Acknowledgment
 This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg/dns][miekg/dns].
 
 [godoc-img]: http://img.shields.io/badge/godoc-reference-blue.svg

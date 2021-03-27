@@ -28,7 +28,10 @@ func TestServerHost(t *testing.T) {
 		Logger:  log.New(os.Stdout, "", 0),
 	}
 
-	const addr = "127.0.1.1:5353"
+	addr := allocAddr()
+	if addr == "" {
+		t.Errorf("allocAddr() failed.")
+	}
 
 	go func() {
 		err := s.ListenAndServe(addr)
@@ -59,6 +62,7 @@ func TestServerListenError(t *testing.T) {
 	s := &Server{
 		Handler: &mockServerHandler{},
 		Logger:  log.New(os.Stdout, "", 0),
+		Index:   1, // disable spwan
 	}
 
 	const addr = "127.0.1.1:-1"
@@ -80,7 +84,10 @@ func TestServerParseRequestError(t *testing.T) {
 		Logger:  log.New(os.Stdout, "", 0),
 	}
 
-	const addr = "127.0.1.1:5353"
+	addr := allocAddr()
+	if addr == "" {
+		t.Errorf("allocAddr() failed.")
+	}
 
 	go func() {
 		err := s.ListenAndServe(addr)
@@ -112,7 +119,10 @@ func TestServerForkHost(t *testing.T) {
 		Index:        1, // disable spawn
 	}
 
-	const addr = "127.0.1.1:5353"
+	addr := allocAddr()
+	if addr == "" {
+		t.Errorf("allocAddr() failed.")
+	}
 
 	go func() {
 		err := s.ListenAndServe(addr)
@@ -151,7 +161,10 @@ func TestServerForkParseRequestError(t *testing.T) {
 		Index:   1, // disable spawn
 	}
 
-	const addr = "127.0.1.1:5353"
+	addr := allocAddr()
+	if addr == "" {
+		t.Errorf("allocAddr() failed.")
+	}
 
 	go func() {
 		err := s.ListenAndServe(addr)
