@@ -18,23 +18,24 @@ type ForkServer struct {
 	Handler Handler
 	Logger  Logger
 
+	// Index indicates the index of Server instances.
+	Index int
+
 	HTTPPortBase uint16
 	HTTPHandler  http.Handler
-
-	index int
 }
 
 // ListenAndServe serves DNS requests from the given UDP addr.
 func (s *ForkServer) ListenAndServe(addr string) error {
-	s.index, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
-	if s.Index() == 0 {
+	s.Index, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
+	if s.Index == 0 {
 		return s.fork(addr)
 	}
 
 	// runtime.GOMAXPROCS(1)
-	err := taskset((s.Index() - 1) % runtime.NumCPU())
+	err := taskset((s.Index - 1) % runtime.NumCPU())
 	if err != nil {
-		s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
+		s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index, s.Index-1, err)
 	}
 
 	if s.Network == "" {
@@ -43,28 +44,22 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 
 	conn, err := listen(s.Network, addr)
 	if err != nil {
-		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
+		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index, addr, err)
 		return err
 	}
 
 	if s.HTTPPortBase > 0 {
 		host, _, _ := net.SplitHostPort(addr)
-		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+s.Index())
+		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+s.Index)
 		go func() {
-			s.Logger.Printf("forkserver-%d pid-%d serving http on port %s", s.Index(), os.Getpid(), httpAddr)
+			s.Logger.Printf("forkserver-%d pid-%d serving http on port %s", s.Index, os.Getpid(), httpAddr)
 			_ = http.ListenAndServe(httpAddr, s.HTTPHandler)
 		}()
 	}
 
-	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
+	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index, os.Getpid(), conn.LocalAddr())
 
 	return serve(conn, s.Handler, s.Logger)
-}
-
-// Index indicates the index of Server instances.
-func (s *ForkServer) Index() (index int) {
-	index = s.index
-	return
 }
 
 func fork(index int) (*exec.Cmd, error) {

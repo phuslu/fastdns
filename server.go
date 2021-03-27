@@ -13,12 +13,13 @@ type Server struct {
 	Handler Handler
 	Logger  Logger
 
-	index int
+	// Index indicates the index of Server instances.
+	Index int
 }
 
 // ListenAndServe serves DNS requests from the given UDP addr.
 func (s *Server) ListenAndServe(addr string) error {
-	if s.Index() == 0 {
+	if s.Index == 0 {
 		return s.spwan(addr)
 	}
 
@@ -28,19 +29,13 @@ func (s *Server) ListenAndServe(addr string) error {
 
 	conn, err := listen(s.Network, addr)
 	if err != nil {
-		s.Logger.Printf("server-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
+		s.Logger.Printf("server-%d listen on addr=%s failed: %+v", s.Index, addr, err)
 		return err
 	}
 
-	s.Logger.Printf("server-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
+	s.Logger.Printf("server-%d pid-%d serving dns on %s", s.Index, os.Getpid(), conn.LocalAddr())
 
 	return serve(conn, s.Handler, s.Logger)
-}
-
-// Index indicates the index of Server instances.
-func (s *Server) Index() (index int) {
-	index = s.index
-	return
 }
 
 func (s *Server) spwan(addr string) (err error) {
@@ -58,7 +53,7 @@ func (s *Server) spwan(addr string) (err error) {
 			server := &Server{
 				Handler: s.Handler,
 				Logger:  s.Logger,
-				index:   index,
+				Index:   index,
 			}
 			err := server.ListenAndServe(addr)
 			ch <- racer{index, err}
@@ -79,7 +74,7 @@ func (s *Server) spwan(addr string) (err error) {
 			server := &Server{
 				Handler: s.Handler,
 				Logger:  s.Logger,
-				index:   index,
+				Index:   index,
 			}
 			err := server.ListenAndServe(addr)
 			ch <- racer{index, err}
