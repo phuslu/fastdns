@@ -12,51 +12,6 @@ type Handler interface {
 	ServeDNS(rw ResponseWriter, req *Request)
 }
 
-// A ResponseWriter interface is used by an DNS handler to construct an DNS response.
-type ResponseWriter interface {
-	RemoteAddr() net.Addr
-	LocalAddr() net.Addr
-	Write([]byte) (int, error)
-}
-
-type udpResponseWriter struct {
-	conn *net.UDPConn
-	addr *net.UDPAddr
-}
-
-func (rw *udpResponseWriter) RemoteAddr() net.Addr {
-	return rw.addr
-}
-
-func (rw *udpResponseWriter) LocalAddr() net.Addr {
-	return rw.conn.LocalAddr()
-}
-
-func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
-	n, _, err = rw.conn.WriteMsgUDP(p, nil, rw.addr)
-	return
-}
-
-type memResponseWriter struct {
-	data  []byte
-	raddr net.Addr
-	laddr net.Addr
-}
-
-func (rw *memResponseWriter) RemoteAddr() net.Addr {
-	return rw.raddr
-}
-
-func (rw *memResponseWriter) LocalAddr() net.Addr {
-	return rw.laddr
-}
-
-func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
-	rw.data = append(rw.data, p...)
-	n = len(p)
-	return
-}
-
 // Error replies to the request with the specified Rcode.
 func Error(rw ResponseWriter, req *Request, code Rcode) {
 	b := AcquireByteBuffer()

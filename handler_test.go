@@ -29,27 +29,6 @@ var mockHandlerRequest = &Request{
 	},
 }
 
-func TestHandlerResponseWriter(t *testing.T) {
-	rw := &udpResponseWriter{
-		addr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
-	}
-
-	var err error
-	rw.conn, err = net.DialUDP("udp", nil, rw.RemoteAddr().(*net.UDPAddr))
-	if err != nil {
-		t.Errorf("response writer dial udp error: %+v", err)
-	}
-	_, _ = rw.Write([]byte("test"))
-
-	if s := rw.RemoteAddr().String(); s != "1.1.1.1:53" {
-		t.Errorf("response writer return error remote address: %+v", s)
-	}
-
-	if s := rw.LocalAddr().String(); s == "" {
-		t.Errorf("response writer return empty local address")
-	}
-}
-
 func TestHandlerError(t *testing.T) {
 	var cases = []struct {
 		Hex   string
@@ -214,52 +193,44 @@ func TestHandlerTXT(t *testing.T) {
 	}
 }
 
-type mockResponseWriter struct{}
-
-func (rw *mockResponseWriter) RemoteAddr() net.Addr { return nil }
-
-func (rw *mockResponseWriter) LocalAddr() net.Addr { return nil }
-
-func (rw *mockResponseWriter) Write(p []byte) (n int, err error) { return 0, nil }
-
 func BenchmarkHOST(b *testing.B) {
 	ips := []net.IP{net.ParseIP("8.8.8.8")}
 	for i := 0; i < b.N; i++ {
-		HOST(&mockResponseWriter{}, mockHandlerRequest, ips, 3000)
+		HOST(&nilResponseWriter{}, mockHandlerRequest, ips, 3000)
 	}
 }
 
 func BenchmarkCNAME(b *testing.B) {
 	cnames := []string{"cname.example.org"}
 	for i := 0; i < b.N; i++ {
-		CNAME(&mockResponseWriter{}, mockHandlerRequest, cnames, nil, 3000)
+		CNAME(&nilResponseWriter{}, mockHandlerRequest, cnames, nil, 3000)
 	}
 }
 
 func BenchmarkSRV(b *testing.B) {
 	srv := "service1.example.org"
 	for i := 0; i < b.N; i++ {
-		SRV(&mockResponseWriter{}, mockHandlerRequest, srv, 100, 100, 443, 3000)
+		SRV(&nilResponseWriter{}, mockHandlerRequest, srv, 100, 100, 443, 3000)
 	}
 }
 
 func BenchmarkPTR(b *testing.B) {
 	ptr := "ptr.example.org"
 	for i := 0; i < b.N; i++ {
-		PTR(&mockResponseWriter{}, mockHandlerRequest, ptr, 3000)
+		PTR(&nilResponseWriter{}, mockHandlerRequest, ptr, 3000)
 	}
 }
 
 func BenchmarkMX(b *testing.B) {
 	mx := []MXRecord{{100, "mail.google.com"}}
 	for i := 0; i < b.N; i++ {
-		MX(&mockResponseWriter{}, mockHandlerRequest, mx, 3000)
+		MX(&nilResponseWriter{}, mockHandlerRequest, mx, 3000)
 	}
 }
 
 func BenchmarkTXT(b *testing.B) {
 	txt := "iamatxtrecord"
 	for i := 0; i < b.N; i++ {
-		TXT(&mockResponseWriter{}, mockHandlerRequest, txt, 3000)
+		TXT(&nilResponseWriter{}, mockHandlerRequest, txt, 3000)
 	}
 }
