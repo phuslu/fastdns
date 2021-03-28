@@ -75,20 +75,22 @@ func main() {
 
 A Performance result as below, for daily benchmark results see [github actions][benchmark]
 ```
-BenchmarkHOST                	18300020	        64.0 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME               	14566201	        79.9 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV                 	13888170	        85.6 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR                 	16008145	        74.4 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                  	16113841	        75.4 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT                 	19707327	        59.1 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendHostRecord    	64425776	        18.5 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendCNameRecord   	38052225	        32.3 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendSRVRecord     	34691518	        35.0 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendPTRRecord     	43956312	        27.8 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendMXRecord      	39636494	        30.1 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendTXTRecord     	78097986	        15.2 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseRequest        	55123053	        21.3 ns/op	       0 B/op	       0 allocs/op
-BenchmarkGetDomainName       	58184686	        20.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST                   18412334            64.17 ns/op          0 B/op        0 allocs/op
+BenchmarkCNAME                  13569256            88.55 ns/op          0 B/op        0 allocs/op
+BenchmarkSRV                    13565667            86.18 ns/op          0 B/op        0 allocs/op
+BenchmarkPTR                    14394494            80.65 ns/op          0 B/op        0 allocs/op
+BenchmarkMX                     14018642            82.41 ns/op          0 B/op        0 allocs/op
+BenchmarkTXT                    19182474            62.08 ns/op          0 B/op        0 allocs/op
+BenchmarkAppendHostRecord       59952037            19.19 ns/op          0 B/op        0 allocs/op
+BenchmarkAppendCNameRecord      32140732            36.30 ns/op          0 B/op        0 allocs/op
+BenchmarkAppendSRVRecord        34749872            34.69 ns/op          0 B/op        0 allocs/op
+BenchmarkAppendPTRRecord        44071792            27.68 ns/op          0 B/op        0 allocs/op
+BenchmarkAppendMXRecord         38512765            31.53 ns/op          0 B/op        0 allocs/op
+BenchmarkAppendTXTRecord        70415923            16.72 ns/op          0 B/op        0 allocs/op
+BenchmarkParseRequest           54310437            21.96 ns/op          0 B/op        0 allocs/op
+BenchmarkGetDomainName          59479258            18.86 ns/op          0 B/op        0 allocs/op
+BenchmarkDecodeQName            485569677            2.47 ns/op          0 B/op        0 allocs/op
+BenchmarkEncodeDomain           79780868            14.46 ns/op          0 B/op        0 allocs/op
 ```
 
 ## Acknowledgment

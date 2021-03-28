@@ -72,3 +72,18 @@ func TestTastset(t *testing.T) {
 		t.Errorf("taskset(0) error: %+v", err)
 	}
 }
+
+func BenchmarkDecodeQName(b *testing.B) {
+	qname := []byte("\x02hk\x04phus\x02lu\x00")
+	dst := make([]byte, 0, 256)
+	for i := 0; i < b.N; i++ {
+		dst = decodeQName(dst[:0], qname)
+	}
+}
+
+func BenchmarkEncodeDomain(b *testing.B) {
+	dst := make([]byte, 0, 256)
+	for i := 0; i < b.N; i++ {
+		dst = encodeDomain(dst[:0], "hk.phus.lu")
+	}
+}
