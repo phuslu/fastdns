@@ -183,6 +183,7 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 // AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
 func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, port uint16, ttl uint32) []byte {
 	// SRV Records
+	length := 8 + len(srv)
 	answer := [...]byte{
 		// NAME
 		0xc0, 0x0c,
@@ -193,7 +194,7 @@ func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, po
 		// TTL
 		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 		// RDLENGTH
-		byte((8 + len(srv)) >> 8), byte(8 + len(srv)),
+		byte(length >> 8), byte(length),
 		// PRIOVRITY
 		byte(priovrity >> 8), byte(priovrity),
 		// WEIGHT
@@ -218,6 +219,7 @@ type MXRecord struct {
 func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte {
 	// MX Records
 	for _, rr := range mx {
+		length := 4 + len(rr.Host)
 		answer := [...]byte{
 			// NAME
 			0xc0, 0x0c,
@@ -228,7 +230,7 @@ func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte 
 			// TTL
 			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 			// RDLENGTH
-			byte((4 + len(rr.Host)) >> 8), byte(4 + len(rr.Host)),
+			byte(length >> 8), byte(length),
 			// PRIOVRITY
 			byte(rr.Priority >> 8), byte(rr.Priority),
 		}
