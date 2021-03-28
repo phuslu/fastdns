@@ -64,19 +64,36 @@ func TestByteBufferWriteTo(t *testing.T) {
 	}
 }
 
-func TestByteBufferReadFrom(t *testing.T) {
-	b := AcquireByteBuffer()
-	b.B = b.B[:0]
-	defer ReleaseByteBuffer(b)
+type brokenReader struct{}
 
+func (r *brokenReader) Read(p []byte) (int, error) {
+	return 0, fmt.Errorf("a reader error")
+}
+
+func TestByteBufferReadFrom(t *testing.T) {
 	s := strings.Repeat("1", 2049)
 
+	b := new(ByteBuffer)
 	_, err := b.ReadFrom(strings.NewReader(s))
 	if err != nil {
-		t.Errorf("bytebuffer copy result error: %+v", err)
+		t.Errorf("bytebuffer ReadFrom result error: %+v", err)
+	}
+	if string(b.B) != s {
+		t.Errorf("bytebuffer ReadFrom result error: %s", b.B)
 	}
 
+	b.B = make([]byte, 0, 1024)
+	_, err = b.ReadFrom(strings.NewReader(s))
+	if err != nil {
+		t.Errorf("bytebuffer ReadFrom result error: %+v", err)
+	}
 	if string(b.B) != s {
-		t.Errorf("bytebuffer copy result error: %s", b.B)
+		t.Errorf("bytebuffer ReadFrom result error: %s", b.B)
+	}
+
+	b = new(ByteBuffer)
+	_, err = b.ReadFrom(&brokenReader{})
+	if err == nil {
+		t.Errorf("bytebuffer ReadFrom result nil error")
 	}
 }
