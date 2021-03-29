@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"errors"
+	"log"
 	"net"
 	"os"
 	"runtime"
@@ -120,4 +121,14 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger) error {
 		}
 		pool.Serve(&udpResponseWriter{conn, addr}, b)
 	}
+}
+
+// ListenAndServe serves DNS requests from the given UDP addr
+// using the given handler.
+func ListenAndServe(addr string, handler Handler) error {
+	s := &Server{
+		Handler: handler,
+		Logger:  log.Default(),
+	}
+	return s.ListenAndServe(addr)
 }

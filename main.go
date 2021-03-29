@@ -5,7 +5,6 @@ package main
 import (
 	"log"
 	"net"
-	"os"
 
 	"github.com/phuslu/fastdns"
 )
@@ -39,14 +38,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 }
 
 func main() {
-	server := &fastdns.Server{
-		Handler: &DNSHandler{
-			Debug: true,
-		},
-		Logger: log.New(os.Stderr, "", 0),
-	}
-
-	err := server.ListenAndServe(":53")
+	err := fastdns.ListenAndServe(":53", &DNSHandler{Debug: true})
 	if err != nil {
 		log.Fatalf("dnsserver error: %+v", err)
 	}
