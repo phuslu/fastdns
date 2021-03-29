@@ -39,9 +39,9 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 
 	switch req.Question.Type {
 	case fastdns.TypeA:
-		fastdns.CNAME(rw, req, []string{"a.example.com"}, []net.IP{{8, 8, 8, 8}}, 300)
+		fastdns.HOST(rw, req, []net.IP{{8, 8, 8, 8}}, 300)
 	case fastdns.TypeAAAA:
-		fastdns.HOST(rw, req, []net.IP{net.ParseIP("::1")}, 300)
+		fastdns.CNAME(rw, req, []string{"ipv6.example.com"}, []net.IP{net.ParseIP("::1")}, 300)
 	case fastdns.TypeSRV:
 		fastdns.SRV(rw, req, "service1.example.com", 1000, 1000, 80, 300)
 	case fastdns.TypeMX:
@@ -60,7 +60,7 @@ func main() {
 		Handler: &DNSHandler{
 			Debug: os.Getenv("DEBUG") != "",
 		},
-		Logger:       log.New(os.Stderr, "", 0),
+		Logger:       log.Default(),
 		HTTPPortBase: 9000,
 	}
 
