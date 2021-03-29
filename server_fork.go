@@ -14,15 +14,20 @@ import (
 
 // ForkServer implements a prefork DNS server.
 type ForkServer struct {
-	Network string
+	// handler to invoke
 	Handler Handler
-	Logger  Logger
+
+	// Logger specifies a logger
+	Logger Logger
 
 	// Index indicates the index of Server instances.
 	Index int
 
+	// HTTPPortBase specifies a optional http server listened in HTTPPortBase+Index port.
 	HTTPPortBase uint16
-	HTTPHandler  http.Handler
+
+	// HTTPHandler specifies a optional http handler for pprof/prometheus purposes.
+	HTTPHandler http.Handler
 }
 
 // ListenAndServe serves DNS requests from the given UDP addr.
@@ -39,11 +44,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 		s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index, s.Index-1, err)
 	}
 
-	if s.Network == "" {
-		s.Network = "udp"
-	}
-
-	conn, err := listen(s.Network, addr)
+	conn, err := listen("udp", addr)
 	if err != nil {
 		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index, addr, err)
 		return err

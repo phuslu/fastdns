@@ -10,9 +10,11 @@ import (
 
 // Server implements a mutli-listener DNS server.
 type Server struct {
-	Network string
+	// handler to invoke
 	Handler Handler
-	Logger  Logger
+
+	// Logger specifies a logger
+	Logger Logger
 
 	// Index indicates the index of Server instances.
 	Index int
@@ -25,11 +27,7 @@ func (s *Server) ListenAndServe(addr string) error {
 		return s.spawn(addr)
 	}
 
-	if s.Network == "" {
-		s.Network = "udp"
-	}
-
-	conn, err := listen(s.Network, addr)
+	conn, err := listen("udp", addr)
 	if err != nil {
 		s.Logger.Printf("server-%d listen on addr=%s failed: %+v", s.Index, addr, err)
 		return err
