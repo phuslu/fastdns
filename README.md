@@ -75,22 +75,29 @@ func main() {
 
 A Performance result as below, for daily benchmark results see [github actions][benchmark]
 ```
-BenchmarkHOST                   18412334            64.17 ns/op          0 B/op        0 allocs/op
-BenchmarkCNAME                  13569256            88.55 ns/op          0 B/op        0 allocs/op
-BenchmarkSRV                    13565667            86.18 ns/op          0 B/op        0 allocs/op
-BenchmarkPTR                    14394494            80.65 ns/op          0 B/op        0 allocs/op
-BenchmarkMX                     14018642            82.41 ns/op          0 B/op        0 allocs/op
-BenchmarkTXT                    19182474            62.08 ns/op          0 B/op        0 allocs/op
-BenchmarkAppendHostRecord       59952037            19.19 ns/op          0 B/op        0 allocs/op
-BenchmarkAppendCNameRecord      32140732            36.30 ns/op          0 B/op        0 allocs/op
-BenchmarkAppendSRVRecord        34749872            34.69 ns/op          0 B/op        0 allocs/op
-BenchmarkAppendPTRRecord        44071792            27.68 ns/op          0 B/op        0 allocs/op
-BenchmarkAppendMXRecord         38512765            31.53 ns/op          0 B/op        0 allocs/op
-BenchmarkAppendTXTRecord        70415923            16.72 ns/op          0 B/op        0 allocs/op
-BenchmarkParseRequest           54310437            21.96 ns/op          0 B/op        0 allocs/op
-BenchmarkGetDomainName          59479258            18.86 ns/op          0 B/op        0 allocs/op
-BenchmarkDecodeQName            485569677            2.47 ns/op          0 B/op        0 allocs/op
-BenchmarkEncodeDomain           79780868            14.46 ns/op          0 B/op        0 allocs/op
+goos: linux
+goarch: amd64
+pkg: github.com/phuslu/fastdns
+cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
+BenchmarkHOST
+BenchmarkHOST              	17985486	        66.48 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME             	13363566	        89.96 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV               	13672995	        87.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR               	14126662	        85.43 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                	14188016	        84.54 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT               	18614152	        64.37 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendHostRecord  	59770392	        20.07 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendCNameRecord 	30074841	        39.76 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSRVRecord   	33042228	        36.31 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendPTRRecord   	41316868	        29.07 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendMXRecord    	34163170	        35.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendTXTRecord   	67209427	        17.85 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseRequest      	51428226	        23.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkGetDomainName     	59499422	        20.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeQName       	460618591	         2.604 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain      	74840990	        16.09 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/phuslu/fastdns	20.228s
 ```
 
 ## Acknowledgment
