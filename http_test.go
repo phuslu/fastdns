@@ -76,10 +76,21 @@ func TestHTTPHandlerError(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
+	resp, err := http.Get("http://" + addr)
+	if err != nil {
+		t.Errorf("get addr=%s return error: %+v", addr, err)
+	} else {
+		defer resp.Body.Close()
+	}
+
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("get addr=%s shall return 400 status code, got: %d", addr, resp.StatusCode)
+	}
+
 	query := "00020100000000000000000002686b0470687573026c750000010001"
 
 	body, _ := hex.DecodeString(query)
-	resp, err := http.Post("http://"+addr, "application/dns-message", bytes.NewReader(body))
+	resp, err = http.Post("http://"+addr, "application/dns-message", bytes.NewReader(body))
 	if err != nil {
 		t.Errorf("post query=%s return error: %+v", query, err)
 	} else {

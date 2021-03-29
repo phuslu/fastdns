@@ -14,8 +14,8 @@ func HTTPHandlerFunc(h Handler) http.HandlerFunc {
 		defer ReleaseByteBuffer(b)
 
 		b.B = b.B[:0]
-		_, err := io.Copy(b, req.Body)
-		if err != nil {
+		n, err := io.Copy(b, req.Body)
+		if err != nil || n == 0 {
 			http.Error(rw, "bad request", http.StatusBadRequest)
 			return
 		}
