@@ -23,6 +23,8 @@ type ForkServer struct {
 	// Index indicates the index of Server instances.
 	Index int
 
+	SetAffinity bool
+
 	// The maximum number of concurrent clients the server may serve.
 	//
 	// DefaultConcurrency is used if not set.
@@ -46,10 +48,11 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 		return s.fork(addr)
 	}
 
-	// runtime.GOMAXPROCS(1)
-	err := taskset((s.Index - 1) % runtime.NumCPU())
-	if err != nil {
-		s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index, s.Index-1, err)
+	if s.SetAffinity {
+		err := taskset((s.Index - 1) % runtime.NumCPU())
+		if err != nil {
+			s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index, s.Index-1, err)
+		}
 	}
 
 	conn, err := listen("udp", addr)
