@@ -23,6 +23,14 @@ type ForkServer struct {
 	// Index indicates the index of Server instances.
 	Index int
 
+	// The maximum number of concurrent clients the server may serve.
+	//
+	// DefaultConcurrency is used if not set.
+	//
+	// Concurrency only works if you either call Serve once, or only ServeConn multiple times.
+	// It works with ListenAndServe as well.
+	Concurrency int
+
 	// HTTPPortBase specifies a optional http server listened in HTTPPortBase+Index port.
 	HTTPPortBase uint16
 
@@ -61,7 +69,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 
 	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index, os.Getpid(), conn.LocalAddr())
 
-	return serve(conn, s.Handler, s.Logger)
+	return serve(conn, s.Handler, s.Logger, s.Concurrency)
 }
 
 func fork(index int) (*exec.Cmd, error) {

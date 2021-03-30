@@ -19,6 +19,14 @@ type Server struct {
 
 	// Index indicates the index of Server instances.
 	Index int
+
+	// The maximum number of concurrent clients the server may serve.
+	//
+	// DefaultConcurrency is used if not set.
+	//
+	// Concurrency only works if you either call Serve once, or only ServeConn multiple times.
+	// It works with ListenAndServe as well.
+	Concurrency int
 }
 
 // ListenAndServe serves DNS requests from the given UDP addr.
@@ -36,7 +44,7 @@ func (s *Server) ListenAndServe(addr string) error {
 
 	s.Logger.Printf("server-%d pid-%d serving dns on %s", s.Index, os.Getpid(), conn.LocalAddr())
 
-	return serve(conn, s.Handler, s.Logger)
+	return serve(conn, s.Handler, s.Logger, s.Concurrency)
 }
 
 func (s *Server) spawn(addr string) (err error) {
@@ -85,7 +93,15 @@ func (s *Server) spawn(addr string) (err error) {
 	return
 }
 
-func serve(conn *net.UDPConn, handler Handler, logger Logger) error {
+// DefaultConcurrency is the maximum number of concurrent clients
+// the Server may serve by default (i.e. if Server.Concurrency isn't set).
+const DefaultConcurrency = 256 * 1024
+
+func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) error {
+	if concurrency == 0 {
+		concurrency = DefaultConcurrency
+	}
+
 	pool := &workerPool{
 		WorkerFunc: func(rw ResponseWriter, b *ByteBuffer) error {
 			defer ReleaseByteBuffer(b)
@@ -101,7 +117,7 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger) error {
 			handler.ServeDNS(rw, req)
 			return nil
 		},
-		MaxWorkersCount:       200000,
+		MaxWorkersCount:       concurrency,
 		LogAllErrors:          false,
 		MaxIdleWorkerDuration: 2 * time.Minute,
 		Logger:                logger,
