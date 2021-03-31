@@ -102,6 +102,8 @@ PASS
 ok  	github.com/phuslu/fastdns	20.228s
 ```
 
+Here is the flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches 1M QPS in a single machine with Xeon 4216 and Intel X710.
+
 ## Acknowledgment
 This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg/dns][miekg/dns].
 
@@ -114,6 +116,7 @@ This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg
 [coverage-img]: http://gocover.io/_badge/github.com/phuslu/fastdns
 [coverage]: https://gocover.io/github.com/phuslu/fastdns
 [benchmark]: https://github.com/phuslu/fastdns/actions?query=workflow%3Abenchmark
+[flamegraph]: https://cdn.jsdelivr.net/gh/phuslu/fastdns/torch.svg
 [fasthttp]: https://github.com/valyala/fasthttp
 [rawdns]: https://github.com/cirocosta/rawdns
 [miekg/dns]: https://github.com/miekg/dns
