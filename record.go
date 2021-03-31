@@ -133,7 +133,7 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 		}
 		offset += len(answer)
 		// RDATA
-		dst = encodeDomain(dst, cname)
+		dst = EncodeDomain(dst, cname)
 	}
 	// Host Records
 	for _, ip := range ips {
@@ -204,7 +204,7 @@ func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, po
 	}
 	dst = append(dst, answer[:]...)
 	// RDATA
-	dst = encodeDomain(dst, srv)
+	dst = EncodeDomain(dst, srv)
 
 	return dst
 }
@@ -236,7 +236,7 @@ func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte 
 		}
 		dst = append(dst, answer[:]...)
 		// RDATA
-		dst = encodeDomain(dst, rr.Host)
+		dst = EncodeDomain(dst, rr.Host)
 	}
 
 	return dst
@@ -258,7 +258,7 @@ func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
 	}
 	dst = append(dst, answer[:]...)
 	// PTR
-	dst = encodeDomain(dst, ptr)
+	dst = EncodeDomain(dst, ptr)
 
 	return dst
 }

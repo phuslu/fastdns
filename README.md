@@ -82,15 +82,15 @@ goos: linux
 goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
-BenchmarkHOST              	17813920	        67.37 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME             	13345822	        90.35 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV               	12894741	        92.41 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR               	14342062	        83.63 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                	14138179	        84.99 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT               	18473200	        65.17 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseRequest      	37919695	        31.66 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeQName       	403373194	         2.978 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain      	58950158	        19.53 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST              	17878362	        67.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME             	13417378	        89.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV               	13027480	        92.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR               	14252744	        83.45 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                	14126438	        85.21 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT               	18376570	        65.14 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseRequest      	37892071	        31.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeQustionName 	403399980	         2.975 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain      	61549723	        19.41 ns/op	       0 B/op	       0 allocs/op
 PASS
 ok  	github.com/phuslu/fastdns	19.026s
 ```

@@ -186,7 +186,7 @@ func ParseRequest(dst *Request, payload []byte) error {
 	dst.Question.Type = Type(uint16(payload[2]) | uint16(payload[1])<<8)
 
 	// Domain
-	dst.Domain = decodeQName(dst.Domain[:0], dst.Question.Name)
+	dst.Domain = DecodeQustionName(dst.Domain[:0], dst.Question.Name)
 
 	return nil
 }

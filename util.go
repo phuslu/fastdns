@@ -1,6 +1,7 @@
 package fastdns
 
-func decodeQName(dst []byte, qname []byte) []byte {
+// DecodeQustionName decodes question name to dst.
+func DecodeQustionName(dst []byte, qname []byte) []byte {
 	switch len(qname) {
 	case 0, 1:
 		return dst
@@ -18,7 +19,8 @@ func decodeQName(dst []byte, qname []byte) []byte {
 	return dst
 }
 
-func encodeDomain(dst []byte, domain string) []byte {
+// EncodeDomain encodes domain to dst.
+func EncodeDomain(dst []byte, domain string) []byte {
 	i := len(dst)
 	j := i + len(domain)
 

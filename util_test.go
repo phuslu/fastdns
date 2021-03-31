@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestDecodeQName(t *testing.T) {
+func TestDecodeQustionName(t *testing.T) {
 	var cases = []struct {
 		Domain string
 		QName  string
@@ -16,8 +16,8 @@ func TestDecodeQName(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got, want := string(decodeQName(nil, []byte(c.QName))), c.Domain; got != want {
-			t.Errorf("decodeQName(%v) error got=%#v want=%#v", c.QName, got, want)
+		if got, want := string(DecodeQustionName(nil, []byte(c.QName))), c.Domain; got != want {
+			t.Errorf("DecodeQustionName(%v) error got=%#v want=%#v", c.QName, got, want)
 		}
 	}
 }
@@ -32,8 +32,8 @@ func TestEncodeDomain(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got, want := string(encodeDomain(nil, c.Domain)), c.QName; got != want {
-			t.Errorf("encodeDomain(%v) error got=%#v want=%#v", c.Domain, got, want)
+		if got, want := string(EncodeDomain(nil, c.Domain)), c.QName; got != want {
+			t.Errorf("EncodeDomain(%v) error got=%#v want=%#v", c.Domain, got, want)
 		}
 	}
 }
@@ -73,17 +73,17 @@ func TestTastset(t *testing.T) {
 	}
 }
 
-func BenchmarkDecodeQName(b *testing.B) {
+func BenchmarkDecodeQustionName(b *testing.B) {
 	qname := []byte("\x02hk\x04phus\x02lu\x00")
 	dst := make([]byte, 0, 256)
 	for i := 0; i < b.N; i++ {
-		dst = decodeQName(dst[:0], qname)
+		dst = DecodeQustionName(dst[:0], qname)
 	}
 }
 
 func BenchmarkEncodeDomain(b *testing.B) {
 	dst := make([]byte, 0, 256)
 	for i := 0; i < b.N; i++ {
-		dst = encodeDomain(dst[:0], "hk.phus.lu")
+		dst = EncodeDomain(dst[:0], "hk.phus.lu")
 	}
 }

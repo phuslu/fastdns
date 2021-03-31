@@ -198,7 +198,7 @@ func TestAppendCNameRecord(t *testing.T) {
 	}
 
 	req := new(Request)
-	req.Question.Name = encodeDomain(nil, "ip.phus.lu")
+	req.Question.Name = EncodeDomain(nil, "ip.phus.lu")
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
