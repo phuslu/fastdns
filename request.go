@@ -105,13 +105,13 @@ type Request struct {
 	   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	*/
 	Question struct {
-		// QName refers to the raw query name to be resolved in the query.
+		// Name refers to the raw query name to be resolved in the query.
 		Name []byte
 
-		// QTYPE specifies the type of the query to perform.
+		// Type specifies the type of the query to perform.
 		Type Type
 
-		// QCLASS
+		// Class specifies the class of the query to perform.
 		Class Class
 	}
 }
