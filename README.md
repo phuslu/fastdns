@@ -22,6 +22,7 @@ package main
 import (
 	"log"
 	"net"
+	_ "net/http/pprof"
 	"os"
 
 	"github.com/phuslu/fastdns"

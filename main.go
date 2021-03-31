@@ -5,7 +5,6 @@ package main
 import (
 	"log"
 	"net"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
 
@@ -42,11 +41,15 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 }
 
 func main() {
-	go http.ListenAndServe(":9001", nil)
+	server := &fastdns.ForkServer{
+		Handler: &DNSHandler{
+			Debug: os.Getenv("DEBUG") != "",
+		},
+		Logger:       log.Default(),
+		HTTPPortBase: 9000,
+	}
 
-	err := fastdns.ListenAndServe(os.Args[1], &DNSHandler{
-		Debug: os.Getenv("DEBUG") != "",
-	})
+	err := server.ListenAndServe(os.Args[1])
 	if err != nil {
 		log.Fatalf("dnsserver error: %+v", err)
 	}

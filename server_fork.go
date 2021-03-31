@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	_ "net/http/pprof" // enabling pprof
 	"os"
 	"os/exec"
 	"runtime"
