@@ -1,6 +1,7 @@
 package fastdns
 
 import (
+	"bytes"
 	"encoding/hex"
 	"reflect"
 	"testing"
@@ -8,8 +9,6 @@ import (
 
 func TestParseRequestOK(t *testing.T) {
 	var cases = []struct {
-		Hex     string
-		Domain  string
 		Request *Request
 	}{
 		{
@@ -35,9 +34,9 @@ func TestParseRequestOK(t *testing.T) {
 				            Type: PTR (domain name PoinTeR) (12)
 				            Class: IN (0x0001)
 			*/
-			"0001010000010000000000000131023530033136380331393207696e2d61646472046172706100000c0001",
-			"1.50.168.192.in-addr.arpa",
 			&Request{
+				[]byte("\x00\x01\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x01\x31\x02\x35\x30\x03\x31\x36\x38\x03\x31\x39\x32\x07\x69\x6e\x2d\x61\x64\x64\x72\x04\x61\x72\x70\x61\x00\x00\x0c\x00\x01"),
+				[]byte("1.50.168.192.in-addr.arpa"),
 				Header{
 					ID:      0x0001,
 					QR:      0x00,
@@ -58,7 +57,6 @@ func TestParseRequestOK(t *testing.T) {
 					Type:  TypePTR,
 					Class: ClassINET,
 				},
-				[]byte("1.50.168.192.in-addr.arpa"),
 			},
 		},
 		{
@@ -84,9 +82,9 @@ func TestParseRequestOK(t *testing.T) {
 				            Type: A (Host Address) (1)
 				            Class: IN (0x0001)
 			*/
-			"00020100000100000000000002686b0470687573026c750000010001",
-			"hk.phus.lu",
 			&Request{
+				[]byte("\x00\x02\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x02\x68\x6b\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01"),
+				[]byte("hk.phus.lu"),
 				Header{
 					ID:      0x0002,
 					QR:      0x00,
@@ -107,23 +105,18 @@ func TestParseRequestOK(t *testing.T) {
 					Type:  TypeA,
 					Class: ClassINET,
 				},
-				[]byte("hk.phus.lu"),
 			},
 		},
 	}
 
 	for _, c := range cases {
-		payload, err := hex.DecodeString(c.Hex)
-		if err != nil {
-			t.Errorf("hex.DecodeString(%v) error: %+v", c.Hex, err)
-		}
 		req := AcquireRequest()
-		err = ParseRequest(req, payload)
+		err := ParseRequest(req, c.Request.Raw)
 		if err != nil {
-			t.Errorf("ParseRequest(%v) error: %+v", payload, err)
+			t.Errorf("ParseRequest(%x) error: %+v", c.Request.Raw, err)
 		}
 		if got, want := req, c.Request; !reflect.DeepEqual(got, want) {
-			t.Errorf("ParseRequest(%v) error got=%#v want=%#v", payload, got, want)
+			t.Errorf("ParseRequest(%x) error got=%#v want=%#v", c.Request.Raw, got, want)
 		}
 		ReleaseRequest(req)
 	}
@@ -156,14 +149,13 @@ func TestParseRequestError(t *testing.T) {
 		var req Request
 		err = ParseRequest(&req, payload)
 		if err != c.Error {
-			t.Errorf("ParseRequest(%v) should error: %+v", payload, c.Error)
+			t.Errorf("ParseRequest(%x) should error: %+v", payload, c.Error)
 		}
 	}
 }
 
 func TestAppendRequest(t *testing.T) {
 	var cases = []struct {
-		Hex     string
 		Request *Request
 	}{
 		{
@@ -189,8 +181,9 @@ func TestAppendRequest(t *testing.T) {
 				            Type: PTR (domain name PoinTeR) (12)
 				            Class: IN (0x0001)
 			*/
-			"0001010000010000000000000131023530033136380331393207696e2d61646472046172706100000c0001",
 			&Request{
+				[]byte("\x00\x01\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x01\x31\x02\x35\x30\x03\x31\x36\x38\x03\x31\x39\x32\x07\x69\x6e\x2d\x61\x64\x64\x72\x04\x61\x72\x70\x61\x00\x00\x0c\x00\x01"),
+				[]byte("1.50.168.192.in-addr.arpa"),
 				Header{
 					ID:      0x0001,
 					QR:      0x00,
@@ -211,7 +204,6 @@ func TestAppendRequest(t *testing.T) {
 					Type:  TypePTR,
 					Class: ClassINET,
 				},
-				[]byte("1.50.168.192.in-addr.arpa"),
 			},
 		},
 		{
@@ -237,8 +229,9 @@ func TestAppendRequest(t *testing.T) {
 				            Type: A (Host Address) (1)
 				            Class: IN (0x0001)
 			*/
-			"00020100000100000000000002686b0470687573026c750000010001",
 			&Request{
+				[]byte("\x00\x02\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x02\x68\x6b\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01"),
+				[]byte("hk.phus.lu"),
 				Header{
 					ID:      0x0002,
 					QR:      0x00,
@@ -259,13 +252,12 @@ func TestAppendRequest(t *testing.T) {
 					Type:  TypeA,
 					Class: ClassINET,
 				},
-				[]byte("hk.phus.lu"),
 			},
 		},
 	}
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendRequest(nil, c.Request)), c.Hex; got != want {
+		if got, want := AppendRequest(nil, c.Request), c.Request.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendRequest(%v) error got=%#v want=%#v", c.Request, got, want)
 		}
 	}

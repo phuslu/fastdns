@@ -7,6 +7,12 @@ import (
 
 // Request represents an DNS request received by a server or to be sent by a client.
 type Request struct {
+	// Raw refers to the raw query packet.
+	Raw []byte
+
+	// Domain represents to the parsed query domain in the query.
+	Domain []byte
+
 	/*
 		Header encapsulates the construct of the header part of the DNS
 		query message.
@@ -114,9 +120,6 @@ type Request struct {
 		// Class specifies the class of the query to perform.
 		Class Class
 	}
-
-	// Domain represents to the parsed query domain in the query.
-	Domain []byte
 }
 
 var (
@@ -128,6 +131,9 @@ var (
 
 // ParseRequest parses dns request from payload into dst and returns the error.
 func ParseRequest(dst *Request, payload []byte) error {
+	dst.Raw = append(dst.Raw[:0], payload...)
+	payload = dst.Raw
+
 	if len(payload) < 12 {
 		return ErrInvalidHeader
 	}
@@ -172,7 +178,7 @@ func ParseRequest(dst *Request, payload []byte) error {
 	if i+5 > len(payload) {
 		return ErrInvalidQuestion
 	}
-	dst.Question.Name = append(dst.Question.Name[:0], payload[:i+1]...)
+	dst.Question.Name = payload[:i+1]
 
 	// QTYPE, QCLASS
 	payload = payload[i:]
@@ -245,7 +251,7 @@ func AppendRequest(dst []byte, req *Request) []byte {
 var reqPool = sync.Pool{
 	New: func() interface{} {
 		req := new(Request)
-		req.Question.Name = make([]byte, 0, 256)
+		req.Question.Name = make([]byte, 0, 1024)
 		req.Domain = make([]byte, 0, 256)
 		return req
 	},

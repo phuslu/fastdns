@@ -7,6 +7,8 @@ import (
 )
 
 var mockHandlerRequest = &Request{
+	nil,
+	[]byte("hk.phus.lu"),
 	Header{
 		ID:      0x0002,
 		QR:      0x00,
@@ -27,7 +29,6 @@ var mockHandlerRequest = &Request{
 		Type:  TypeA,
 		Class: ClassINET,
 	},
-	[]byte("hk.phus.lu"),
 }
 
 func TestHandlerError(t *testing.T) {

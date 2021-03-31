@@ -1,6 +1,7 @@
 package fastdns
 
 import (
+	"bytes"
 	"encoding/hex"
 	"net"
 	"strings"
@@ -33,7 +34,6 @@ type Question struct {
 
 func TestAppendHeaderQuestion(t *testing.T) {
 	var cases = []struct {
-		Hex     string
 		Request *Request
 	}{
 		{
@@ -59,8 +59,9 @@ func TestAppendHeaderQuestion(t *testing.T) {
 				            Type: PTR (domain name PoinTeR) (12)
 				            Class: IN (0x0001)
 			*/
-			"0001810000010001000000000131023530033136380331393207696e2d61646472046172706100000c0001",
 			&Request{
+				[]byte("\x00\x01\x81\x00\x00\x01\x00\x01\x00\x00\x00\x00\x01\x31\x02\x35\x30\x03\x31\x36\x38\x03\x31\x39\x32\x07\x69\x6e\x2d\x61\x64\x64\x72\x04\x61\x72\x70\x61\x00\x00\x0c\x00\x01"),
+				[]byte("1.50.168.192.in-addr.arpa"),
 				Header{
 					ID:      0x0001,
 					QR:      0x00,
@@ -81,7 +82,6 @@ func TestAppendHeaderQuestion(t *testing.T) {
 					Type:  TypePTR,
 					Class: ClassINET,
 				},
-				[]byte("1.50.168.192.in-addr.arpa"),
 			},
 		},
 		{
@@ -107,8 +107,9 @@ func TestAppendHeaderQuestion(t *testing.T) {
 				            Type: A (Host Address) (1)
 				            Class: IN (0x0001)
 			*/
-			"00028100000100010000000002686b0470687573026c750000010001",
 			&Request{
+				[]byte("\x00\x02\x81\x00\x00\x01\x00\x01\x00\x00\x00\x00\x02\x68\x6b\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01"),
+				[]byte("hk.phus.lu"),
 				Header{
 					ID:      0x0002,
 					QR:      0x00,
@@ -129,14 +130,13 @@ func TestAppendHeaderQuestion(t *testing.T) {
 					Type:  TypeA,
 					Class: ClassINET,
 				},
-				[]byte("hk.phus.lu"),
 			},
 		},
 	}
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendHeaderQuestion(nil, c.Request, RcodeSuccess, 1, 1, 0, 0)), c.Hex; got != want {
-			t.Errorf("AppendHeaderQuestion(%v) error got=%#v want=%#v", c.Request, got, want)
+		if got, want := AppendHeaderQuestion(nil, c.Request, RcodeSuccess, 1, 1, 0, 0), c.Request.Raw; !bytes.Equal(got, want) {
+			t.Errorf("AppendHeaderQuestion(%v) error got=%x want=%x", c.Request, got, want)
 		}
 	}
 }
