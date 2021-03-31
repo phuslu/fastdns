@@ -6,6 +6,7 @@ import (
 
 // AppendHeaderQuestion appends the dns request to dst with the specified QDCount/ANCount/NSCount/ARCount.
 func AppendHeaderQuestion(dst []byte, req *Request, rcode Rcode, qd, an, ns, ar uint16) []byte {
+	// fixed size array for avoid bounds check
 	var header [12]byte
 
 	// ID
@@ -65,7 +66,9 @@ func AppendHeaderQuestion(dst []byte, req *Request, rcode Rcode, qd, an, ns, ar 
 func AppendHostRecord(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte {
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
+			// hint golang complier remove ip bounds check
 			_ = ip4[3]
+			// fixed size array for avoid bounds check
 			answer := [...]byte{
 				// NAME
 				0xc0, 0x0c,
@@ -82,7 +85,9 @@ func AppendHostRecord(dst []byte, req *Request, ips []net.IP, ttl uint32) []byte
 			}
 			dst = append(dst, answer[:]...)
 		} else {
+			// hint golang complier remove ip bounds check
 			_ = ip[15]
+			// fixed size array for avoid bounds check
 			answer := [...]byte{
 				// NAME
 				0xc0, 0x0c,
@@ -112,6 +117,7 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {
+		// fixed size array for avoid bounds check
 		answer := [...]byte{
 			// NAME
 			0xc0 | byte(offset>>8), byte(offset),
@@ -138,7 +144,9 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 	// Host Records
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
+			// hint golang complier remove ip bounds check
 			_ = ip4[3]
+			// fixed size array for avoid bounds check
 			answer := [...]byte{
 				// NAME
 				0xc0 | byte(offset>>8), byte(offset),
@@ -155,7 +163,9 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 			}
 			dst = append(dst, answer[:]...)
 		} else {
+			// hint golang complier remove ip bounds check
 			_ = ip[15]
+			// fixed size array for avoid bounds check
 			answer := [...]byte{
 				// NAME
 				0xc0 | byte(offset>>8), byte(offset),
@@ -184,6 +194,7 @@ func AppendCNameRecord(dst []byte, req *Request, cnames []string, ips []net.IP, 
 func AppendSRVRecord(dst []byte, req *Request, srv string, priovrity, weight, port uint16, ttl uint32) []byte {
 	// SRV Records
 	length := 8 + len(srv)
+	// fixed size array for avoid bounds check
 	answer := [...]byte{
 		// NAME
 		0xc0, 0x0c,
@@ -220,6 +231,7 @@ func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte 
 	// MX Records
 	for _, rr := range mx {
 		length := 4 + len(rr.Host)
+		// fixed size array for avoid bounds check
 		answer := [...]byte{
 			// NAME
 			0xc0, 0x0c,
@@ -244,6 +256,7 @@ func AppendMXRecord(dst []byte, req *Request, mx []MXRecord, ttl uint32) []byte 
 
 // AppendPTRRecord appends the PTR records to dst and returns the resulting dst.
 func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
+	// fixed size array for avoid bounds check
 	answer := [...]byte{
 		// NAME
 		0xc0, 0x0c,
@@ -266,6 +279,7 @@ func AppendPTRRecord(dst []byte, req *Request, ptr string, ttl uint32) []byte {
 // AppendTXTRecord appends the TXT records to dst and returns the resulting dst.
 func AppendTXTRecord(dst []byte, req *Request, txt string, ttl uint32) []byte {
 	length := len(txt) + (len(txt)+0xff)/0x100
+	// fixed size array for avoid bounds check
 	answer := [...]byte{
 		// NAME
 		0xc0, 0x0c,

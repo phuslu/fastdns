@@ -57,6 +57,7 @@ func (s *Server) spawn(addr string) (err error) {
 
 	ch := make(chan racer, maxProcs)
 
+	// create multiple receive worker for performance
 	for i := 1; i <= maxProcs; i++ {
 		go func(index int) {
 			server := &Server{

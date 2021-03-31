@@ -48,12 +48,14 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 	}
 
 	if s.SetAffinity {
+		// set cpu affinity for performance
 		err := taskset((s.Index - 1) % runtime.NumCPU())
 		if err != nil {
 			s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index, s.Index-1, err)
 		}
 	}
 
+	// so_reuseport listen for performance
 	conn, err := listen("udp", addr)
 	if err != nil {
 		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index, addr, err)
@@ -61,6 +63,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 	}
 
 	if s.HTTPPortBase > 0 {
+		// create per-process http hanlder for monitoring/profiling. (e.g. pprof or prometheus)
 		host, _, _ := net.SplitHostPort(addr)
 		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+s.Index)
 		go func() {

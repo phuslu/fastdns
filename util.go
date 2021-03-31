@@ -8,6 +8,7 @@ func DecodeQustionName(dst []byte, qname []byte) []byte {
 	}
 
 	n := len(dst) + int(qname[0])
+	// append once for performance
 	dst = append(dst, qname[1:]...)
 	for dst[n] != 0 {
 		offset := int(dst[n])

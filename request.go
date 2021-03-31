@@ -138,6 +138,7 @@ func ParseRequest(dst *Request, payload []byte) error {
 		return ErrInvalidHeader
 	}
 
+	// hint golang complier remove ip bounds check
 	_ = payload[11]
 
 	// ID
@@ -193,6 +194,7 @@ func ParseRequest(dst *Request, payload []byte) error {
 
 // AppendRequest appends the dns request to dst and returns the resulting dst.
 func AppendRequest(dst []byte, req *Request) []byte {
+	// fixed size array for avoid bounds check
 	var header [12]byte
 
 	// ID
