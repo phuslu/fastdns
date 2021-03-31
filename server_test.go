@@ -13,7 +13,7 @@ import (
 type mockServerHandler struct{}
 
 func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Request) {
-	log.Printf("%s] %s: TYPE %s", rw.RemoteAddr(), req.GetDomainName(), req.Question.Type)
+	log.Printf("%s] %s: TYPE %s", rw.RemoteAddr(), req.Domain, req.Question.Type)
 	HOST(rw, req, []net.IP{net.ParseIP("1.1.1.1")}, 300)
 }
 

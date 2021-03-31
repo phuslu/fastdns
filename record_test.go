@@ -81,6 +81,7 @@ func TestAppendHeaderQuestion(t *testing.T) {
 					Type:  TypePTR,
 					Class: ClassINET,
 				},
+				[]byte("1.50.168.192.in-addr.arpa"),
 			},
 		},
 		{
@@ -128,6 +129,7 @@ func TestAppendHeaderQuestion(t *testing.T) {
 					Type:  TypeA,
 					Class: ClassINET,
 				},
+				[]byte("hk.phus.lu"),
 			},
 		},
 	}

@@ -114,16 +114,9 @@ type Request struct {
 		// Class specifies the class of the query to perform.
 		Class Class
 	}
-}
 
-// GetDomainName returns the client's normalized domain name.
-func (req *Request) GetDomainName() string {
-	return string(decodeQName(make([]byte, 0, 256), req.Question.Name))
-}
-
-// AppendDomainName appends the normalized domain name to dst and returns the resulting dst.
-func (req *Request) AppendDomainName(dst []byte) []byte {
-	return decodeQName(dst, req.Question.Name)
+	// Domain represents to the parsed query domain in the query.
+	Domain []byte
 }
 
 var (
@@ -185,6 +178,9 @@ func ParseRequest(dst *Request, payload []byte) error {
 	payload = payload[i:]
 	dst.Question.Class = Class(uint16(payload[4]) | uint16(payload[3])<<8)
 	dst.Question.Type = Type(uint16(payload[2]) | uint16(payload[1])<<8)
+
+	// Domain
+	dst.Domain = decodeQName(dst.Domain[:0], dst.Question.Name)
 
 	return nil
 }
@@ -250,6 +246,7 @@ var reqPool = sync.Pool{
 	New: func() interface{} {
 		req := new(Request)
 		req.Question.Name = make([]byte, 0, 256)
+		req.Domain = make([]byte, 0, 256)
 		return req
 	},
 }

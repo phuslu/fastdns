@@ -58,6 +58,7 @@ func TestParseRequestOK(t *testing.T) {
 					Type:  TypePTR,
 					Class: ClassINET,
 				},
+				[]byte("1.50.168.192.in-addr.arpa"),
 			},
 		},
 		{
@@ -106,6 +107,7 @@ func TestParseRequestOK(t *testing.T) {
 					Type:  TypeA,
 					Class: ClassINET,
 				},
+				[]byte("hk.phus.lu"),
 			},
 		},
 	}
@@ -122,12 +124,6 @@ func TestParseRequestOK(t *testing.T) {
 		}
 		if got, want := req, c.Request; !reflect.DeepEqual(got, want) {
 			t.Errorf("ParseRequest(%v) error got=%#v want=%#v", payload, got, want)
-		}
-		if got, want := req.GetDomainName(), c.Domain; got != want {
-			t.Errorf("Request.GetDomainName(%v) error got=%#v want=%#v", req.Question.Name, got, want)
-		}
-		if got, want := string(req.AppendDomainName(nil)), c.Domain; got != want {
-			t.Errorf("Request.GetDomainName(%v) error got=%#v want=%#v", req.Question.Name, got, want)
 		}
 		ReleaseRequest(req)
 	}
@@ -215,6 +211,7 @@ func TestAppendRequest(t *testing.T) {
 					Type:  TypePTR,
 					Class: ClassINET,
 				},
+				[]byte("1.50.168.192.in-addr.arpa"),
 			},
 		},
 		{
@@ -262,6 +259,7 @@ func TestAppendRequest(t *testing.T) {
 					Type:  TypeA,
 					Class: ClassINET,
 				},
+				[]byte("hk.phus.lu"),
 			},
 		},
 	}
@@ -281,18 +279,5 @@ func BenchmarkParseRequest(b *testing.B) {
 		if err := ParseRequest(&req, payload); err != nil {
 			b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
 		}
-	}
-}
-
-func BenchmarkGetDomainName(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	var req Request
-
-	if err := ParseRequest(&req, payload); err != nil {
-		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		req.GetDomainName()
 	}
 }

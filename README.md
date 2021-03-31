@@ -32,9 +32,9 @@ type DNSHandler struct {
 }
 
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
-	addr, name := rw.RemoteAddr(), req.GetDomainName()
 	if h.Debug {
-		log.Printf("%s] %s: CLASS %s TYPE %s\n", addr, name, req.Question.Class, req.Question.Type)
+		log.Printf("%s] %s: CLASS %s TYPE %s\n",
+			rw.RemoteAddr(), req.Domain, req.Question.Class, req.Question.Type)
 	}
 
 	switch req.Question.Type {
@@ -95,7 +95,6 @@ BenchmarkAppendPTRRecord   	41316868	        29.07 ns/op	       0 B/op	       0 
 BenchmarkAppendMXRecord    	34163170	        35.13 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendTXTRecord   	67209427	        17.85 ns/op	       0 B/op	       0 allocs/op
 BenchmarkParseRequest      	51428226	        23.34 ns/op	       0 B/op	       0 allocs/op
-BenchmarkGetDomainName     	59499422	        20.13 ns/op	       0 B/op	       0 allocs/op
 BenchmarkDecodeQName       	460618591	         2.604 ns/op	       0 B/op	       0 allocs/op
 BenchmarkEncodeDomain      	74840990	        16.09 ns/op	       0 B/op	       0 allocs/op
 PASS

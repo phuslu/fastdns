@@ -27,6 +27,7 @@ var mockHandlerRequest = &Request{
 		Type:  TypeA,
 		Class: ClassINET,
 	},
+	[]byte("hk.phus.lu"),
 }
 
 func TestHandlerError(t *testing.T) {
