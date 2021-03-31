@@ -5,6 +5,9 @@ package main
 import (
 	"log"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
+	"os"
 
 	"github.com/phuslu/fastdns"
 )
@@ -14,8 +17,8 @@ type DNSHandler struct {
 }
 
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
-	addr, name := rw.RemoteAddr(), req.GetDomainName()
 	if h.Debug {
+		addr, name := rw.RemoteAddr(), req.GetDomainName()
 		log.Printf("%s] %s: CLASS %s TYPE %s\n", addr, name, req.Question.Class, req.Question.Type)
 	}
 
@@ -40,7 +43,11 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 }
 
 func main() {
-	err := fastdns.ListenAndServe(":53", &DNSHandler{Debug: true})
+	go http.ListenAndServe(":9001", nil)
+
+	err := fastdns.ListenAndServe(os.Args[1], &DNSHandler{
+		Debug: os.Getenv("DEBUG") != "",
+	})
 	if err != nil {
 		log.Fatalf("dnsserver error: %+v", err)
 	}
