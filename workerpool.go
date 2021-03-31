@@ -13,7 +13,7 @@ import (
 // Such a scheme keeps CPU caches hot (in theory).
 type workerPool struct {
 	// Function for serving server connections.
-	WorkerFunc func(rw ResponseWriter, b *ByteBuffer) error
+	WorkerFunc func(rw *udpResponseWriter) error
 
 	MaxWorkersCount int
 
@@ -35,8 +35,7 @@ type workerPool struct {
 }
 
 type workerItem struct {
-	rw ResponseWriter
-	b  *ByteBuffer
+	rw *udpResponseWriter
 }
 
 type workerChan struct {
@@ -143,12 +142,12 @@ func (wp *workerPool) clean(scratch *[]*workerChan) {
 	}
 }
 
-func (wp *workerPool) Serve(rw ResponseWriter, b *ByteBuffer) bool {
+func (wp *workerPool) Serve(rw *udpResponseWriter) bool {
 	ch := wp.getCh()
 	if ch == nil {
 		return false
 	}
-	ch.ch <- workerItem{rw, b}
+	ch.ch <- workerItem{rw}
 	return true
 }
 
@@ -220,9 +219,9 @@ func (wp *workerPool) workerFunc(ch *workerChan) {
 			break
 		}
 
-		if err = wp.WorkerFunc(item.rw, item.b); err != nil {
+		if err = wp.WorkerFunc(item.rw); err != nil {
 			if wp.LogAllErrors || !(err == ErrInvalidHeader || err == ErrInvalidQuestion) {
-				wp.Logger.Printf("error when serving connection %q<->%q: %s", item.rw.LocalAddr(), item.rw.RemoteAddr(), err)
+				wp.Logger.Printf("error when serving connection %q<->%q: %s", item.rw.conn.LocalAddr(), item.rw.addr, err)
 			}
 		}
 		item.rw = nil

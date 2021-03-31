@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"net"
+	"sync"
 )
 
 // A ResponseWriter interface is used by an DNS handler to construct an DNS response.
@@ -16,22 +17,18 @@ type ResponseWriter interface {
 	Write([]byte) (int, error)
 }
 
-type udpResponseWriter struct {
-	conn *net.UDPConn
-	addr *net.UDPAddr
+type nilResponseWriter struct{}
+
+func (rw *nilResponseWriter) RemoteAddr() net.Addr {
+	return nil
 }
 
-func (rw *udpResponseWriter) RemoteAddr() net.Addr {
-	return rw.addr
+func (rw *nilResponseWriter) LocalAddr() net.Addr {
+	return nil
 }
 
-func (rw *udpResponseWriter) LocalAddr() net.Addr {
-	return rw.conn.LocalAddr()
-}
-
-func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
-	n, _, err = rw.conn.WriteMsgUDP(p, nil, rw.addr)
-	return
+func (rw *nilResponseWriter) Write(p []byte) (n int, err error) {
+	return len(p), nil
 }
 
 type memResponseWriter struct {
@@ -54,16 +51,29 @@ func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-type nilResponseWriter struct{}
-
-func (rw *nilResponseWriter) RemoteAddr() net.Addr {
-	return nil
+type udpResponseWriter struct {
+	rbuf []byte
+	conn *net.UDPConn
+	addr *net.UDPAddr
 }
 
-func (rw *nilResponseWriter) LocalAddr() net.Addr {
-	return nil
+func (rw *udpResponseWriter) RemoteAddr() net.Addr {
+	return rw.addr
 }
 
-func (rw *nilResponseWriter) Write(p []byte) (n int, err error) {
-	return len(p), nil
+func (rw *udpResponseWriter) LocalAddr() net.Addr {
+	return rw.conn.LocalAddr()
+}
+
+func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
+	n, _, err = rw.conn.WriteMsgUDP(p, nil, rw.addr)
+	return
+}
+
+var udpResponseWriterPool = sync.Pool{
+	New: func() interface{} {
+		return &udpResponseWriter{
+			rbuf: make([]byte, 0, 1024),
+		}
+	},
 }

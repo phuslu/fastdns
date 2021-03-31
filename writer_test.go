@@ -6,7 +6,7 @@ import (
 )
 
 func TestResponseWriterUDP(t *testing.T) {
-	rw := &udpResponseWriter{
+	rw := udpResponseWriter{
 		addr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
 	}
 
