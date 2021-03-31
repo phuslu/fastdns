@@ -143,9 +143,5 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 // ListenAndServe serves DNS requests from the given UDP addr
 // using the given handler.
 func ListenAndServe(addr string, handler Handler) error {
-	s := &Server{
-		Handler: handler,
-		Logger:  log.Default(),
-	}
-	return s.ListenAndServe(addr)
+	return (&Server{Handler: handler, Logger: log.Default()}).ListenAndServe(addr)
 }
