@@ -77,28 +77,28 @@ func main() {
 
 A Performance result as below, for daily benchmark results see [github actions][benchmark]
 ```
+# go test -v -cpu=1 -run=none -benchmem -bench=.
 goos: linux
 goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
-BenchmarkHOST
-BenchmarkHOST              	17985486	        66.48 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME             	13363566	        89.96 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV               	13672995	        87.67 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR               	14126662	        85.43 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                	14188016	        84.54 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT               	18614152	        64.37 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendHostRecord  	59770392	        20.07 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendCNameRecord 	30074841	        39.76 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendSRVRecord   	33042228	        36.31 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendPTRRecord   	41316868	        29.07 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendMXRecord    	34163170	        35.13 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendTXTRecord   	67209427	        17.85 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseRequest      	51428226	        23.34 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeQName       	460618591	         2.604 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain      	74840990	        16.09 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST              	17677506	        67.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME             	13310619	        89.37 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV               	13235827	        90.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR               	14475850	        83.27 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                	13991402	        85.74 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT               	18690344	        64.56 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendHostRecord  	57637756	        20.81 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendCNameRecord 	30262444	        39.51 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSRVRecord   	27443810	        43.77 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendPTRRecord   	37948849	        31.66 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendMXRecord    	35865289	        33.83 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendTXTRecord   	67243420	        17.87 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseRequest      	33742836	        35.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeQName       	402798675	         2.978 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain      	60813676	        19.36 ns/op	       0 B/op	       0 allocs/op
 PASS
-ok  	github.com/phuslu/fastdns	20.228s
+ok  	github.com/phuslu/fastdns	19.064s
 ```
 
 Here is the flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches 1M QPS in a single machine with Xeon 4216 and Intel X710.
