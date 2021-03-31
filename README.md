@@ -82,23 +82,17 @@ goos: linux
 goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
-BenchmarkHOST              	17677506	        67.69 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME             	13310619	        89.37 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV               	13235827	        90.61 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR               	14475850	        83.27 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                	13991402	        85.74 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT               	18690344	        64.56 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendHostRecord  	57637756	        20.81 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendCNameRecord 	30262444	        39.51 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendSRVRecord   	27443810	        43.77 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendPTRRecord   	37948849	        31.66 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendMXRecord    	35865289	        33.83 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendTXTRecord   	67243420	        17.87 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseRequest      	33742836	        35.73 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeQName       	402798675	         2.978 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain      	60813676	        19.36 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST              	17813920	        67.37 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME             	13345822	        90.35 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV               	12894741	        92.41 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR               	14342062	        83.63 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                	14138179	        84.99 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT               	18473200	        65.17 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseRequest      	37919695	        31.66 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeQName       	403373194	         2.978 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain      	58950158	        19.53 ns/op	       0 B/op	       0 allocs/op
 PASS
-ok  	github.com/phuslu/fastdns	19.064s
+ok  	github.com/phuslu/fastdns	19.026s
 ```
 
 Here is the flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches 1M QPS in a single machine with Xeon 4216 and Intel X710.
