@@ -26,6 +26,7 @@ func TestServerHost(t *testing.T) {
 	s := &Server{
 		Handler: &mockServerHandler{},
 		Logger:  log.New(os.Stdout, "", 0),
+		index:   1, // disable fork
 	}
 
 	addr := allocAddr()
@@ -62,7 +63,7 @@ func TestServerListenError(t *testing.T) {
 	s := &Server{
 		Handler: &mockServerHandler{},
 		Logger:  log.New(os.Stdout, "", 0),
-		Index:   1, // disable spwan
+		index:   1, // disable fork
 	}
 
 	const addr = "127.0.1.1:-1"
@@ -82,6 +83,7 @@ func TestServerParseRequestError(t *testing.T) {
 	s := &Server{
 		Handler: &mockServerHandler{},
 		Logger:  log.New(os.Stdout, "", 0),
+		index:   1, // disable fork
 	}
 
 	addr := allocAddr()
@@ -112,11 +114,11 @@ func TestServerForkHost(t *testing.T) {
 		return
 	}
 
+	os.Setenv("FASTDNS_CHILD_INDEX", "1")
+
 	s := &ForkServer{
-		Handler:      &mockServerHandler{},
-		Logger:       log.New(os.Stdout, "", 0),
-		HTTPPortBase: 23000,
-		Index:        1, // disable spawn
+		Handler: &mockServerHandler{},
+		Logger:  log.New(os.Stdout, "", 0),
 	}
 
 	addr := allocAddr()
@@ -155,10 +157,11 @@ func TestServerForkParseRequestError(t *testing.T) {
 		return
 	}
 
+	os.Setenv("FASTDNS_CHILD_INDEX", "1")
+
 	s := &ForkServer{
 		Handler: &mockServerHandler{},
 		Logger:  log.New(os.Stdout, "", 0),
-		Index:   1, // disable spawn
 	}
 
 	addr := allocAddr()

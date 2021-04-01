@@ -3,8 +3,6 @@ package fastdns
 import (
 	"errors"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
@@ -19,9 +17,7 @@ type ForkServer struct {
 	// Logger specifies a logger
 	Logger Logger
 
-	// Index indicates the index of Server instances.
-	Index int
-
+	// SetAffinity sets the CPU affinity mask of current process.
 	SetAffinity bool
 
 	// The maximum number of concurrent clients the server may serve.
@@ -31,50 +27,38 @@ type ForkServer struct {
 	// Concurrency only works if you either call Serve once, or only ServeConn multiple times.
 	// It works with ListenAndServe as well.
 	Concurrency int
-
-	// HTTPPortBase specifies a optional http server listened in HTTPPortBase+Index port.
-	HTTPPortBase uint16
-
-	// HTTPHandler specifies a optional http handler for pprof/prometheus purposes.
-	HTTPHandler http.Handler
 }
 
 // ListenAndServe serves DNS requests from the given UDP addr.
 func (s *ForkServer) ListenAndServe(addr string) error {
-	s.Index, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
-	if s.Index == 0 && runtime.GOOS == "linux" {
-		// only prefork for linux(reuse_port)
+	if s.Index() == 0 {
 		return s.fork(addr)
 	}
 
 	if s.SetAffinity {
 		// set cpu affinity for performance
-		err := taskset((s.Index - 1) % runtime.NumCPU())
+		err := taskset((s.Index() - 1) % runtime.NumCPU())
 		if err != nil {
-			s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index, s.Index-1, err)
+			s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
 		}
 	}
 
 	// so_reuseport listen for performance
 	conn, err := listen("udp", addr)
 	if err != nil {
-		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index, addr, err)
+		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err
 	}
 
-	if s.HTTPPortBase > 0 {
-		// create per-process http hanlder for monitoring/profiling. (e.g. pprof or prometheus)
-		host, _, _ := net.SplitHostPort(addr)
-		httpAddr := fmt.Sprintf("%s:%d", host, int(s.HTTPPortBase)+s.Index)
-		go func() {
-			s.Logger.Printf("forkserver-%d pid-%d serving http on port %s", s.Index, os.Getpid(), httpAddr)
-			_ = http.ListenAndServe(httpAddr, s.HTTPHandler)
-		}()
-	}
-
-	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index, os.Getpid(), conn.LocalAddr())
+	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
 	return serve(conn, s.Handler, s.Logger, s.Concurrency)
+}
+
+// Index indicates the index of Server instances.
+func (s *ForkServer) Index() (index int) {
+	index, _ = strconv.Atoi(os.Getenv("FASTDNS_CHILD_INDEX"))
+	return
 }
 
 func fork(index int) (*exec.Cmd, error) {
@@ -94,6 +78,9 @@ func (s *ForkServer) fork(addr string) (err error) {
 	}
 
 	maxProcs := runtime.NumCPU()
+	if runtime.GOOS != "linux" {
+		maxProcs = 1
+	}
 
 	ch := make(chan racer, maxProcs)
 	childs := make(map[int]*exec.Cmd)

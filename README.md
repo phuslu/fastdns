@@ -62,8 +62,7 @@ func main() {
 		Handler: &DNSHandler{
 			Debug: os.Getenv("DEBUG") != "",
 		},
-		Logger:       log.Default(),
-		HTTPPortBase: 9000,
+		Logger: log.Default(),
 	}
 
 	err := server.ListenAndServe(":53")
