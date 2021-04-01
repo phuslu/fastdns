@@ -5,13 +5,13 @@
 
 ## Features
 
-* Dependency Free
-* Simple Interface, similar with net/http
+* 0 Dependency
+* Similar Interface with net/http
 * High Performance
-    - prefork + reuse_port + set_affinity
-    - worker pool + memory pool
     - 0-allocs dns request parser
     - 0-allocs dns records marshaller
+    - worker pool + memory pool
+    - prefork + reuse_port + set_affinity
 
 
 ## Getting Started
