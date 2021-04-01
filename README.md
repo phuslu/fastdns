@@ -1,6 +1,9 @@
 # fastdns - fast dns server for go
 
-[![godoc][godoc-img]][godoc] [![release][release-img]][release] [![goreport][goreport-img]][goreport] [![coverage][coverage-img]][coverage]
+[![godoc][godoc-img]][godoc]
+[![release][release-img]][release]
+[![goreport][goreport-img]][goreport]
+[![coverage][coverage-img]][coverage]
 
 
 ## Features
@@ -22,7 +25,6 @@ package main
 import (
 	"log"
 	"net"
-	_ "net/http/pprof"
 	"os"
 
 	"github.com/phuslu/fastdns"
@@ -88,13 +90,12 @@ BenchmarkPTR               	14252744	        83.45 ns/op	       0 B/op	       0 
 BenchmarkMX                	14126438	        85.21 ns/op	       0 B/op	       0 allocs/op
 BenchmarkTXT               	18376570	        65.14 ns/op	       0 B/op	       0 allocs/op
 BenchmarkParseRequest      	37892071	        31.67 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeQustionName 	403399980	         2.975 ns/op	       0 B/op	       0 allocs/op
 BenchmarkEncodeDomain      	61549723	        19.41 ns/op	       0 B/op	       0 allocs/op
 PASS
 ok  	github.com/phuslu/fastdns	19.026s
 ```
 
-Here is the flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches 1M QPS in a single machine with Xeon 4216 and Intel X710.
+Here is the flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches **1M QPS** in a single machine with Xeon 4216 and Intel X710.
 
 ## Acknowledgment
 This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg/dns][miekg/dns].
