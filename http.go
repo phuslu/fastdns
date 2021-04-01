@@ -10,12 +10,8 @@ import (
 // HTTPHandlerFunc converts fastdns.Handler to a http.Hander for DoH servers
 func HTTPHandlerFunc(h Handler) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		b := AcquireByteBuffer()
-		defer ReleaseByteBuffer(b)
-
-		b.B = b.B[:0]
-		n, err := io.Copy(b, req.Body)
-		if err != nil || n == 0 {
+		data, err := io.ReadAll(req.Body)
+		if err != nil {
 			http.Error(rw, "bad request", http.StatusBadRequest)
 			return
 		}
@@ -23,7 +19,7 @@ func HTTPHandlerFunc(h Handler) http.HandlerFunc {
 		r := AcquireRequest()
 		defer ReleaseRequest(r)
 
-		err = ParseRequest(r, b.B)
+		err = ParseRequest(r, data)
 		if err != nil {
 			http.Error(rw, "bad request", http.StatusBadRequest)
 			return
