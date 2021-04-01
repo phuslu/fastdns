@@ -13,7 +13,7 @@
 * High Performance
     - 0-allocs dns request parser
     - 0-allocs dns records marshaller
-    - worker pool + memory pool
+    - worker pool + request pool
     - prefork + reuse_port + set_affinity
 
 
@@ -83,14 +83,14 @@ goos: linux
 goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
-BenchmarkHOST              	17878362	        67.15 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME             	13417378	        89.15 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV               	13027480	        92.67 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR               	14252744	        83.45 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                	14126438	        85.21 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT               	18376570	        65.14 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseRequest      	37892071	        31.67 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain      	61549723	        19.41 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST              	24999866	        48.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME             	18336595	        65.28 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV               	18244953	        65.82 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR               	21325086	        56.38 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                	19634036	        61.08 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT               	27276198	        43.92 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseRequest      	38012943	        31.59 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain      	70104768	        17.11 ns/op	       0 B/op	       0 allocs/op
 PASS
 ok  	github.com/phuslu/fastdns	19.026s
 ```
