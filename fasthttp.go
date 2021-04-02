@@ -11,7 +11,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func HandlerFunc(handler fastdns.Handler) fasthttp.RequestHandler {
+func FasthttpHandler(handler fastdns.Handler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		req := fastdns.AcquireRequest()
 		defer fastdns.ReleaseRequest(req)
@@ -22,10 +22,12 @@ func HandlerFunc(handler fastdns.Handler) fasthttp.RequestHandler {
 			return
 		}
 
-		rw := &fastdns.MemoryResponseWriter{
-			Raddr: ctx.RemoteAddr(),
-			Laddr: ctx.LocalAddr(),
-		}
+		rw := fastdns.AcquireMemoryResponseWriter()
+		defer fastdns.ReleaseMemoryResponseWriter(rw)
+
+		rw.Data = rw.Data[:0]
+		rw.Raddr = ctx.RemoteAddr()
+		rw.Laddr = ctx.LocalAddr()
 
 		handler.ServeDNS(rw, req)
 
@@ -46,5 +48,5 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 }
 
 func main() {
-	fasthttp.ListenAndServe(os.Args[1], HandlerFunc(&DNSHandler{}))
+	fasthttp.ListenAndServe(os.Args[1], FasthttpHandler(&DNSHandler{}))
 }

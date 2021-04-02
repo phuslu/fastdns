@@ -6,12 +6,12 @@ import (
 )
 
 func TestResponseWriterUDP(t *testing.T) {
-	rw := udpResponseWriter{
-		addr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
+	rw := UDPResponseWriter{
+		Addr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
 	}
 
 	var err error
-	rw.conn, err = net.DialUDP("udp", nil, rw.RemoteAddr().(*net.UDPAddr))
+	rw.Conn, err = net.DialUDP("udp", nil, rw.RemoteAddr().(*net.UDPAddr))
 	if err != nil {
 		t.Errorf("response writer dial udp error: %+v", err)
 	}

@@ -111,10 +111,10 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 	}
 
 	pool := &workerPool{
-		WorkerFunc: func(rw *udpResponseWriter) error {
+		WorkerFunc: func(rw *UDPResponseWriter) error {
 			req := AcquireRequest()
 
-			err := ParseRequest(req, rw.rbuf)
+			err := ParseRequest(req, rw.Data)
 			if err != nil {
 				ReleaseRequest(req)
 				udpResponseWriterPool.Put(rw)
@@ -137,10 +137,10 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 	pool.Start()
 
 	for {
-		rw := udpResponseWriterPool.Get().(*udpResponseWriter)
+		rw := udpResponseWriterPool.Get().(*UDPResponseWriter)
 
-		rw.rbuf = rw.rbuf[:cap(rw.rbuf)]
-		n, addr, err := conn.ReadFromUDP(rw.rbuf)
+		rw.Data = rw.Data[:cap(rw.Data)]
+		n, addr, err := conn.ReadFromUDP(rw.Data)
 		if err != nil {
 			udpResponseWriterPool.Put(rw)
 			time.Sleep(10 * time.Millisecond)
@@ -148,9 +148,9 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 			continue
 		}
 
-		rw.rbuf = rw.rbuf[:n]
-		rw.conn = conn
-		rw.addr = addr
+		rw.Data = rw.Data[:n]
+		rw.Conn = conn
+		rw.Addr = addr
 
 		pool.Serve(rw)
 	}
