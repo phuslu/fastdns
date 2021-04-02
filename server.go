@@ -117,7 +117,7 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 			err := ParseRequest(req, rw.Data)
 			if err != nil {
 				ReleaseRequest(req)
-				udpResponseWriterPool.Put(rw)
+				ReleaseUDPResponseWriter(rw)
 
 				return err
 			}
@@ -125,7 +125,7 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 			handler.ServeDNS(rw, req)
 
 			ReleaseRequest(req)
-			udpResponseWriterPool.Put(rw)
+			ReleaseUDPResponseWriter(rw)
 
 			return nil
 		},
@@ -137,12 +137,12 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 	pool.Start()
 
 	for {
-		rw := udpResponseWriterPool.Get().(*UDPResponseWriter)
+		rw := AcquireUDPResponseWriter()
 
 		rw.Data = rw.Data[:cap(rw.Data)]
 		n, addr, err := conn.ReadFromUDP(rw.Data)
 		if err != nil {
-			udpResponseWriterPool.Put(rw)
+			ReleaseUDPResponseWriter(rw)
 			time.Sleep(10 * time.Millisecond)
 
 			continue

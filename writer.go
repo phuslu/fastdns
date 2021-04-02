@@ -51,8 +51,8 @@ func AcquireMemoryResponseWriter() *MemoryResponseWriter {
 }
 
 // ReleaseMemoryResponseWriter returnes the dns memory response writer to the pool.
-func ReleaseMemoryResponseWriter(req *MemoryResponseWriter) {
-	memoryResponseWriterPool.Put(req)
+func ReleaseMemoryResponseWriter(rw *MemoryResponseWriter) {
+	memoryResponseWriterPool.Put(rw)
 }
 
 type UDPResponseWriter struct {
@@ -80,4 +80,14 @@ var udpResponseWriterPool = sync.Pool{
 			Data: make([]byte, 0, 1024),
 		}
 	},
+}
+
+// AcquireUDPResponseWriter returns new dns udp response writer.
+func AcquireUDPResponseWriter() *UDPResponseWriter {
+	return udpResponseWriterPool.Get().(*UDPResponseWriter)
+}
+
+// ReleaseUDPResponseWriter returnes the dns udp response writer to the pool.
+func ReleaseUDPResponseWriter(rw *UDPResponseWriter) {
+	udpResponseWriterPool.Put(rw)
 }
