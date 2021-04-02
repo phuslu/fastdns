@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -9,6 +10,18 @@ import (
 	"testing"
 	"time"
 )
+
+func allocAddr() string {
+	for i := 20001; i < 50000; i++ {
+		addr := fmt.Sprintf("127.0.0.1:%d", i)
+		conn, err := net.Listen("tcp", addr)
+		if err == nil {
+			conn.Close()
+			return addr
+		}
+	}
+	return ""
+}
 
 type mockServerHandler struct{}
 
