@@ -17,24 +17,42 @@ type ResponseWriter interface {
 	Write([]byte) (int, error)
 }
 
-type memResponseWriter struct {
-	data  []byte
-	raddr net.Addr
-	laddr net.Addr
+type MemoryResponseWriter struct {
+	Data  []byte
+	Raddr net.Addr
+	Laddr net.Addr
 }
 
-func (rw *memResponseWriter) RemoteAddr() net.Addr {
-	return rw.raddr
+func (rw *MemoryResponseWriter) RemoteAddr() net.Addr {
+	return rw.Raddr
 }
 
-func (rw *memResponseWriter) LocalAddr() net.Addr {
-	return rw.laddr
+func (rw *MemoryResponseWriter) LocalAddr() net.Addr {
+	return rw.Laddr
 }
 
-func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
-	rw.data = append(rw.data, p...)
+func (rw *MemoryResponseWriter) Write(p []byte) (n int, err error) {
+	rw.Data = append(rw.Data, p...)
 	n = len(p)
 	return
+}
+
+var memResponseWriterPool = sync.Pool{
+	New: func() interface{} {
+		return &MemoryResponseWriter{
+			Data: make([]byte, 0, 1024),
+		}
+	},
+}
+
+// AcquireMemoryResponseWriter returns new dns memory response writer.
+func AcquireMemoryResponseWriter() *MemoryResponseWriter {
+	return memResponseWriterPool.Get().(*MemoryResponseWriter)
+}
+
+// ReleaseMemoryResponseWriter returnes the dns memory response writer to the pool.
+func ReleaseMemoryResponseWriter(req *MemoryResponseWriter) {
+	memResponseWriterPool.Put(req)
 }
 
 type udpResponseWriter struct {

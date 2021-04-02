@@ -11,26 +11,6 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type memResponseWriter struct {
-	data  []byte
-	raddr net.Addr
-	laddr net.Addr
-}
-
-func (rw *memResponseWriter) RemoteAddr() net.Addr {
-	return rw.raddr
-}
-
-func (rw *memResponseWriter) LocalAddr() net.Addr {
-	return rw.laddr
-}
-
-func (rw *memResponseWriter) Write(p []byte) (n int, err error) {
-	rw.data = append(rw.data, p...)
-	n = len(p)
-	return
-}
-
 func HandlerFunc(handler fastdns.Handler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		req := fastdns.AcquireRequest()
@@ -42,15 +22,15 @@ func HandlerFunc(handler fastdns.Handler) fasthttp.RequestHandler {
 			return
 		}
 
-		rw := &memResponseWriter{
-			raddr: ctx.RemoteAddr(),
-			laddr: ctx.LocalAddr(),
+		rw := &fastdns.MemoryResponseWriter{
+			Raddr: ctx.RemoteAddr(),
+			Laddr: ctx.LocalAddr(),
 		}
 
 		handler.ServeDNS(rw, req)
 
 		ctx.SetContentType("application/dns-message")
-		_, _ = ctx.Write(rw.data)
+		_, _ = ctx.Write(rw.Data)
 	}
 }
 

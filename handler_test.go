@@ -42,16 +42,16 @@ func TestHandlerError(t *testing.T) {
 		},
 	}
 
-	rw := &memResponseWriter{}
+	rw := &MemoryResponseWriter{}
 	if rw.RemoteAddr() != nil {
-		t.Errorf("memResponseWriter shall return empty addr")
+		t.Errorf("MemoryResponseWriter shall return empty addr")
 	}
 	if rw.LocalAddr() != nil {
-		t.Errorf("memResponseWriter shall return empty addr")
+		t.Errorf("MemoryResponseWriter shall return empty addr")
 	}
 	for _, c := range cases {
 		Error(rw, mockHandlerRequest, c.Rcode)
-		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("Error(%v) error got=%#v want=%#v", c.Rcode, got, want)
 		}
 	}
@@ -70,10 +70,10 @@ func TestHandlerHost(t *testing.T) {
 		},
 	}
 
-	rw := &memResponseWriter{}
+	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
 		HOST(rw, mockHandlerRequest, []net.IP{c.IP}, c.TTL)
-		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("HOST(%v) error got=%#v want=%#v", c.IP, got, want)
 		}
 	}
@@ -92,10 +92,10 @@ func TestHandlerCNAME(t *testing.T) {
 		},
 	}
 
-	rw := &memResponseWriter{}
+	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
 		CNAME(rw, mockHandlerRequest, []string{c.CNAME}, nil, c.TTL)
-		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("CNAME(%v) error got=%#v want=%#v", c.CNAME, got, want)
 		}
 	}
@@ -120,10 +120,10 @@ func TestHandlerSRV(t *testing.T) {
 		},
 	}
 
-	rw := &memResponseWriter{}
+	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
 		SRV(rw, mockHandlerRequest, c.SRV, c.Priovrity, c.Weight, c.Port, c.TTL)
-		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("SRV(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
 	}
@@ -142,10 +142,10 @@ func TestHandlerMX(t *testing.T) {
 		},
 	}
 
-	rw := &memResponseWriter{}
+	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
 		MX(rw, mockHandlerRequest, []MXRecord{{10, c.MX}}, c.TTL)
-		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("MX(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
 	}
@@ -164,10 +164,10 @@ func TestHandlerPTR(t *testing.T) {
 		},
 	}
 
-	rw := &memResponseWriter{}
+	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
 		PTR(rw, mockHandlerRequest, c.PTR, c.TTL)
-		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("PTR(%v) error got=%#v want=%#v", c.PTR, got, want)
 		}
 	}
@@ -186,10 +186,10 @@ func TestHandlerTXT(t *testing.T) {
 		},
 	}
 
-	rw := &memResponseWriter{}
+	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
 		TXT(rw, mockHandlerRequest, c.TXT, c.TTL)
-		if got, want := hex.EncodeToString(rw.data), c.Hex; got != want {
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("TXT(%v) error got=%#v want=%#v", c.TXT, got, want)
 		}
 	}
