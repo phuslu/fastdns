@@ -11,29 +11,32 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func FasthttpHandler(handler fastdns.Handler) fasthttp.RequestHandler {
-	return func(ctx *fasthttp.RequestCtx) {
-		req := fastdns.AcquireRequest()
-		defer fastdns.ReleaseRequest(req)
+type FasthttpAdapter struct {
+	FastdnsHandler fastdns.Handler
+}
 
-		err := fastdns.ParseRequest(req, ctx.PostBody())
-		if err != nil {
-			ctx.Error("bad request", fasthttp.StatusBadRequest)
-			return
-		}
+func (h *FasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
+	req := fastdns.AcquireRequest()
+	defer fastdns.ReleaseRequest(req)
 
-		rw := fastdns.AcquireMemoryResponseWriter()
-		defer fastdns.ReleaseMemoryResponseWriter(rw)
-
-		rw.Data = rw.Data[:0]
-		rw.Raddr = ctx.RemoteAddr()
-		rw.Laddr = ctx.LocalAddr()
-
-		handler.ServeDNS(rw, req)
-
-		ctx.SetContentType("application/dns-message")
-		_, _ = ctx.Write(rw.Data)
+	err := fastdns.ParseRequest(req, ctx.PostBody())
+	if err != nil {
+		ctx.Error("bad request", fasthttp.StatusBadRequest)
+		return
 	}
+
+	rw := fastdns.AcquireMemoryResponseWriter()
+	defer fastdns.ReleaseMemoryResponseWriter(rw)
+
+	rw.Data = rw.Data[:0]
+	rw.Raddr = ctx.RemoteAddr()
+	rw.Laddr = ctx.LocalAddr()
+
+	h.FastdnsHandler.ServeDNS(rw, req)
+
+	ctx.SetContentType("application/dns-message")
+	_, _ = ctx.Write(rw.Data)
+
 }
 
 type DNSHandler struct{}
@@ -48,5 +51,5 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
 }
 
 func main() {
-	fasthttp.ListenAndServe(os.Args[1], FasthttpHandler(&DNSHandler{}))
+	fasthttp.ListenAndServe(os.Args[1], (&FasthttpAdapter{&DNSHandler{}}).Handler)
 }
