@@ -195,6 +195,14 @@ func TestHandlerTXT(t *testing.T) {
 	}
 }
 
+type nilResponseWriter struct{}
+
+func (rw *nilResponseWriter) RemoteAddr() net.Addr { return nil }
+
+func (rw *nilResponseWriter) LocalAddr() net.Addr { return nil }
+
+func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p), nil }
+
 func BenchmarkHOST(b *testing.B) {
 	ips := []net.IP{net.ParseIP("8.8.8.8")}
 	for i := 0; i < b.N; i++ {

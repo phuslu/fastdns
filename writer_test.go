@@ -47,22 +47,3 @@ func TestResponseWriterMem(t *testing.T) {
 		t.Errorf("response writer return error local address: %+v", s)
 	}
 }
-
-func TestResponseWriternil(t *testing.T) {
-	rw := &nilResponseWriter{}
-
-	const data = "testdata"
-
-	n, err := rw.Write([]byte(data))
-	if err != nil || n != len(data) {
-		t.Errorf("response writer write error: %+v length: %d", err, n)
-	}
-
-	if addr := rw.RemoteAddr(); addr != nil {
-		t.Errorf("response writer return non-empty remote address: %+v", addr)
-	}
-
-	if addr := rw.LocalAddr(); addr != nil {
-		t.Errorf("response writer return non-empty local address: %+v", addr)
-	}
-}

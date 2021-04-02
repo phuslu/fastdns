@@ -17,20 +17,6 @@ type ResponseWriter interface {
 	Write([]byte) (int, error)
 }
 
-type nilResponseWriter struct{}
-
-func (rw *nilResponseWriter) RemoteAddr() net.Addr {
-	return nil
-}
-
-func (rw *nilResponseWriter) LocalAddr() net.Addr {
-	return nil
-}
-
-func (rw *nilResponseWriter) Write(p []byte) (n int, err error) {
-	return len(p), nil
-}
-
 type memResponseWriter struct {
 	data  []byte
 	raddr net.Addr
