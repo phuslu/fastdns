@@ -2,7 +2,6 @@ package fastdns
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -66,7 +65,7 @@ func fork(index int) (*exec.Cmd, error) {
 	cmd := exec.Command(os.Args[0], os.Args[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = append([]string{fmt.Sprintf("FASTDNS_CHILD_INDEX=%d", index)}, os.Environ()...)
+	cmd.Env = append([]string{"FASTDNS_CHILD_INDEX=" + strconv.Itoa(index)}, os.Environ()...)
 	return cmd, cmd.Start()
 }
 
