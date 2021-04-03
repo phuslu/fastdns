@@ -38,7 +38,7 @@ func (tr *Transport) roundTrip(dst []byte, req *Request) (n int, err error) {
 		return
 	}
 
-	_, err = conn.Write(req.Raw)
+	n, err = conn.Write(req.Raw)
 	if err != nil && pooled {
 		// if error from pooled conn, let's close it & retry again
 		conn.Close()
