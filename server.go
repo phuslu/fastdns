@@ -17,12 +17,10 @@ type Server struct {
 	// Logger specifies a logger
 	Logger Logger
 
+	// The maximum number of procs the server may spawn. use runtime.NumCPU() if empty
+	MaxProcs int
+
 	// The maximum number of concurrent clients the server may serve.
-	//
-	// DefaultConcurrency is used if not set.
-	//
-	// Concurrency only works if you either call Serve once, or only ServeConn multiple times.
-	// It works with ListenAndServe as well.
 	Concurrency int
 
 	// Index indicates the index of Server instances.
@@ -33,7 +31,7 @@ type Server struct {
 func (s *Server) ListenAndServe(addr string) error {
 	if s.Index() == 0 {
 		// only prefork for linux(reuse_port)
-		return s.spawn(addr)
+		return s.spawn(addr, s.MaxProcs)
 	}
 
 	conn, err := listen("udp", addr)
@@ -53,13 +51,15 @@ func (s *Server) Index() (index int) {
 	return
 }
 
-func (s *Server) spawn(addr string) (err error) {
+func (s *Server) spawn(addr string, maxProcs int) (err error) {
 	type racer struct {
 		index int
 		err   error
 	}
 
-	maxProcs := runtime.NumCPU()
+	if maxProcs == 0 {
+		maxProcs = runtime.NumCPU()
+	}
 	if runtime.GOOS != "linux" {
 		maxProcs = 1
 	}
@@ -72,6 +72,7 @@ func (s *Server) spawn(addr string) (err error) {
 			server := &Server{
 				Handler:     s.Handler,
 				Logger:      s.Logger,
+				MaxProcs:    s.MaxProcs,
 				Concurrency: s.Concurrency,
 				index:       index,
 			}
@@ -94,6 +95,7 @@ func (s *Server) spawn(addr string) (err error) {
 			server := &Server{
 				Handler:     s.Handler,
 				Logger:      s.Logger,
+				MaxProcs:    s.MaxProcs,
 				Concurrency: s.Concurrency,
 				index:       index,
 			}

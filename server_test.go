@@ -37,9 +37,9 @@ func TestServerHost(t *testing.T) {
 	}
 
 	s := &Server{
-		Handler: &mockServerHandler{},
-		Logger:  log.New(os.Stdout, "", 0),
-		index:   1, // disable fork
+		Handler:  &mockServerHandler{},
+		Logger:   log.New(os.Stdout, "", 0),
+		MaxProcs: 1,
 	}
 
 	addr := allocAddr()
@@ -74,9 +74,10 @@ func TestServerHost(t *testing.T) {
 
 func TestServerListenError(t *testing.T) {
 	s := &Server{
-		Handler: &mockServerHandler{},
-		Logger:  log.New(os.Stdout, "", 0),
-		index:   1, // disable fork
+		Handler:  &mockServerHandler{},
+		Logger:   log.New(os.Stdout, "", 0),
+		MaxProcs: 1,
+		index:    1,
 	}
 
 	const addr = "127.0.1.1:-1"
@@ -94,9 +95,9 @@ func TestServerParseRequestError(t *testing.T) {
 	}
 
 	s := &Server{
-		Handler: &mockServerHandler{},
-		Logger:  log.New(os.Stdout, "", 0),
-		index:   1, // disable fork
+		Handler:  &mockServerHandler{},
+		Logger:   log.New(os.Stdout, "", 0),
+		MaxProcs: 1,
 	}
 
 	addr := allocAddr()
@@ -130,8 +131,9 @@ func TestServerForkHost(t *testing.T) {
 	os.Setenv("FASTDNS_CHILD_INDEX", "1")
 
 	s := &ForkServer{
-		Handler: &mockServerHandler{},
-		Logger:  log.New(os.Stdout, "", 0),
+		Handler:  &mockServerHandler{},
+		Logger:   log.New(os.Stdout, "", 0),
+		MaxProcs: 1,
 	}
 
 	addr := allocAddr()
@@ -173,8 +175,9 @@ func TestServerForkParseRequestError(t *testing.T) {
 	os.Setenv("FASTDNS_CHILD_INDEX", "1")
 
 	s := &ForkServer{
-		Handler: &mockServerHandler{},
-		Logger:  log.New(os.Stdout, "", 0),
+		Handler:  &mockServerHandler{},
+		Logger:   log.New(os.Stdout, "", 0),
+		MaxProcs: 1,
 	}
 
 	addr := allocAddr()

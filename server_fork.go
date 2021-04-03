@@ -16,22 +16,20 @@ type ForkServer struct {
 	// Logger specifies a logger
 	Logger Logger
 
+	// The maximum number of procs the server may spawn. use runtime.NumCPU() if empty
+	MaxProcs int
+
 	// SetAffinity sets the CPU affinity mask of current process.
 	SetAffinity bool
 
 	// The maximum number of concurrent clients the server may serve.
-	//
-	// DefaultConcurrency is used if not set.
-	//
-	// Concurrency only works if you either call Serve once, or only ServeConn multiple times.
-	// It works with ListenAndServe as well.
 	Concurrency int
 }
 
 // ListenAndServe serves DNS requests from the given UDP addr.
 func (s *ForkServer) ListenAndServe(addr string) error {
 	if s.Index() == 0 {
-		return s.fork(addr)
+		return s.fork(addr, s.MaxProcs)
 	}
 
 	if s.SetAffinity {
@@ -69,14 +67,16 @@ func fork(index int) (*exec.Cmd, error) {
 	return cmd, cmd.Start()
 }
 
-func (s *ForkServer) fork(addr string) (err error) {
+func (s *ForkServer) fork(addr string, maxProcs int) (err error) {
 	type racer struct {
 		index int
 		pid   int
 		err   error
 	}
 
-	maxProcs := runtime.NumCPU()
+	if maxProcs == 0 {
+		maxProcs = runtime.NumCPU()
+	}
 	if runtime.GOOS != "linux" {
 		maxProcs = 1
 	}
