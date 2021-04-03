@@ -55,36 +55,20 @@ func ReleaseMemoryResponseWriter(rw *MemoryResponseWriter) {
 	memoryResponseWriterPool.Put(rw)
 }
 
-type UDPResponseWriter struct {
+type udpResponseWriter struct {
 	Conn *net.UDPConn
 	Addr *net.UDPAddr
 }
 
-func (rw *UDPResponseWriter) RemoteAddr() net.Addr {
+func (rw *udpResponseWriter) RemoteAddr() net.Addr {
 	return rw.Addr
 }
 
-func (rw *UDPResponseWriter) LocalAddr() net.Addr {
+func (rw *udpResponseWriter) LocalAddr() net.Addr {
 	return rw.Conn.LocalAddr()
 }
 
-func (rw *UDPResponseWriter) Write(p []byte) (n int, err error) {
+func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
 	n, _, err = rw.Conn.WriteMsgUDP(p, nil, rw.Addr)
 	return
-}
-
-var udpResponseWriterPool = sync.Pool{
-	New: func() interface{} {
-		return new(UDPResponseWriter)
-	},
-}
-
-// AcquireUDPResponseWriter returns new dns udp response writer.
-func AcquireUDPResponseWriter() *UDPResponseWriter {
-	return udpResponseWriterPool.Get().(*UDPResponseWriter)
-}
-
-// ReleaseUDPResponseWriter returnes the dns udp response writer to the pool.
-func ReleaseUDPResponseWriter(rw *UDPResponseWriter) {
-	udpResponseWriterPool.Put(rw)
 }
