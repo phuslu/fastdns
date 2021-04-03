@@ -111,10 +111,8 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 	}
 
 	pool := &workerPool{
-		WorkerFunc: func(rw *UDPResponseWriter) error {
-			req := AcquireRequest()
-
-			err := ParseRequest(req, rw.Data)
+		WorkerFunc: func(rw *UDPResponseWriter, req *Request) error {
+			err := ParseRequest(req, req.Raw, false)
 			if err != nil {
 				ReleaseRequest(req)
 				ReleaseUDPResponseWriter(rw)
@@ -138,21 +136,23 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 
 	for {
 		rw := AcquireUDPResponseWriter()
+		req := AcquireRequest()
 
-		rw.Data = rw.Data[:cap(rw.Data)]
-		n, addr, err := conn.ReadFromUDP(rw.Data)
+		req.Raw = req.Raw[:cap(req.Raw)]
+		n, addr, err := conn.ReadFromUDP(req.Raw)
 		if err != nil {
+			ReleaseRequest(req)
 			ReleaseUDPResponseWriter(rw)
 			time.Sleep(10 * time.Millisecond)
 
 			continue
 		}
 
-		rw.Data = rw.Data[:n]
+		req.Raw = req.Raw[:n]
 		rw.Conn = conn
 		rw.Addr = addr
 
-		pool.Serve(rw)
+		pool.Serve(rw, req)
 	}
 }
 

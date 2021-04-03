@@ -13,7 +13,7 @@ import (
 // Such a scheme keeps CPU caches hot (in theory).
 type workerPool struct {
 	// Function for serving server connections.
-	WorkerFunc func(rw *UDPResponseWriter) error
+	WorkerFunc func(rw *UDPResponseWriter, req *Request) error
 
 	MaxWorkersCount int
 
@@ -35,7 +35,8 @@ type workerPool struct {
 }
 
 type workerItem struct {
-	rw *UDPResponseWriter
+	rw  *UDPResponseWriter
+	req *Request
 }
 
 type workerChan struct {
@@ -142,12 +143,12 @@ func (wp *workerPool) clean(scratch *[]*workerChan) {
 	}
 }
 
-func (wp *workerPool) Serve(rw *UDPResponseWriter) bool {
+func (wp *workerPool) Serve(rw *UDPResponseWriter, req *Request) bool {
 	ch := wp.getCh()
 	if ch == nil {
 		return false
 	}
-	ch.ch <- workerItem{rw}
+	ch.ch <- workerItem{rw, req}
 	return true
 }
 
@@ -219,7 +220,7 @@ func (wp *workerPool) workerFunc(ch *workerChan) {
 			break
 		}
 
-		if err = wp.WorkerFunc(item.rw); err != nil {
+		if err = wp.WorkerFunc(item.rw, item.req); err != nil {
 			if wp.LogAllErrors || !(err == ErrInvalidHeader || err == ErrInvalidQuestion) {
 				wp.Logger.Printf("error when serving connection %q<->%q: %s", item.rw.Conn.LocalAddr(), item.rw.Addr, err)
 			}

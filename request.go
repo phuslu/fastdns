@@ -130,9 +130,11 @@ var (
 )
 
 // ParseRequest parses dns request from payload into dst and returns the error.
-func ParseRequest(dst *Request, payload []byte) error {
-	dst.Raw = append(dst.Raw[:0], payload...)
-	payload = dst.Raw
+func ParseRequest(dst *Request, payload []byte, copying bool) error {
+	if copying {
+		dst.Raw = append(dst.Raw[:0], payload...)
+		payload = dst.Raw
+	}
 
 	if len(payload) < 12 {
 		return ErrInvalidHeader
@@ -253,7 +255,7 @@ func AppendRequest(dst []byte, req *Request) []byte {
 var reqPool = sync.Pool{
 	New: func() interface{} {
 		req := new(Request)
-		req.Question.Name = make([]byte, 0, 1024)
+		req.Raw = make([]byte, 0, 1024)
 		req.Domain = make([]byte, 0, 256)
 		return req
 	},

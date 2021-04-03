@@ -19,7 +19,7 @@ func (h *FasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
 	req := fastdns.AcquireRequest()
 	defer fastdns.ReleaseRequest(req)
 
-	err := fastdns.ParseRequest(req, ctx.PostBody())
+	err := fastdns.ParseRequest(req, ctx.PostBody(), true)
 	if err != nil {
 		ctx.Error("bad request", fasthttp.StatusBadRequest)
 		return

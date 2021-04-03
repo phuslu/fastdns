@@ -338,7 +338,7 @@ func BenchmarkAppendHostRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Request)
 
-	if err := ParseRequest(req, payload); err != nil {
+	if err := ParseRequest(req, payload, false); err != nil {
 		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
 	}
 
@@ -352,7 +352,7 @@ func BenchmarkAppendCNameRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Request)
 
-	if err := ParseRequest(req, payload); err != nil {
+	if err := ParseRequest(req, payload, false); err != nil {
 		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
 	}
 
@@ -366,7 +366,7 @@ func BenchmarkAppendSRVRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Request)
 
-	if err := ParseRequest(req, payload); err != nil {
+	if err := ParseRequest(req, payload, false); err != nil {
 		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
 	}
 
@@ -380,7 +380,7 @@ func BenchmarkAppendPTRRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Request)
 
-	if err := ParseRequest(req, payload); err != nil {
+	if err := ParseRequest(req, payload, false); err != nil {
 		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
 	}
 
@@ -394,7 +394,7 @@ func BenchmarkAppendMXRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Request)
 
-	if err := ParseRequest(req, payload); err != nil {
+	if err := ParseRequest(req, payload, false); err != nil {
 		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
 	}
 
@@ -408,7 +408,7 @@ func BenchmarkAppendTXTRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Request)
 
-	if err := ParseRequest(req, payload); err != nil {
+	if err := ParseRequest(req, payload, false); err != nil {
 		b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
 	}
 

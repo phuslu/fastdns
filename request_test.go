@@ -111,7 +111,7 @@ func TestParseRequestOK(t *testing.T) {
 
 	for _, c := range cases {
 		req := AcquireRequest()
-		err := ParseRequest(req, c.Request.Raw)
+		err := ParseRequest(req, c.Request.Raw, true)
 		if err != nil {
 			t.Errorf("ParseRequest(%x) error: %+v", c.Request.Raw, err)
 		}
@@ -147,7 +147,7 @@ func TestParseRequestError(t *testing.T) {
 			t.Errorf("hex.DecodeString(%v) error: %+v", c.Hex, err)
 		}
 		var req Request
-		err = ParseRequest(&req, payload)
+		err = ParseRequest(&req, payload, true)
 		if err != c.Error {
 			t.Errorf("ParseRequest(%x) should error: %+v", payload, c.Error)
 		}
@@ -268,7 +268,7 @@ func BenchmarkParseRequest(b *testing.B) {
 	var req Request
 
 	for i := 0; i < b.N; i++ {
-		if err := ParseRequest(&req, payload); err != nil {
+		if err := ParseRequest(&req, payload, false); err != nil {
 			b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
 		}
 	}

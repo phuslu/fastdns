@@ -56,7 +56,6 @@ func ReleaseMemoryResponseWriter(rw *MemoryResponseWriter) {
 }
 
 type UDPResponseWriter struct {
-	Data []byte
 	Conn *net.UDPConn
 	Addr *net.UDPAddr
 }
@@ -76,9 +75,7 @@ func (rw *UDPResponseWriter) Write(p []byte) (n int, err error) {
 
 var udpResponseWriterPool = sync.Pool{
 	New: func() interface{} {
-		return &UDPResponseWriter{
-			Data: make([]byte, 0, 1024),
-		}
+		return new(UDPResponseWriter)
 	},
 }
 
