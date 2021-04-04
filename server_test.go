@@ -25,9 +25,9 @@ func allocAddr() string {
 
 type mockServerHandler struct{}
 
-func (h *mockServerHandler) ServeDNS(rw ResponseWriter, msg *Message) {
-	log.Printf("%s] %s: TYPE %s", rw.RemoteAddr(), msg.Domain, msg.Question.Type)
-	HOST(rw, msg, []net.IP{net.ParseIP("1.1.1.1")}, 300)
+func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Message) {
+	log.Printf("%s] %s: TYPE %s", rw.RemoteAddr(), req.Domain, req.Question.Type)
+	HOST(rw, req, []net.IP{net.ParseIP("1.1.1.1")}, 300)
 }
 
 func TestServerHost(t *testing.T) {

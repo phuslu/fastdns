@@ -159,11 +159,11 @@ func TestAppendHostRecord(t *testing.T) {
 		},
 	}
 
-	msg := new(Message)
-	msg.Question.Class = ClassINET
+	req := new(Message)
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendHostRecord(nil, msg, c.IPs, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendHostRecord(nil, req, c.IPs, c.TTL)), c.Hex; got != want {
 			t.Errorf("AppendHostRecord(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
@@ -197,12 +197,12 @@ func TestAppendCNameRecord(t *testing.T) {
 		},
 	}
 
-	msg := new(Message)
-	msg.Question.Name = EncodeDomain(nil, "ip.phus.lu")
-	msg.Question.Class = ClassINET
+	req := new(Message)
+	req.Question.Name = EncodeDomain(nil, "ip.phus.lu")
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendCNameRecord(nil, msg, c.CNAMEs, c.IPs, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendCNameRecord(nil, req, c.CNAMEs, c.IPs, c.TTL)), c.Hex; got != want {
 			t.Errorf("AppendCNameRecord(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
@@ -236,11 +236,11 @@ func TestAppendSRVRecord(t *testing.T) {
 		},
 	}
 
-	msg := new(Message)
-	msg.Question.Class = ClassINET
+	req := new(Message)
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendSRVRecord(nil, msg, c.SRV, c.Priovrity, c.Weight, c.Port, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendSRVRecord(nil, req, c.SRV, c.Priovrity, c.Weight, c.Port, c.TTL)), c.Hex; got != want {
 			t.Errorf("AppendSRVRecord(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
 	}
@@ -265,11 +265,11 @@ func TestAppendMXRecord(t *testing.T) {
 		},
 	}
 
-	msg := new(Message)
-	msg.Question.Class = ClassINET
+	req := new(Message)
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendMXRecord(nil, msg, []MXRecord{{10, c.MX}}, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendMXRecord(nil, req, []MXRecord{{10, c.MX}}, c.TTL)), c.Hex; got != want {
 			t.Errorf("AppendMXRecord(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
 	}
@@ -294,11 +294,11 @@ func TestAppendPTRRecord(t *testing.T) {
 		},
 	}
 
-	msg := new(Message)
-	msg.Question.Class = ClassINET
+	req := new(Message)
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendPTRRecord(nil, msg, c.PTR, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendPTRRecord(nil, req, c.PTR, c.TTL)), c.Hex; got != want {
 			t.Errorf("AppendPTRRecord(%v) error got=%#v want=%#v", c.PTR, got, want)
 		}
 	}
@@ -323,11 +323,11 @@ func TestAppendTXTRecord(t *testing.T) {
 		},
 	}
 
-	msg := new(Message)
-	msg.Question.Class = ClassINET
+	req := new(Message)
+	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendTXTRecord(nil, msg, c.TXT, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendTXTRecord(nil, req, c.TXT, c.TTL)), c.Hex; got != want {
 			t.Errorf("AppendTXTRecord(%v) error got=%#v want=%#v", c.TXT, got, want)
 		}
 	}
@@ -336,84 +336,84 @@ func TestAppendTXTRecord(t *testing.T) {
 
 func BenchmarkAppendHostRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	msg := new(Message)
+	req := new(Message)
 
-	if err := ParseMessage(msg, payload, false); err != nil {
+	if err := ParseMessage(req, payload, false); err != nil {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
 	ips := []net.IP{net.ParseIP("8.8.8.8")}
 	for i := 0; i < b.N; i++ {
-		payload = AppendHostRecord(payload[:0], msg, ips, 3000)
+		payload = AppendHostRecord(payload[:0], req, ips, 3000)
 	}
 }
 
 func BenchmarkAppendCNameRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	msg := new(Message)
+	req := new(Message)
 
-	if err := ParseMessage(msg, payload, false); err != nil {
+	if err := ParseMessage(req, payload, false); err != nil {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
 	cnames := []string{"cname.example.org"}
 	for i := 0; i < b.N; i++ {
-		payload = AppendCNameRecord(payload[:0], msg, cnames, nil, 3000)
+		payload = AppendCNameRecord(payload[:0], req, cnames, nil, 3000)
 	}
 }
 
 func BenchmarkAppendSRVRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	msg := new(Message)
+	req := new(Message)
 
-	if err := ParseMessage(msg, payload, false); err != nil {
+	if err := ParseMessage(req, payload, false); err != nil {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
 	srv := "service1.example.org"
 	for i := 0; i < b.N; i++ {
-		payload = AppendSRVRecord(payload[:0], msg, srv, 100, 100, 443, 3000)
+		payload = AppendSRVRecord(payload[:0], req, srv, 100, 100, 443, 3000)
 	}
 }
 
 func BenchmarkAppendPTRRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	msg := new(Message)
+	req := new(Message)
 
-	if err := ParseMessage(msg, payload, false); err != nil {
+	if err := ParseMessage(req, payload, false); err != nil {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
 	ptr := "ptr.example.org"
 	for i := 0; i < b.N; i++ {
-		payload = AppendPTRRecord(payload[:0], msg, ptr, 3000)
+		payload = AppendPTRRecord(payload[:0], req, ptr, 3000)
 	}
 }
 
 func BenchmarkAppendMXRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	msg := new(Message)
+	req := new(Message)
 
-	if err := ParseMessage(msg, payload, false); err != nil {
+	if err := ParseMessage(req, payload, false); err != nil {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
 	mx := []MXRecord{{100, "mail.google.com"}}
 	for i := 0; i < b.N; i++ {
-		payload = AppendMXRecord(payload[:0], msg, mx, 3000)
+		payload = AppendMXRecord(payload[:0], req, mx, 3000)
 	}
 }
 
 func BenchmarkAppendTXTRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	msg := new(Message)
+	req := new(Message)
 
-	if err := ParseMessage(msg, payload, false); err != nil {
+	if err := ParseMessage(req, payload, false); err != nil {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
 	txt := "iamatxtrecord"
 	for i := 0; i < b.N; i++ {
-		payload = AppendTXTRecord(payload[:0], msg, txt, 3000)
+		payload = AppendTXTRecord(payload[:0], req, txt, 3000)
 	}
 }

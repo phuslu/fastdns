@@ -3,6 +3,7 @@ package fastdns
 import (
 	"net"
 	"testing"
+	"time"
 )
 
 func TestTransportRoundTrip(t *testing.T) {
@@ -60,8 +61,9 @@ func TestTransportRoundTrip(t *testing.T) {
 	}
 
 	tr := &Transport{
-		Address:  &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
-		MaxConns: 1000,
+		Address:    &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
+		ReadTimout: 1 * time.Second,
+		MaxConns:   1000,
 	}
 
 	for _, c := range cases {

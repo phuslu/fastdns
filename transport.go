@@ -13,9 +13,9 @@ var (
 )
 
 type Transport struct {
-	Address  *net.UDPAddr
-	Timout   time.Duration
-	MaxConns int
+	Address    *net.UDPAddr
+	ReadTimout time.Duration
+	MaxConns   int
 
 	mu    sync.Mutex
 	conns []*net.UDPConn
@@ -30,14 +30,19 @@ func (tr *Transport) RoundTrip(req, resp *Message) (err error) {
 }
 
 func (tr *Transport) roundTrip(req, resp *Message) error {
-	conn, pooled, err := tr.get()
+	var fresh bool
+	conn, err := tr.get()
+	if conn == nil && err == nil {
+		conn, err = tr.dial()
+		fresh = true
+	}
 	if err != nil {
 		return err
 	}
 
-	n, err := conn.Write(req.Raw)
-	if err != nil && pooled {
-		// if error from pooled conn, let's close it & retry again
+	_, err = conn.Write(req.Raw)
+	if err != nil && !fresh {
+		// if error is a pooled conn, let's close it & retry again
 		conn.Close()
 		if conn, err = tr.dial(); err != nil {
 			return err
@@ -47,8 +52,15 @@ func (tr *Transport) roundTrip(req, resp *Message) error {
 		}
 	}
 
+	if tr.ReadTimout > 0 {
+		err = conn.SetReadDeadline(time.Now().Add(tr.ReadTimout))
+		if err != nil {
+			return err
+		}
+	}
+
 	resp.Raw = resp.Raw[:cap(resp.Raw)]
-	n, err = conn.Read(resp.Raw)
+	n, err := conn.Read(resp.Raw)
 	if err == nil {
 		resp.Raw = resp.Raw[:n]
 		err = ParseMessage(resp, resp.Raw, false)
@@ -64,23 +76,19 @@ func (tr *Transport) dial() (conn *net.UDPConn, err error) {
 	return
 }
 
-func (tr *Transport) get() (conn *net.UDPConn, pooled bool, err error) {
+func (tr *Transport) get() (conn *net.UDPConn, err error) {
 	tr.mu.Lock()
+	defer tr.mu.Unlock()
+
 	count := len(tr.conns)
 	if tr.MaxConns != 0 && count > tr.MaxConns {
 		err = ErrMaxConns
-		tr.mu.Unlock()
+
 		return
 	}
 	if count > 0 {
 		conn = tr.conns[len(tr.conns)-1]
 		tr.conns = tr.conns[:len(tr.conns)-1]
-		pooled = true
-	}
-	tr.mu.Unlock()
-
-	if conn == nil {
-		conn, err = tr.dial()
 	}
 
 	return
@@ -92,6 +100,7 @@ func (tr *Transport) put(conn *net.UDPConn) {
 
 	if tr.MaxConns != 0 && len(tr.conns) > tr.MaxConns {
 		conn.Close()
+
 		return
 	}
 
