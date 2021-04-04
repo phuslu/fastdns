@@ -7,7 +7,7 @@ import (
 
 func TestTransportRoundTrip(t *testing.T) {
 	var cases = []struct {
-		Message *Message
+		Request *Message
 	}{
 		{
 			/*
@@ -65,12 +65,11 @@ func TestTransportRoundTrip(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		resp := make([]byte, 1024)
-		n, err := tr.RoundTrip(resp, c.Message)
+		resp := AcquireMessage()
+		err := tr.RoundTrip(c.Request, resp)
 		if err != nil {
-			t.Errorf("transport=%+v roundtrip(%v) error: %+v\n", tr, c.Message, err)
+			t.Errorf("transport=%+v roundtrip(%v) error: %+v\n", tr, c.Request, err)
 		}
-		resp = resp[:n]
-		t.Logf("%x\n", resp)
+		t.Logf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
 	}
 }

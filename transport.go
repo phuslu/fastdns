@@ -21,40 +21,42 @@ type Transport struct {
 	conns []*net.UDPConn
 }
 
-func (tr *Transport) RoundTrip(dst []byte, msg *Message) (n int, err error) {
-	n, err = tr.roundTrip(dst, msg)
-	if n == 0 || err != nil {
-		n, err = tr.roundTrip(dst, msg)
+func (tr *Transport) RoundTrip(req, resp *Message) (err error) {
+	err = tr.roundTrip(req, resp)
+	if err != nil {
+		err = tr.roundTrip(req, resp)
 	}
-	return
+	return err
 }
 
-func (tr *Transport) roundTrip(dst []byte, msg *Message) (n int, err error) {
-	var conn *net.UDPConn
-	var pooled bool
-
-	conn, pooled, err = tr.get()
+func (tr *Transport) roundTrip(req, resp *Message) error {
+	conn, pooled, err := tr.get()
 	if err != nil {
-		return
+		return err
 	}
 
-	n, err = conn.Write(msg.Raw)
+	n, err := conn.Write(req.Raw)
 	if err != nil && pooled {
 		// if error from pooled conn, let's close it & retry again
 		conn.Close()
 		if conn, err = tr.dial(); err != nil {
-			return
+			return err
 		}
-		if _, err = conn.Write(msg.Raw); err != nil {
-			return
+		if _, err = conn.Write(req.Raw); err != nil {
+			return err
 		}
 	}
 
-	n, err = conn.Read(dst)
+	resp.Raw = resp.Raw[:cap(resp.Raw)]
+	n, err = conn.Read(resp.Raw)
+	if err == nil {
+		resp.Raw = resp.Raw[:n]
+		err = ParseMessage(resp, resp.Raw, false)
+	}
 
 	tr.put(conn)
 
-	return
+	return err
 }
 
 func (tr *Transport) dial() (conn *net.UDPConn, err error) {
