@@ -15,13 +15,13 @@ type FasthttpAdapter struct {
 	FastdnsHandler fastdns.Handler
 }
 
-func (h *FasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
-	req := fastdns.AcquireRequest()
-	defer fastdns.ReleaseRequest(req)
+func (h *FasthttpAdapter) Handler(ctx *fasthttp.MessageCtx) {
+	msg := fastdns.AcquireMessage()
+	defer fastdns.ReleaseMessage(msg)
 
-	err := fastdns.ParseRequest(req, ctx.PostBody(), true)
+	err := fastdns.ParseMessage(msg, ctx.PostBody(), true)
 	if err != nil {
-		ctx.Error("bad request", fasthttp.StatusBadRequest)
+		ctx.Error("bad request", fasthttp.StatusBadMessage)
 		return
 	}
 
@@ -32,7 +32,7 @@ func (h *FasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
 	rw.Raddr = ctx.RemoteAddr()
 	rw.Laddr = ctx.LocalAddr()
 
-	h.FastdnsHandler.ServeDNS(rw, req)
+	h.FastdnsHandler.ServeDNS(rw, msg)
 
 	ctx.SetContentType("application/dns-message")
 	_, _ = ctx.Write(rw.Data)
@@ -41,12 +41,12 @@ func (h *FasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
 
 type DNSHandler struct{}
 
-func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
-	log.Printf("%s] %s: CLASS %s TYPE %s\n", rw.RemoteAddr(), req.Domain, req.Question.Class, req.Question.Type)
-	if req.Question.Type == fastdns.TypeA {
-		fastdns.HOST(rw, req, []net.IP{{10, 0, 0, 1}}, 300)
+func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, msg *fastdns.Message) {
+	log.Printf("%s] %s: CLASS %s TYPE %s\n", rw.RemoteAddr(), msg.Domain, msg.Question.Class, msg.Question.Type)
+	if msg.Question.Type == fastdns.TypeA {
+		fastdns.HOST(rw, msg, []net.IP{{10, 0, 0, 1}}, 300)
 	} else {
-		fastdns.Error(rw, req, fastdns.RcodeNameError)
+		fastdns.Error(rw, msg, fastdns.RcodeNameError)
 	}
 }
 

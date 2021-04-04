@@ -110,16 +110,16 @@ func (s *Server) spawn(addr string, maxProcs int) (err error) {
 
 type udpCtx struct {
 	rw  *udpResponseWriter
-	req *Request
+	msg *Message
 }
 
 var udpCtxPool = sync.Pool{
 	New: func() interface{} {
 		ctx := new(udpCtx)
 		ctx.rw = new(udpResponseWriter)
-		ctx.req = new(Request)
-		ctx.req.Raw = make([]byte, 0, 1024)
-		ctx.req.Domain = make([]byte, 0, 256)
+		ctx.msg = new(Message)
+		ctx.msg.Raw = make([]byte, 0, 1024)
+		ctx.msg.Domain = make([]byte, 0, 256)
 		return ctx
 	},
 }
@@ -131,16 +131,16 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 
 	pool := &workerPool{
 		WorkerFunc: func(ctx *udpCtx) error {
-			rw, req := ctx.rw, ctx.req
+			rw, msg := ctx.rw, ctx.msg
 
-			err := ParseRequest(req, req.Raw, false)
+			err := ParseMessage(msg, msg.Raw, false)
 			if err != nil {
 				udpCtxPool.Put(ctx)
 
 				return err
 			}
 
-			handler.ServeDNS(rw, req)
+			handler.ServeDNS(rw, msg)
 
 			udpCtxPool.Put(ctx)
 
@@ -155,10 +155,10 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 
 	for {
 		ctx := udpCtxPool.Get().(*udpCtx)
-		rw, req := ctx.rw, ctx.req
+		rw, msg := ctx.rw, ctx.msg
 
-		req.Raw = req.Raw[:cap(req.Raw)]
-		n, addr, err := conn.ReadFromUDP(req.Raw)
+		msg.Raw = msg.Raw[:cap(msg.Raw)]
+		n, addr, err := conn.ReadFromUDP(msg.Raw)
 		if err != nil {
 			udpCtxPool.Put(ctx)
 			time.Sleep(10 * time.Millisecond)
@@ -166,7 +166,7 @@ func serve(conn *net.UDPConn, handler Handler, logger Logger, concurrency int) e
 			continue
 		}
 
-		req.Raw = req.Raw[:n]
+		msg.Raw = msg.Raw[:n]
 		rw.Conn = conn
 		rw.Addr = addr
 

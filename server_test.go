@@ -25,9 +25,9 @@ func allocAddr() string {
 
 type mockServerHandler struct{}
 
-func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Request) {
-	log.Printf("%s] %s: TYPE %s", rw.RemoteAddr(), req.Domain, req.Question.Type)
-	HOST(rw, req, []net.IP{net.ParseIP("1.1.1.1")}, 300)
+func (h *mockServerHandler) ServeDNS(rw ResponseWriter, msg *Message) {
+	log.Printf("%s] %s: TYPE %s", rw.RemoteAddr(), msg.Domain, msg.Question.Type)
+	HOST(rw, msg, []net.IP{net.ParseIP("1.1.1.1")}, 300)
 }
 
 func TestServerHost(t *testing.T) {
@@ -88,7 +88,7 @@ func TestServerListenError(t *testing.T) {
 	}
 }
 
-func TestServerParseRequestError(t *testing.T) {
+func TestServerParseMessageError(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		// On Windows, the resolver always uses C library functions, such as GetAddrInfo and DnsQuery.
 		return
@@ -166,7 +166,7 @@ func TestServerForkHost(t *testing.T) {
 	}
 }
 
-func TestServerForkParseRequestError(t *testing.T) {
+func TestServerForkParseMessageError(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		// On Windows, the resolver always uses C library functions, such as GetAddrInfo and DnsQuery.
 		return

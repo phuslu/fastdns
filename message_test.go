@@ -7,9 +7,9 @@ import (
 	"testing"
 )
 
-func TestParseRequestOK(t *testing.T) {
+func TestParseMessageOK(t *testing.T) {
 	var cases = []struct {
-		Request *Request
+		Message *Message
 	}{
 		{
 			/*
@@ -34,7 +34,7 @@ func TestParseRequestOK(t *testing.T) {
 				            Type: PTR (domain name PoinTeR) (12)
 				            Class: IN (0x0001)
 			*/
-			&Request{
+			&Message{
 				[]byte("\x00\x01\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x01\x31\x02\x35\x30\x03\x31\x36\x38\x03\x31\x39\x32\x07\x69\x6e\x2d\x61\x64\x64\x72\x04\x61\x72\x70\x61\x00\x00\x0c\x00\x01"),
 				[]byte("1.50.168.192.in-addr.arpa"),
 				Header{
@@ -82,7 +82,7 @@ func TestParseRequestOK(t *testing.T) {
 				            Type: A (Host Address) (1)
 				            Class: IN (0x0001)
 			*/
-			&Request{
+			&Message{
 				[]byte("\x00\x02\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x02\x68\x6b\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01"),
 				[]byte("hk.phus.lu"),
 				Header{
@@ -110,19 +110,19 @@ func TestParseRequestOK(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		req := AcquireRequest()
-		err := ParseRequest(req, c.Request.Raw, true)
+		msg := AcquireMessage()
+		err := ParseMessage(msg, c.Message.Raw, true)
 		if err != nil {
-			t.Errorf("ParseRequest(%x) error: %+v", c.Request.Raw, err)
+			t.Errorf("ParseMessage(%x) error: %+v", c.Message.Raw, err)
 		}
-		if got, want := req, c.Request; !reflect.DeepEqual(got, want) {
-			t.Errorf("ParseRequest(%x) error got=%#v want=%#v", c.Request.Raw, got, want)
+		if got, want := msg, c.Message; !reflect.DeepEqual(got, want) {
+			t.Errorf("ParseMessage(%x) error got=%#v want=%#v", c.Message.Raw, got, want)
 		}
-		ReleaseRequest(req)
+		ReleaseMessage(msg)
 	}
 }
 
-func TestParseRequestError(t *testing.T) {
+func TestParseMessageError(t *testing.T) {
 	var cases = []struct {
 		Hex   string
 		Error error
@@ -146,17 +146,17 @@ func TestParseRequestError(t *testing.T) {
 		if err != nil {
 			t.Errorf("hex.DecodeString(%v) error: %+v", c.Hex, err)
 		}
-		var req Request
-		err = ParseRequest(&req, payload, true)
+		var msg Message
+		err = ParseMessage(&msg, payload, true)
 		if err != c.Error {
-			t.Errorf("ParseRequest(%x) should error: %+v", payload, c.Error)
+			t.Errorf("ParseMessage(%x) should error: %+v", payload, c.Error)
 		}
 	}
 }
 
-func TestAppendRequest(t *testing.T) {
+func TestAppendMessage(t *testing.T) {
 	var cases = []struct {
-		Request *Request
+		Message *Message
 	}{
 		{
 			/*
@@ -181,7 +181,7 @@ func TestAppendRequest(t *testing.T) {
 				            Type: PTR (domain name PoinTeR) (12)
 				            Class: IN (0x0001)
 			*/
-			&Request{
+			&Message{
 				[]byte("\x00\x01\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x01\x31\x02\x35\x30\x03\x31\x36\x38\x03\x31\x39\x32\x07\x69\x6e\x2d\x61\x64\x64\x72\x04\x61\x72\x70\x61\x00\x00\x0c\x00\x01"),
 				[]byte("1.50.168.192.in-addr.arpa"),
 				Header{
@@ -229,7 +229,7 @@ func TestAppendRequest(t *testing.T) {
 				            Type: A (Host Address) (1)
 				            Class: IN (0x0001)
 			*/
-			&Request{
+			&Message{
 				[]byte("\x00\x02\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x02\x68\x6b\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01"),
 				[]byte("hk.phus.lu"),
 				Header{
@@ -257,19 +257,19 @@ func TestAppendRequest(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got, want := AppendRequest(nil, c.Request), c.Request.Raw; !bytes.Equal(got, want) {
-			t.Errorf("AppendRequest(%v) error got=%#v want=%#v", c.Request, got, want)
+		if got, want := AppendMessage(nil, c.Message), c.Message.Raw; !bytes.Equal(got, want) {
+			t.Errorf("AppendMessage(%v) error got=%#v want=%#v", c.Message, got, want)
 		}
 	}
 }
 
-func BenchmarkParseRequest(b *testing.B) {
+func BenchmarkParseMessage(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	var req Request
+	var msg Message
 
 	for i := 0; i < b.N; i++ {
-		if err := ParseRequest(&req, payload, false); err != nil {
-			b.Errorf("ParseRequest(%+v) error: %+v", payload, err)
+		if err := ParseMessage(&msg, payload, false); err != nil {
+			b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 		}
 	}
 }

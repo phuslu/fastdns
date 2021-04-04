@@ -7,7 +7,7 @@ import (
 
 func TestTransportRoundTrip(t *testing.T) {
 	var cases = []struct {
-		Request *Request
+		Message *Message
 	}{
 		{
 			/*
@@ -15,7 +15,7 @@ func TestTransportRoundTrip(t *testing.T) {
 				    Transaction ID: 0x0002
 				    Flags: 0x0100 Standard query
 				        0... .... .... .... = Response: Message is a query
-				        .000 0... .... .... = Opcode: Standard query (0)
+				        .000 0... .... .... = Opcode: Standard wwquery (0)
 				        .... ..0. .... .... = Truncated: Message is not truncated
 				        .... ...1 .... .... = Recursion desired: Do query recursively
 				        .... .... .0.. .... = Z: reserved (0)
@@ -32,7 +32,7 @@ func TestTransportRoundTrip(t *testing.T) {
 				            Type: A (Host Address) (1)
 				            Class: IN (0x0001)
 			*/
-			&Request{
+			&Message{
 				[]byte("\x52\x4c\x01\x20\x00\x01\x00\x00\x00\x00\x00\x00\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01"),
 				[]byte("hk.phus.lu"),
 				Header{
@@ -66,9 +66,9 @@ func TestTransportRoundTrip(t *testing.T) {
 
 	for _, c := range cases {
 		resp := make([]byte, 1024)
-		n, err := tr.RoundTrip(resp, c.Request)
+		n, err := tr.RoundTrip(resp, c.Message)
 		if err != nil {
-			t.Errorf("transport=%+v roundtrip(%v) error: %+v\n", tr, c.Request, err)
+			t.Errorf("transport=%+v roundtrip(%v) error: %+v\n", tr, c.Message, err)
 		}
 		resp = resp[:n]
 		t.Logf("%x\n", resp)

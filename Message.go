@@ -5,8 +5,8 @@ import (
 	"sync"
 )
 
-// Request represents an DNS request received by a server or to be sent by a client.
-type Request struct {
+// Message represents an DNS request received by a server or to be sent by a client.
+type Message struct {
 	// Raw refers to the raw query packet.
 	Raw []byte
 
@@ -129,8 +129,8 @@ var (
 	ErrInvalidQuestion = errors.New("dns message does not have the expected question size")
 )
 
-// ParseRequest parses dns request from payload into dst and returns the error.
-func ParseRequest(dst *Request, payload []byte, copying bool) error {
+// ParseMessage parses dns request from payload into dst and returns the error.
+func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	if copying {
 		dst.Raw = append(dst.Raw[:0], payload...)
 		payload = dst.Raw
@@ -194,79 +194,79 @@ func ParseRequest(dst *Request, payload []byte, copying bool) error {
 	return nil
 }
 
-// AppendRequest appends the dns request to dst and returns the resulting dst.
-func AppendRequest(dst []byte, req *Request) []byte {
+// AppendMessage appends the dns request to dst and returns the resulting dst.
+func AppendMessage(dst []byte, msg *Message) []byte {
 	// fixed size array for avoid bounds check
 	var header [12]byte
 
 	// ID
-	header[0] = byte(req.Header.ID >> 8)
-	header[1] = byte(req.Header.ID & 0xff)
+	header[0] = byte(msg.Header.ID >> 8)
+	header[1] = byte(msg.Header.ID & 0xff)
 
 	// QR :		0
 	// Opcode:	1 2 3 4
 	// AA:		5
 	// TC:		6
 	// RD:		7
-	b := req.Header.QR << (7 - 0)
-	b |= byte(req.Header.Opcode) << (7 - (1 + 3))
-	b |= req.Header.AA << (7 - 5)
-	b |= req.Header.TC << (7 - 6)
-	b |= req.Header.RD
+	b := msg.Header.QR << (7 - 0)
+	b |= byte(msg.Header.Opcode) << (7 - (1 + 3))
+	b |= msg.Header.AA << (7 - 5)
+	b |= msg.Header.TC << (7 - 6)
+	b |= msg.Header.RD
 	header[2] = b
 
 	// second 8bit part of the second row
 	// RA:		0
 	// Z:		1 2 3
 	// RCODE:	4 5 6 7
-	b = req.Header.RA << (7 - 0)
-	b |= req.Header.Z << (7 - 1)
-	b |= byte(req.Header.RCODE) << (7 - (4 + 3))
+	b = msg.Header.RA << (7 - 0)
+	b |= msg.Header.Z << (7 - 1)
+	b |= byte(msg.Header.RCODE) << (7 - (4 + 3))
 	header[3] = b
 
 	// QDCOUNT
-	header[4] = byte(req.Header.QDCount >> 8)
-	header[5] = byte(req.Header.QDCount & 0xff)
+	header[4] = byte(msg.Header.QDCount >> 8)
+	header[5] = byte(msg.Header.QDCount & 0xff)
 	// ANCOUNT
-	header[6] = byte(req.Header.ANCount >> 8)
-	header[7] = byte(req.Header.ANCount & 0xff)
+	header[6] = byte(msg.Header.ANCount >> 8)
+	header[7] = byte(msg.Header.ANCount & 0xff)
 	// NSCOUNT
-	header[8] = byte(req.Header.NSCount >> 8)
-	header[9] = byte(req.Header.NSCount & 0xff)
+	header[8] = byte(msg.Header.NSCount >> 8)
+	header[9] = byte(msg.Header.NSCount & 0xff)
 	// ARCOUNT
-	header[10] = byte(req.Header.ARCount >> 8)
-	header[11] = byte(req.Header.ARCount & 0xff)
+	header[10] = byte(msg.Header.ARCount >> 8)
+	header[11] = byte(msg.Header.ARCount & 0xff)
 
 	dst = append(dst, header[:]...)
 
 	// question
-	if req.Header.QDCount != 0 {
+	if msg.Header.QDCount != 0 {
 		// QNAME
-		dst = append(dst, req.Question.Name...)
+		dst = append(dst, msg.Question.Name...)
 		// QTYPE
-		dst = append(dst, byte(req.Question.Type>>8), byte(req.Question.Type&0xff))
+		dst = append(dst, byte(msg.Question.Type>>8), byte(msg.Question.Type&0xff))
 		// QCLASS
-		dst = append(dst, byte(req.Question.Class>>8), byte(req.Question.Class&0xff))
+		dst = append(dst, byte(msg.Question.Class>>8), byte(msg.Question.Class&0xff))
 	}
 
 	return dst
 }
 
-var reqPool = sync.Pool{
+var msgPool = sync.Pool{
 	New: func() interface{} {
-		req := new(Request)
-		req.Raw = make([]byte, 0, 1024)
-		req.Domain = make([]byte, 0, 256)
-		return req
+		msg := new(Message)
+		msg.Raw = make([]byte, 0, 1024)
+		msg.Domain = make([]byte, 0, 256)
+		return msg
 	},
 }
 
-// AcquireRequest returns new dns request.
-func AcquireRequest() *Request {
-	return reqPool.Get().(*Request)
+// AcquireMessage returns new dns request.
+func AcquireMessage() *Message {
+	return msgPool.Get().(*Message)
 }
 
-// ReleaseRequest returnes the dns request to the pool.
-func ReleaseRequest(req *Request) {
-	reqPool.Put(req)
+// ReleaseMessage returnes the dns request to the pool.
+func ReleaseMessage(msg *Message) {
+	msgPool.Put(msg)
 }

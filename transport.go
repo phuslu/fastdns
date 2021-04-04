@@ -21,15 +21,15 @@ type Transport struct {
 	conns []*net.UDPConn
 }
 
-func (tr *Transport) RoundTrip(dst []byte, req *Request) (n int, err error) {
-	n, err = tr.roundTrip(dst, req)
+func (tr *Transport) RoundTrip(dst []byte, msg *Message) (n int, err error) {
+	n, err = tr.roundTrip(dst, msg)
 	if n == 0 || err != nil {
-		n, err = tr.roundTrip(dst, req)
+		n, err = tr.roundTrip(dst, msg)
 	}
 	return
 }
 
-func (tr *Transport) roundTrip(dst []byte, req *Request) (n int, err error) {
+func (tr *Transport) roundTrip(dst []byte, msg *Message) (n int, err error) {
 	var conn *net.UDPConn
 	var pooled bool
 
@@ -38,14 +38,14 @@ func (tr *Transport) roundTrip(dst []byte, req *Request) (n int, err error) {
 		return
 	}
 
-	n, err = conn.Write(req.Raw)
+	n, err = conn.Write(msg.Raw)
 	if err != nil && pooled {
 		// if error from pooled conn, let's close it & retry again
 		conn.Close()
 		if conn, err = tr.dial(); err != nil {
 			return
 		}
-		if _, err = conn.Write(req.Raw); err != nil {
+		if _, err = conn.Write(msg.Raw); err != nil {
 			return
 		}
 	}

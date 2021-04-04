@@ -17,28 +17,28 @@ type DNSHandler struct {
 	Debug bool
 }
 
-func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Request) {
+func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, msg *fastdns.Message) {
 	if h.Debug {
-		log.Printf("%s] %s: CLASS %s TYPE %s\n", rw.RemoteAddr(), req.Domain, req.Question.Class, req.Question.Type)
+		log.Printf("%s] %s: CLASS %s TYPE %s\n", rw.RemoteAddr(), msg.Domain, msg.Question.Class, msg.Question.Type)
 	}
 
-	switch req.Question.Type {
+	switch msg.Question.Type {
 	case fastdns.TypeA:
-		fastdns.HOST(rw, req, []net.IP{{10, 0, 0, 1}}, 300)
+		fastdns.HOST(rw, msg, []net.IP{{10, 0, 0, 1}}, 300)
 	case fastdns.TypeAAAA:
-		fastdns.HOST(rw, req, []net.IP{net.ParseIP("2001:4860:4860::8888")}, 300)
+		fastdns.HOST(rw, msg, []net.IP{net.ParseIP("2001:4860:4860::8888")}, 300)
 	case fastdns.TypeCNAME:
-		fastdns.CNAME(rw, req, []string{"dns.google"}, []net.IP{{8, 8, 8, 8}, {8, 8, 4, 4}}, 300)
+		fastdns.CNAME(rw, msg, []string{"dns.google"}, []net.IP{{8, 8, 8, 8}, {8, 8, 4, 4}}, 300)
 	case fastdns.TypeSRV:
-		fastdns.SRV(rw, req, "www.google.com", 1000, 1000, 80, 300)
+		fastdns.SRV(rw, msg, "www.google.com", 1000, 1000, 80, 300)
 	case fastdns.TypeMX:
-		fastdns.MX(rw, req, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}}, 60)
+		fastdns.MX(rw, msg, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}}, 60)
 	case fastdns.TypePTR:
-		fastdns.PTR(rw, req, "ptr.example.com", 0)
+		fastdns.PTR(rw, msg, "ptr.example.com", 0)
 	case fastdns.TypeTXT:
-		fastdns.TXT(rw, req, "helloworld", 300)
+		fastdns.TXT(rw, msg, "helloworld", 300)
 	default:
-		fastdns.Error(rw, req, fastdns.RcodeNameError)
+		fastdns.Error(rw, msg, fastdns.RcodeNameError)
 	}
 }
 
