@@ -170,7 +170,7 @@ func TestAppendHostRecord(t *testing.T) {
 
 }
 
-func TestAppendCNameRecord(t *testing.T) {
+func TestAppendCNAMERecord(t *testing.T) {
 	cases := []struct {
 		Hex    string
 		CNAMEs []string
@@ -202,8 +202,8 @@ func TestAppendCNameRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendCNameRecord(nil, req, c.CNAMEs, c.IPs, c.TTL)), c.Hex; got != want {
-			t.Errorf("AppendCNameRecord(%v) error got=%#v want=%#v", c.IPs, got, want)
+		if got, want := hex.EncodeToString(AppendCNAMERecord(nil, req, c.CNAMEs, c.IPs, c.TTL)), c.Hex; got != want {
+			t.Errorf("AppendCNAMERecord(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
 
@@ -348,7 +348,7 @@ func BenchmarkAppendHostRecord(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendCNameRecord(b *testing.B) {
+func BenchmarkAppendCNAMERecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -358,7 +358,7 @@ func BenchmarkAppendCNameRecord(b *testing.B) {
 
 	cnames := []string{"cname.example.org"}
 	for i := 0; i < b.N; i++ {
-		payload = AppendCNameRecord(payload[:0], req, cnames, nil, 3000)
+		payload = AppendCNAMERecord(payload[:0], req, cnames, nil, 3000)
 	}
 }
 

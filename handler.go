@@ -25,7 +25,7 @@ func HOST(rw ResponseWriter, req *Message, ips []net.IP, ttl uint32) {
 // CNAME replies to the request with the specified CName and Host records.
 func CNAME(rw ResponseWriter, req *Message, cnames []string, ips []net.IP, ttl uint32) {
 	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(cnames)+len(ips)), 0, 0)
-	req.Raw = AppendCNameRecord(req.Raw, req, cnames, ips, ttl)
+	req.Raw = AppendCNAMERecord(req.Raw, req, cnames, ips, ttl)
 	_, _ = rw.Write(req.Raw)
 }
 

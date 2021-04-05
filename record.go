@@ -112,8 +112,8 @@ func AppendHostRecord(dst []byte, req *Message, ips []net.IP, ttl uint32) []byte
 	return dst
 }
 
-// AppendCNameRecord appends the CNAME and Host records to dst and returns the resulting dst.
-func AppendCNameRecord(dst []byte, req *Message, cnames []string, ips []net.IP, ttl uint32) []byte {
+// AppendCNAMERecord appends the CNAME and Host records to dst and returns the resulting dst.
+func AppendCNAMERecord(dst []byte, req *Message, cnames []string, ips []net.IP, ttl uint32) []byte {
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {
