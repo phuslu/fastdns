@@ -127,6 +127,8 @@ var (
 	ErrInvalidHeader = errors.New("dns message does not have the expected header size")
 	// ErrInvalidQuestion is returned when dns message does not have the expected question size.
 	ErrInvalidQuestion = errors.New("dns message does not have the expected question size")
+	// ErrInvalidAnswer is returned when dns message does not have the expected answer size.
+	ErrInvalidAnswer = errors.New("dns message does not have the expected answer size")
 )
 
 // ParseMessage parses dns request from payload into dst and returns the error.
@@ -190,6 +192,41 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 
 	// Domain
 	dst.Domain = DecodeQustionName(dst.Domain[:0], dst.Question.Name)
+
+	return nil
+}
+
+func (msg *Message) VisitResourceRecords(visit func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
+	if msg.Header.ANCount == 0 {
+		return ErrInvalidAnswer
+	}
+
+	payload := msg.Raw[16+len(msg.Question.Name):]
+
+	for {
+		var name []byte
+		if payload[0]&0b11000000 == 0b11000000 {
+			name = payload[:2]
+		} else {
+			for i := 0; i < len(payload); i++ {
+				if payload[i] == 0 {
+					name = payload[:i]
+					break
+				}
+			}
+		}
+		payload = payload[len(name):]
+		typ := Type(payload[1])<<8 | Type(payload[2])
+		class := Class(payload[3])<<8 | Class(payload[4])
+		ttl := uint32(payload[5])<<24 | uint32(payload[6])<<16 | uint32(payload[7])<<8 | uint32(payload[8])
+		length := uint16(payload[9])<<8 | uint16(payload[10])
+		data := payload[10 : 10+length]
+		payload = payload[10+length:]
+		ok := visit(name, typ, class, ttl, data)
+		if !ok || len(payload) == 0 {
+			break
+		}
+	}
 
 	return nil
 }
