@@ -273,6 +273,19 @@ func BenchmarkCNAME(b *testing.B) {
 	}
 }
 
+func BenchmarkNS(b *testing.B) {
+	nameservers := []string{"ns1.google.com", "ns2.google.com"}
+	for i := 0; i < b.N; i++ {
+		NS(&nilResponseWriter{}, mockHandlerMessage, 3000, nameservers)
+	}
+}
+
+func BenchmarkSOA(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		SOA(&nilResponseWriter{}, mockHandlerMessage, 3000, "ns1.google.com", "dns-admin.google.com", 42, 900, 900, 1800, 60)
+	}
+}
+
 func BenchmarkSRV(b *testing.B) {
 	srv := "service1.example.org"
 	for i := 0; i < b.N; i++ {
