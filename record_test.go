@@ -209,6 +209,73 @@ func TestAppendCNAMERecord(t *testing.T) {
 
 }
 
+func TestAppendNSRecord(t *testing.T) {
+	cases := []struct {
+		Hex         string
+		Nameservers []string
+		TTL         uint32
+	}{
+		{
+			"c00c000200010000012c0010036e733106676f6f676c6503636f6d00",
+			[]string{"ns1.google.com"},
+			300,
+		},
+		{
+			"c00c000200010000012c0010036e733106676f6f676c6503636f6d00c00c000200010000012c0010036e733206676f6f676c6503636f6d00",
+			[]string{"ns1.google.com", "ns2.google.com"},
+			300,
+		},
+	}
+
+	req := new(Message)
+	req.Question.Name = EncodeDomain(nil, "ip.phus.lu")
+	req.Question.Class = ClassINET
+
+	for _, c := range cases {
+		if got, want := hex.EncodeToString(AppendNSRecord(nil, req, c.TTL, c.Nameservers)), c.Hex; got != want {
+			t.Errorf("AppendNSRecord(%v) error got=%#v want=%#v", c.Nameservers, got, want)
+		}
+	}
+
+}
+
+func TestAppendSOARecord(t *testing.T) {
+	cases := []struct {
+		Hex     string
+		TTL     uint32
+		MName   string
+		RName   string
+		Serial  uint32
+		Refresh uint32
+		Retry   uint32
+		Expire  uint32
+		Minimum uint32
+	}{
+		{
+			"c00c000600010000012c003a036e733106676f6f676c6503636f6d0009646e732d61646d696e06676f6f676c6503636f6d00400000000000038400000384000007080000003c",
+			300,
+			"ns1.google.com",
+			"dns-admin.google.com",
+			1073741824,
+			900,
+			900,
+			1800,
+			60,
+		},
+	}
+
+	req := new(Message)
+	req.Question.Name = EncodeDomain(nil, "www.google.com")
+	req.Question.Class = ClassINET
+
+	for _, c := range cases {
+		if got, want := hex.EncodeToString(AppendSOARecord(nil, req, c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)), c.Hex; got != want {
+			t.Errorf("AppendSOARecord(%v) error got=%#v want=%#v", c.MName, got, want)
+		}
+	}
+
+}
+
 func TestAppendSRVRecord(t *testing.T) {
 	cases := []struct {
 		Hex       string
@@ -359,6 +426,33 @@ func BenchmarkAppendCNAMERecord(b *testing.B) {
 	cnames := []string{"cname.example.org"}
 	for i := 0; i < b.N; i++ {
 		payload = AppendCNAMERecord(payload[:0], req, 3000, cnames, nil)
+	}
+}
+
+func BenchmarkAppendNSRecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Message)
+
+	if err := ParseMessage(req, payload, false); err != nil {
+		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
+	}
+
+	nameservers := []string{"ns1.google.com", "ns2.google.com"}
+	for i := 0; i < b.N; i++ {
+		payload = AppendNSRecord(payload[:0], req, 300, nameservers)
+	}
+}
+
+func BenchmarkAppendSOARecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Message)
+
+	if err := ParseMessage(req, payload, false); err != nil {
+		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		payload = AppendSOARecord(payload[:0], req, 300, "ns1.google.com", "dns-admin.google.com", 1073741824, 900, 900, 1800, 60)
 	}
 }
 

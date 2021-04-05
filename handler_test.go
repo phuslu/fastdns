@@ -101,6 +101,62 @@ func TestHandlerCNAME(t *testing.T) {
 	}
 }
 
+func TestHandlerNS(t *testing.T) {
+	var cases = []struct {
+		Hex        string
+		Nameserver string
+		TTL        uint32
+	}{
+		{
+			"00028100000100010000000002686b0470687573026c750000010001c00c000200010000012c0010026e73076578616d706c6503636f6d00",
+			"ns.example.com",
+			300,
+		},
+	}
+
+	rw := &MemoryResponseWriter{}
+	for _, c := range cases {
+		NS(rw, mockHandlerMessage, c.TTL, []string{c.Nameserver})
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
+			t.Errorf("NS(%v) error got=%#v want=%#v", c.Nameserver, got, want)
+		}
+	}
+}
+
+func TestHandlerSOA(t *testing.T) {
+	var cases = []struct {
+		Hex     string
+		TTL     uint32
+		MName   string
+		RName   string
+		Serial  uint32
+		Refresh uint32
+		Retry   uint32
+		Expire  uint32
+		Minimum uint32
+	}{
+		{
+			"00028100000100010000000002686b0470687573026c750000010001c00c000600010000012c003a036e733106676f6f676c6503636f6d0009646e732d61646d696e06676f6f676c6503636f6d00400000000000038400000384000007080000003c",
+			300,
+			"ns1.google.com",
+			"dns-admin.google.com",
+			1073741824,
+			900,
+			900,
+			1800,
+			60,
+		},
+	}
+
+	rw := &MemoryResponseWriter{}
+	for _, c := range cases {
+		SOA(rw, mockHandlerMessage, c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
+			t.Errorf("SOA(%v) error got=%#v want=%#v", c.MName, got, want)
+		}
+	}
+}
+
 func TestHandlerSRV(t *testing.T) {
 	var cases = []struct {
 		Hex       string
