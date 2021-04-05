@@ -191,7 +191,7 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	dst.Question.Type = Type(uint16(payload[2]) | uint16(payload[1])<<8)
 
 	// Domain
-	dst.Domain = DecodeQustionName(dst.Domain[:0], dst.Question.Name)
+	dst.Domain = DecodeLabels(dst.Domain[:0], dst.Question.Name)
 
 	return nil
 }

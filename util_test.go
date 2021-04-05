@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestDecodeQustionName(t *testing.T) {
+func TestDecodeLabels(t *testing.T) {
 	var cases = []struct {
 		Domain string
 		QName  string
@@ -16,8 +16,8 @@ func TestDecodeQustionName(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got, want := string(DecodeQustionName(nil, []byte(c.QName))), c.Domain; got != want {
-			t.Errorf("DecodeQustionName(%v) error got=%#v want=%#v", c.QName, got, want)
+		if got, want := string(DecodeLabels(nil, []byte(c.QName))), c.Domain; got != want {
+			t.Errorf("DecodeLabels(%v) error got=%#v want=%#v", c.QName, got, want)
 		}
 	}
 }
@@ -73,11 +73,11 @@ func TestTastset(t *testing.T) {
 	}
 }
 
-func BenchmarkDecodeQustionName(b *testing.B) {
+func BenchmarkDecodeLabels(b *testing.B) {
 	qname := []byte("\x02hk\x04phus\x02lu\x00")
 	dst := make([]byte, 0, 256)
 	for i := 0; i < b.N; i++ {
-		dst = DecodeQustionName(dst[:0], qname)
+		dst = DecodeLabels(dst[:0], qname)
 	}
 }
 

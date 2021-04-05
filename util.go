@@ -1,15 +1,15 @@
 package fastdns
 
-// DecodeQustionName decodes question name to dst.
-func DecodeQustionName(dst []byte, qname []byte) []byte {
-	switch len(qname) {
+// DecodeLabels decodes dns labels name to dst.
+func DecodeLabels(dst []byte, labels []byte) []byte {
+	switch len(labels) {
 	case 0, 1:
 		return dst
 	}
 
-	n := len(dst) + int(qname[0])
+	n := len(dst) + int(labels[0])
 	// append once for performance
-	dst = append(dst, qname[1:]...)
+	dst = append(dst, labels[1:]...)
 	for dst[n] != 0 {
 		offset := int(dst[n])
 		dst[n] = '.'
