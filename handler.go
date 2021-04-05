@@ -56,3 +56,10 @@ func TXT(rw ResponseWriter, req *Message, txt string, ttl uint32) {
 	req.Raw = AppendTXTRecord(req.Raw, req, txt, ttl)
 	_, _ = rw.Write(req.Raw)
 }
+
+// SOA replies to the request with the specified SOA records.
+func SOA(rw ResponseWriter, req *Message, mname, rname string, serial, refresh, retry, expire, minimum uint32, ttl uint32) {
+	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, 1, 0, 0)
+	req.Raw = AppendSOARecord(req.Raw, req, mname, rname, serial, refresh, retry, expire, minimum, ttl)
+	_, _ = rw.Write(req.Raw)
+}

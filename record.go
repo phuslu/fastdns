@@ -309,3 +309,43 @@ func AppendTXTRecord(dst []byte, req *Message, txt string, ttl uint32) []byte {
 
 	return dst
 }
+
+// AppendSOARecord appends the SOA records to dst and returns the resulting dst.
+func AppendSOARecord(dst []byte, req *Message, mname, rname string, serial, refresh, retry, expire, minimum uint32, ttl uint32) []byte {
+	length := 2 + len(mname) + 2 + len(rname) + 4 + 4 + 4 + 4 + 4
+	// fixed size array for avoid bounds check
+	answer := [...]byte{
+		// NAME
+		0xc0, 0x0c,
+		// TYPE
+		0x00, byte(TypeSOA),
+		// CLASS
+		byte(req.Question.Class >> 8), byte(req.Question.Class),
+		// TTL
+		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+		// RDLENGTH
+		byte(length >> 8), byte(length),
+	}
+	dst = append(dst, answer[:]...)
+
+	// MNAME
+	dst = EncodeDomain(dst, mname)
+	// RNAME
+	dst = EncodeDomain(dst, rname)
+
+	section := [...]byte{
+		// SERIAL
+		byte(serial >> 24), byte(serial >> 16), byte(serial >> 8), byte(serial),
+		// REFRESH
+		byte(refresh >> 24), byte(refresh >> 16), byte(refresh >> 8), byte(refresh),
+		// RETRY
+		byte(retry >> 24), byte(retry >> 16), byte(retry >> 8), byte(retry),
+		// EXPIRE
+		byte(expire >> 24), byte(expire >> 16), byte(expire >> 8), byte(expire),
+		// MINIMUM
+		byte(minimum >> 24), byte(minimum >> 16), byte(minimum >> 8), byte(minimum),
+	}
+	dst = append(dst, section[:]...)
+
+	return dst
+}
