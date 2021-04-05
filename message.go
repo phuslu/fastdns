@@ -180,7 +180,7 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 			break
 		}
 	}
-	if i+5 > len(payload) {
+	if i == 0 || i+5 > len(payload) {
 		return ErrInvalidQuestion
 	}
 	dst.Question.Name = payload[:i+1]
@@ -191,7 +191,14 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	dst.Question.Type = Type(uint16(payload[2]) | uint16(payload[1])<<8)
 
 	// Domain
-	dst.Domain = DecodeLabels(dst.Domain[:0], dst.Question.Name)
+	i = int(dst.Question.Name[0])
+	payload = append(dst.Domain[:0], dst.Question.Name[1:]...)
+	for payload[i] != 0 {
+		j := int(payload[i])
+		payload[i] = '.'
+		i += j + 1
+	}
+	dst.Domain = payload[:len(payload)-1]
 
 	return nil
 }
