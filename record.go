@@ -63,7 +63,7 @@ func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar 
 }
 
 // AppendHostRecord appends the Host records to dst and returns the resulting dst.
-func AppendHostRecord(dst []byte, req *Message, ips []net.IP, ttl uint32) []byte {
+func AppendHostRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte {
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
 			// hint golang complier remove ip bounds check
@@ -113,7 +113,7 @@ func AppendHostRecord(dst []byte, req *Message, ips []net.IP, ttl uint32) []byte
 }
 
 // AppendCNAMERecord appends the CNAME and Host records to dst and returns the resulting dst.
-func AppendCNAMERecord(dst []byte, req *Message, cnames []string, ips []net.IP, ttl uint32) []byte {
+func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ips []net.IP) []byte {
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {
@@ -191,7 +191,7 @@ func AppendCNAMERecord(dst []byte, req *Message, cnames []string, ips []net.IP, 
 }
 
 // AppendNSRecord appends the NS records to dst and returns the resulting dst.
-func AppendNSRecord(dst []byte, req *Message, nameservers []string, ttl uint32) []byte {
+func AppendNSRecord(dst []byte, req *Message, ttl uint32, nameservers []string) []byte {
 	// NS Records
 	for _, nameserver := range nameservers {
 		// fixed size array for avoid bounds check
@@ -216,7 +216,7 @@ func AppendNSRecord(dst []byte, req *Message, nameservers []string, ttl uint32) 
 }
 
 // AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
-func AppendSRVRecord(dst []byte, req *Message, srv string, priovrity, weight, port uint16, ttl uint32) []byte {
+func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srv string, priovrity, weight, port uint16) []byte {
 	// SRV Records
 	length := 8 + len(srv)
 	// fixed size array for avoid bounds check
@@ -252,7 +252,7 @@ type MXRecord struct {
 }
 
 // AppendMXRecord appends the MX records to dst and returns the resulting dst.
-func AppendMXRecord(dst []byte, req *Message, mx []MXRecord, ttl uint32) []byte {
+func AppendMXRecord(dst []byte, req *Message, ttl uint32, mx []MXRecord) []byte {
 	// MX Records
 	for _, rr := range mx {
 		length := 4 + len(rr.Host)
@@ -280,7 +280,7 @@ func AppendMXRecord(dst []byte, req *Message, mx []MXRecord, ttl uint32) []byte 
 }
 
 // AppendPTRRecord appends the PTR records to dst and returns the resulting dst.
-func AppendPTRRecord(dst []byte, req *Message, ptr string, ttl uint32) []byte {
+func AppendPTRRecord(dst []byte, req *Message, ttl uint32, ptr string) []byte {
 	// fixed size array for avoid bounds check
 	answer := [...]byte{
 		// NAME
@@ -302,7 +302,7 @@ func AppendPTRRecord(dst []byte, req *Message, ptr string, ttl uint32) []byte {
 }
 
 // AppendTXTRecord appends the TXT records to dst and returns the resulting dst.
-func AppendTXTRecord(dst []byte, req *Message, txt string, ttl uint32) []byte {
+func AppendTXTRecord(dst []byte, req *Message, ttl uint32, txt string) []byte {
 	length := len(txt) + (len(txt)+0xff)/0x100
 	// fixed size array for avoid bounds check
 	answer := [...]byte{
@@ -336,7 +336,7 @@ func AppendTXTRecord(dst []byte, req *Message, txt string, ttl uint32) []byte {
 }
 
 // AppendSOARecord appends the SOA records to dst and returns the resulting dst.
-func AppendSOARecord(dst []byte, req *Message, mname, rname string, serial, refresh, retry, expire, minimum uint32, ttl uint32) []byte {
+func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname string, serial, refresh, retry, expire, minimum uint32) []byte {
 	length := 2 + len(mname) + 2 + len(rname) + 4 + 4 + 4 + 4 + 4
 	// fixed size array for avoid bounds check
 	answer := [...]byte{

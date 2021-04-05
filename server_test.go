@@ -27,7 +27,7 @@ type mockServerHandler struct{}
 
 func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Message) {
 	log.Printf("%s] %s: TYPE %s", rw.RemoteAddr(), req.Domain, req.Question.Type)
-	HOST(rw, req, []net.IP{net.ParseIP("1.1.1.1")}, 300)
+	HOST(rw, req, 300, []net.IP{net.ParseIP("1.1.1.1")})
 }
 
 func TestServerHost(t *testing.T) {

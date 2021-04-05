@@ -72,7 +72,7 @@ func TestHandlerHost(t *testing.T) {
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		HOST(rw, mockHandlerMessage, []net.IP{c.IP}, c.TTL)
+		HOST(rw, mockHandlerMessage, c.TTL, []net.IP{c.IP})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("HOST(%v) error got=%#v want=%#v", c.IP, got, want)
 		}
@@ -94,7 +94,7 @@ func TestHandlerCNAME(t *testing.T) {
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		CNAME(rw, mockHandlerMessage, []string{c.CNAME}, nil, c.TTL)
+		CNAME(rw, mockHandlerMessage, c.TTL, []string{c.CNAME}, nil)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("CNAME(%v) error got=%#v want=%#v", c.CNAME, got, want)
 		}
@@ -122,7 +122,7 @@ func TestHandlerSRV(t *testing.T) {
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		SRV(rw, mockHandlerMessage, c.SRV, c.Priovrity, c.Weight, c.Port, c.TTL)
+		SRV(rw, mockHandlerMessage, c.TTL, c.SRV, c.Priovrity, c.Weight, c.Port)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("SRV(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
@@ -144,7 +144,7 @@ func TestHandlerMX(t *testing.T) {
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		MX(rw, mockHandlerMessage, []MXRecord{{10, c.MX}}, c.TTL)
+		MX(rw, mockHandlerMessage, c.TTL, []MXRecord{{10, c.MX}})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("MX(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
@@ -166,7 +166,7 @@ func TestHandlerPTR(t *testing.T) {
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		PTR(rw, mockHandlerMessage, c.PTR, c.TTL)
+		PTR(rw, mockHandlerMessage, c.TTL, c.PTR)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("PTR(%v) error got=%#v want=%#v", c.PTR, got, want)
 		}
@@ -188,7 +188,7 @@ func TestHandlerTXT(t *testing.T) {
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		TXT(rw, mockHandlerMessage, c.TXT, c.TTL)
+		TXT(rw, mockHandlerMessage, c.TTL, c.TXT)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("TXT(%v) error got=%#v want=%#v", c.TXT, got, want)
 		}
@@ -206,41 +206,41 @@ func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p),
 func BenchmarkHOST(b *testing.B) {
 	ips := []net.IP{net.ParseIP("8.8.8.8")}
 	for i := 0; i < b.N; i++ {
-		HOST(&nilResponseWriter{}, mockHandlerMessage, ips, 3000)
+		HOST(&nilResponseWriter{}, mockHandlerMessage, 3000, ips)
 	}
 }
 
 func BenchmarkCNAME(b *testing.B) {
 	cnames := []string{"cname.example.org"}
 	for i := 0; i < b.N; i++ {
-		CNAME(&nilResponseWriter{}, mockHandlerMessage, cnames, nil, 3000)
+		CNAME(&nilResponseWriter{}, mockHandlerMessage, 3000, cnames, nil)
 	}
 }
 
 func BenchmarkSRV(b *testing.B) {
 	srv := "service1.example.org"
 	for i := 0; i < b.N; i++ {
-		SRV(&nilResponseWriter{}, mockHandlerMessage, srv, 100, 100, 443, 3000)
+		SRV(&nilResponseWriter{}, mockHandlerMessage, 3000, srv, 100, 100, 443)
 	}
 }
 
 func BenchmarkPTR(b *testing.B) {
 	ptr := "ptr.example.org"
 	for i := 0; i < b.N; i++ {
-		PTR(&nilResponseWriter{}, mockHandlerMessage, ptr, 3000)
+		PTR(&nilResponseWriter{}, mockHandlerMessage, 3000, ptr)
 	}
 }
 
 func BenchmarkMX(b *testing.B) {
 	mx := []MXRecord{{100, "mail.google.com"}}
 	for i := 0; i < b.N; i++ {
-		MX(&nilResponseWriter{}, mockHandlerMessage, mx, 3000)
+		MX(&nilResponseWriter{}, mockHandlerMessage, 3000, mx)
 	}
 }
 
 func BenchmarkTXT(b *testing.B) {
 	txt := "iamatxtrecord"
 	for i := 0; i < b.N; i++ {
-		TXT(&nilResponseWriter{}, mockHandlerMessage, txt, 3000)
+		TXT(&nilResponseWriter{}, mockHandlerMessage, 3000, txt)
 	}
 }

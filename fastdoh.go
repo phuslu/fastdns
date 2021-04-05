@@ -44,7 +44,7 @@ type DNSHandler struct{}
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	log.Printf("%s] %s: CLASS %s TYPE %s\n", rw.RemoteAddr(), req.Domain, req.Question.Class, req.Question.Type)
 	if req.Question.Type == fastdns.TypeA {
-		fastdns.HOST(rw, req, []net.IP{{10, 0, 0, 1}}, 300)
+		fastdns.HOST(rw, req, 300, []net.IP{{10, 0, 0, 1}})
 	} else {
 		fastdns.Error(rw, req, fastdns.RcodeNameError)
 	}

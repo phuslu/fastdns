@@ -163,7 +163,7 @@ func TestAppendHostRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendHostRecord(nil, req, c.IPs, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendHostRecord(nil, req, c.TTL, c.IPs)), c.Hex; got != want {
 			t.Errorf("AppendHostRecord(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
@@ -202,7 +202,7 @@ func TestAppendCNAMERecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendCNAMERecord(nil, req, c.CNAMEs, c.IPs, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendCNAMERecord(nil, req, c.TTL, c.CNAMEs, c.IPs)), c.Hex; got != want {
 			t.Errorf("AppendCNAMERecord(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
@@ -240,7 +240,7 @@ func TestAppendSRVRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendSRVRecord(nil, req, c.SRV, c.Priovrity, c.Weight, c.Port, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendSRVRecord(nil, req, c.TTL, c.SRV, c.Priovrity, c.Weight, c.Port)), c.Hex; got != want {
 			t.Errorf("AppendSRVRecord(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
 	}
@@ -269,7 +269,7 @@ func TestAppendMXRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendMXRecord(nil, req, []MXRecord{{10, c.MX}}, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendMXRecord(nil, req, c.TTL, []MXRecord{{10, c.MX}})), c.Hex; got != want {
 			t.Errorf("AppendMXRecord(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
 	}
@@ -298,7 +298,7 @@ func TestAppendPTRRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendPTRRecord(nil, req, c.PTR, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendPTRRecord(nil, req, c.TTL, c.PTR)), c.Hex; got != want {
 			t.Errorf("AppendPTRRecord(%v) error got=%#v want=%#v", c.PTR, got, want)
 		}
 	}
@@ -327,7 +327,7 @@ func TestAppendTXTRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendTXTRecord(nil, req, c.TXT, c.TTL)), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendTXTRecord(nil, req, c.TTL, c.TXT)), c.Hex; got != want {
 			t.Errorf("AppendTXTRecord(%v) error got=%#v want=%#v", c.TXT, got, want)
 		}
 	}
@@ -344,7 +344,7 @@ func BenchmarkAppendHostRecord(b *testing.B) {
 
 	ips := []net.IP{net.ParseIP("8.8.8.8")}
 	for i := 0; i < b.N; i++ {
-		payload = AppendHostRecord(payload[:0], req, ips, 3000)
+		payload = AppendHostRecord(payload[:0], req, 3000, ips)
 	}
 }
 
@@ -358,7 +358,7 @@ func BenchmarkAppendCNAMERecord(b *testing.B) {
 
 	cnames := []string{"cname.example.org"}
 	for i := 0; i < b.N; i++ {
-		payload = AppendCNAMERecord(payload[:0], req, cnames, nil, 3000)
+		payload = AppendCNAMERecord(payload[:0], req, 3000, cnames, nil)
 	}
 }
 
@@ -372,7 +372,7 @@ func BenchmarkAppendSRVRecord(b *testing.B) {
 
 	srv := "service1.example.org"
 	for i := 0; i < b.N; i++ {
-		payload = AppendSRVRecord(payload[:0], req, srv, 100, 100, 443, 3000)
+		payload = AppendSRVRecord(payload[:0], req, 3000, srv, 100, 100, 443)
 	}
 }
 
@@ -386,7 +386,7 @@ func BenchmarkAppendPTRRecord(b *testing.B) {
 
 	ptr := "ptr.example.org"
 	for i := 0; i < b.N; i++ {
-		payload = AppendPTRRecord(payload[:0], req, ptr, 3000)
+		payload = AppendPTRRecord(payload[:0], req, 3000, ptr)
 	}
 }
 
@@ -400,7 +400,7 @@ func BenchmarkAppendMXRecord(b *testing.B) {
 
 	mx := []MXRecord{{100, "mail.google.com"}}
 	for i := 0; i < b.N; i++ {
-		payload = AppendMXRecord(payload[:0], req, mx, 3000)
+		payload = AppendMXRecord(payload[:0], req, 3000, mx)
 	}
 }
 
@@ -414,6 +414,6 @@ func BenchmarkAppendTXTRecord(b *testing.B) {
 
 	txt := "iamatxtrecord"
 	for i := 0; i < b.N; i++ {
-		payload = AppendTXTRecord(payload[:0], req, txt, 3000)
+		payload = AppendTXTRecord(payload[:0], req, 3000, txt)
 	}
 }
