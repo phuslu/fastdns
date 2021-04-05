@@ -12,6 +12,7 @@ var (
 	ErrMaxConns = errors.New("dns transport reaches the max connections limitation")
 )
 
+// Transport is an UDP client that supports DNS protocol.
 type Transport struct {
 	Address    *net.UDPAddr
 	ReadTimout time.Duration
@@ -21,6 +22,8 @@ type Transport struct {
 	conns []*net.UDPConn
 }
 
+// RoundTrip executes a single DNS transaction, returning
+// a Response for the provided Request.
 func (tr *Transport) RoundTrip(req, resp *Message) (err error) {
 	err = tr.roundTrip(req, resp)
 	if err != nil {

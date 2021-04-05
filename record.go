@@ -66,7 +66,7 @@ func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar 
 func AppendHostRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte {
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
-			// hint golang complier remove ip bounds check
+			// hint golang compiler remove ip bounds check
 			_ = ip4[3]
 			// fixed size array for avoid bounds check
 			answer := [...]byte{
@@ -85,7 +85,7 @@ func AppendHostRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte
 			}
 			dst = append(dst, answer[:]...)
 		} else {
-			// hint golang complier remove ip bounds check
+			// hint golang compiler remove ip bounds check
 			_ = ip[15]
 			// fixed size array for avoid bounds check
 			answer := [...]byte{
@@ -144,7 +144,7 @@ func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ip
 	// Host Records
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
-			// hint golang complier remove ip bounds check
+			// hint golang compiler remove ip bounds check
 			_ = ip4[3]
 			// fixed size array for avoid bounds check
 			answer := [...]byte{
@@ -163,7 +163,7 @@ func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ip
 			}
 			dst = append(dst, answer[:]...)
 		} else {
-			// hint golang complier remove ip bounds check
+			// hint golang compiler remove ip bounds check
 			_ = ip[15]
 			// fixed size array for avoid bounds check
 			answer := [...]byte{

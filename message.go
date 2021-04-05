@@ -142,7 +142,7 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 		return ErrInvalidHeader
 	}
 
-	// hint golang complier remove ip bounds check
+	// hint golang compiler remove ip bounds check
 	_ = payload[11]
 
 	// ID
@@ -196,7 +196,8 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	return nil
 }
 
-func (msg *Message) VisitResourceRecords(visit func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
+// VisitResourceRecords calls f for each item in the msg in the original order of the parsed RR.
+func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
 	if msg.Header.ANCount == 0 {
 		return ErrInvalidAnswer
 	}
@@ -222,7 +223,7 @@ func (msg *Message) VisitResourceRecords(visit func(name []byte, typ Type, class
 		length := uint16(payload[9])<<8 | uint16(payload[10])
 		data := payload[10 : 10+length]
 		payload = payload[10+length:]
-		ok := visit(name, typ, class, ttl, data)
+		ok := f(name, typ, class, ttl, data)
 		if !ok || len(payload) == 0 {
 			break
 		}
@@ -231,7 +232,8 @@ func (msg *Message) VisitResourceRecords(visit func(name []byte, typ Type, class
 	return nil
 }
 
-func (msg *Message) VisitAdditionalRecords(visit func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
+// VisitAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.
+func (msg *Message) VisitAdditionalRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
 	if msg.Header.ANCount == 0 {
 		return ErrInvalidAnswer
 	}
@@ -257,7 +259,7 @@ func (msg *Message) VisitAdditionalRecords(visit func(name []byte, typ Type, cla
 		length := uint16(payload[9])<<8 | uint16(payload[10])
 		data := payload[10 : 10+length]
 		payload = payload[10+length:]
-		ok := visit(name, typ, class, ttl, data)
+		ok := f(name, typ, class, ttl, data)
 		if !ok || len(payload) == 0 {
 			break
 		}
