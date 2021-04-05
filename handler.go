@@ -29,6 +29,13 @@ func CNAME(rw ResponseWriter, req *Message, cnames []string, ips []net.IP, ttl u
 	_, _ = rw.Write(req.Raw)
 }
 
+// NS replies to the request with the specified CName and Host records.
+func NS(rw ResponseWriter, req *Message, nameservers []string, ttl uint32) {
+	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(nameservers)), 0, 0)
+	req.Raw = AppendNSRecord(req.Raw, req, nameservers, ttl)
+	_, _ = rw.Write(req.Raw)
+}
+
 // SRV replies to the request with the specified SRV records.
 func SRV(rw ResponseWriter, req *Message, srv string, priovrity, weight, port uint16, ttl uint32) {
 	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, 1, 0, 0)

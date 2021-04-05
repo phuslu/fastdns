@@ -190,6 +190,31 @@ func AppendCNameRecord(dst []byte, req *Message, cnames []string, ips []net.IP, 
 	return dst
 }
 
+// AppendNSRecord appends the NS records to dst and returns the resulting dst.
+func AppendNSRecord(dst []byte, req *Message, nameservers []string, ttl uint32) []byte {
+	// NS Records
+	for _, nameserver := range nameservers {
+		// fixed size array for avoid bounds check
+		answer := [...]byte{
+			// NAME
+			0xc0, 0x0c,
+			// TYPE
+			0x00, byte(TypeNS),
+			// CLASS
+			byte(req.Question.Class >> 8), byte(req.Question.Class),
+			// TTL
+			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+			// RDLENGTH
+			0x00, byte(len(nameserver) + 2),
+		}
+		dst = append(dst, answer[:]...)
+		// RDATA
+		dst = EncodeDomain(dst, nameserver)
+	}
+
+	return dst
+}
+
 // AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
 func AppendSRVRecord(dst []byte, req *Message, srv string, priovrity, weight, port uint16, ttl uint32) []byte {
 	// SRV Records
