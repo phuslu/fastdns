@@ -10,8 +10,8 @@ type Handler interface {
 }
 
 // Error replies to the request with the specified Rcode.
-func Error(rw ResponseWriter, req *Message, code Rcode) {
-	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, code, 0, 0, 0, 0)
+func Error(rw ResponseWriter, req *Message, rcode Rcode) {
+	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, rcode, 0, 0, 0, 0)
 	_, _ = rw.Write(req.Raw)
 }
 
