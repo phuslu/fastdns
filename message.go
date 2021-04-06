@@ -323,7 +323,24 @@ func AppendMessage(dst []byte, msg *Message) []byte {
 	// question
 	if msg.Header.QDCount != 0 {
 		// QNAME
-		dst = append(dst, msg.Question.Name...)
+		if msg.Question.Name != nil {
+			dst = append(dst, msg.Question.Name...)
+		} else {
+			i := len(dst)
+			j := i + len(msg.Domain)
+			dst = append(dst, '.')
+			dst = append(dst, msg.Domain...)
+			var n byte = 0
+			for k := j; k >= i; k-- {
+				if dst[k] == '.' {
+					dst[k] = n
+					n = 0
+				} else {
+					n++
+				}
+			}
+			dst = append(dst, 0)
+		}
 		// QTYPE
 		dst = append(dst, byte(msg.Question.Type>>8), byte(msg.Question.Type&0xff))
 		// QCLASS
