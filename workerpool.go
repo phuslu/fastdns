@@ -1,6 +1,7 @@
 package fastdns
 
 import (
+	"log"
 	"runtime"
 	"sync"
 	"time"
@@ -21,7 +22,7 @@ type workerPool struct {
 
 	MaxIdleWorkerDuration time.Duration
 
-	Logger Logger
+	Logger *log.Logger
 
 	lock         sync.Mutex
 	workersCount int

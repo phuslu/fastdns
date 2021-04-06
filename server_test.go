@@ -38,7 +38,7 @@ func TestServerHost(t *testing.T) {
 
 	s := &Server{
 		Handler:  &mockServerHandler{},
-		Logger:   log.New(os.Stdout, "", 0),
+		ErrorLog: log.Default(),
 		MaxProcs: 1,
 	}
 
@@ -75,7 +75,7 @@ func TestServerHost(t *testing.T) {
 func TestServerListenError(t *testing.T) {
 	s := &Server{
 		Handler:  &mockServerHandler{},
-		Logger:   log.New(os.Stdout, "", 0),
+		ErrorLog: log.Default(),
 		MaxProcs: 1,
 		index:    1,
 	}
@@ -96,7 +96,7 @@ func TestServerParseMessageError(t *testing.T) {
 
 	s := &Server{
 		Handler:  &mockServerHandler{},
-		Logger:   log.New(os.Stdout, "", 0),
+		ErrorLog: log.Default(),
 		MaxProcs: 1,
 	}
 
@@ -132,7 +132,7 @@ func TestServerForkHost(t *testing.T) {
 
 	s := &ForkServer{
 		Handler:  &mockServerHandler{},
-		Logger:   log.New(os.Stdout, "", 0),
+		ErrorLog: log.Default(),
 		MaxProcs: 1,
 	}
 
@@ -176,7 +176,7 @@ func TestServerForkParseMessageError(t *testing.T) {
 
 	s := &ForkServer{
 		Handler:  &mockServerHandler{},
-		Logger:   log.New(os.Stdout, "", 0),
+		ErrorLog: log.Default(),
 		MaxProcs: 1,
 	}
 

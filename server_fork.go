@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"errors"
+	"log"
 	"os"
 	"os/exec"
 	"runtime"
@@ -13,8 +14,11 @@ type ForkServer struct {
 	// handler to invoke
 	Handler Handler
 
-	// Logger specifies a logger
-	Logger Logger
+	// ErrorLog specifies an optional logger for errors accepting
+	// connections, unexpected behavior from handlers, and
+	// underlying FileSystem errors.
+	// If nil, logging is done via the log package's standard logger.
+	ErrorLog *log.Logger
 
 	// The maximum number of procs the server may spawn. use runtime.NumCPU() if empty
 	MaxProcs int
@@ -32,24 +36,28 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 		return s.fork(addr, s.MaxProcs)
 	}
 
+	if s.ErrorLog == nil {
+		s.ErrorLog = log.Default()
+	}
+
 	if s.SetAffinity {
 		// set cpu affinity for performance
 		err := taskset((s.Index() - 1) % runtime.NumCPU())
 		if err != nil {
-			s.Logger.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
+			s.ErrorLog.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
 		}
 	}
 
 	// so_reuseport listen for performance
 	conn, err := listen("udp", addr)
 	if err != nil {
-		s.Logger.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
+		s.ErrorLog.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
 		return err
 	}
 
-	s.Logger.Printf("forkserver-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
+	// s.ErrorLog.Printf("forkserver-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
-	return serve(conn, s.Handler, s.Logger, s.Concurrency)
+	return serve(conn, s.Handler, s.ErrorLog, s.Concurrency)
 }
 
 // Index indicates the index of Server instances.
@@ -93,7 +101,7 @@ func (s *ForkServer) fork(addr string, maxProcs int) (err error) {
 	for i := 1; i <= maxProcs; i++ {
 		var cmd *exec.Cmd
 		if cmd, err = fork(i); err != nil {
-			s.Logger.Printf("forkserver failed to start a child process, error: %v\n", err)
+			s.ErrorLog.Printf("forkserver failed to start a child process, error: %v\n", err)
 			return
 		}
 
@@ -107,10 +115,10 @@ func (s *ForkServer) fork(addr string, maxProcs int) (err error) {
 	for sig := range ch {
 		delete(childs, sig.pid)
 
-		s.Logger.Printf("forkserver one of the child processes exited with error: %v", sig.err)
+		s.ErrorLog.Printf("forkserver one of the child processes exited with error: %v", sig.err)
 
 		if exited++; exited > 200 {
-			s.Logger.Printf("forkserver child workers exit too many times(%d)", exited)
+			s.ErrorLog.Printf("forkserver child workers exit too many times(%d)", exited)
 			err = errors.New("forkserver child workers exit too many times")
 			break
 		}

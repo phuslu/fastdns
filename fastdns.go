@@ -51,15 +51,16 @@ func main() {
 		Handler: &DNSHandler{
 			Debug: os.Getenv("DEBUG") != "",
 		},
-		Logger: log.Default(),
+		ErrorLog: log.Default(),
 	}
 
 	if index := server.Index(); index > 0 {
 		go func(index int) {
 			addr := fmt.Sprintf(":%d", 9000+index)
-			server.Logger.Printf("forkserver-%d pid-%d serving http on port %s", index, os.Getpid(), addr)
+			server.ErrorLog.Printf("forkserver-%d pid-%d serving http on port %s", index, os.Getpid(), addr)
 			_ = http.ListenAndServe(addr, nil)
 		}(index)
+		server.ErrorLog.Printf("forkserver-%d pid-%d serving dns on port %s", server.Index(), os.Getpid(), os.Args[1])
 	}
 
 	err := server.ListenAndServe(os.Args[1])
