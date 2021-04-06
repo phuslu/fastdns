@@ -211,27 +211,27 @@ func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Cla
 
 	payload := msg.Raw[16+len(msg.Question.Name):]
 
-	for {
+	for i := uint16(0); i < msg.Header.ANCount; i++ {
 		var name []byte
 		if payload[0]&0b11000000 == 0b11000000 {
 			name = payload[:2]
 		} else {
-			for i := 0; i < len(payload); i++ {
-				if payload[i] == 0 {
-					name = payload[:i]
+			for j := 0; j < len(payload); j++ {
+				if payload[j] == 0 {
+					name = payload[:j]
 					break
 				}
 			}
 		}
 		payload = payload[len(name):]
-		typ := Type(payload[1])<<8 | Type(payload[2])
-		class := Class(payload[3])<<8 | Class(payload[4])
-		ttl := uint32(payload[5])<<24 | uint32(payload[6])<<16 | uint32(payload[7])<<8 | uint32(payload[8])
-		length := uint16(payload[9])<<8 | uint16(payload[10])
+		typ := Type(payload[0])<<8 | Type(payload[1])
+		class := Class(payload[2])<<8 | Class(payload[3])
+		ttl := uint32(payload[4])<<24 | uint32(payload[5])<<16 | uint32(payload[6])<<8 | uint32(payload[7])
+		length := uint16(payload[8])<<8 | uint16(payload[9])
 		data := payload[10 : 10+length]
 		payload = payload[10+length:]
 		ok := f(name, typ, class, ttl, data)
-		if !ok || len(payload) == 0 {
+		if !ok {
 			break
 		}
 	}

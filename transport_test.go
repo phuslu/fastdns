@@ -73,5 +73,13 @@ func TestTransportRoundTrip(t *testing.T) {
 			t.Errorf("transport=%+v roundtrip(%v) error: %+v\n", tr, c.Request, err)
 		}
 		t.Logf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
+		_ = resp.VisitResourceRecords(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
+			switch typ {
+			case TypeA:
+				ip := net.IP(data)
+				t.Logf("Answer: CLASS %s TYPE %s TTL %d DATA %s\n", class, typ, ttl, ip)
+			}
+			return true
+		})
 	}
 }

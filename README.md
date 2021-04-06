@@ -102,7 +102,7 @@ PASS
 ok  	github.com/phuslu/fastdns	19.026s
 ```
 
-Here is the real-world flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches **1.2M QPS** in a single machine with Xeon 4216 and Intel X710.
+Here is the real-world flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches **1.2M QPS** on a single machine with Xeon 4216 and Intel X710.
 
 ## Acknowledgment
 This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg/dns][miekg/dns].
