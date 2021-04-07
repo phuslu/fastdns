@@ -5,23 +5,6 @@ import (
 	"testing"
 )
 
-func TestDecodeLabels(t *testing.T) {
-	var cases = []struct {
-		Domain string
-		QName  string
-	}{
-		{"", "\x00"},
-		{"phus.lu", "\x04phus\x02lu\x00"},
-		{"splunk.phus.lu", "\x06splunk\x04phus\x02lu\x00"},
-	}
-
-	for _, c := range cases {
-		if got, want := string(DecodeLabels(nil, []byte(c.QName))), c.Domain; got != want {
-			t.Errorf("DecodeLabels(%v) error got=%#v want=%#v", c.QName, got, want)
-		}
-	}
-}
-
 func TestEncodeDomain(t *testing.T) {
 	var cases = []struct {
 		Domain string
@@ -70,14 +53,6 @@ func TestTastset(t *testing.T) {
 	err = taskset(0)
 	if err != nil {
 		t.Errorf("taskset(0) error: %+v", err)
-	}
-}
-
-func BenchmarkDecodeLabels(b *testing.B) {
-	qname := []byte("\x02hk\x04phus\x02lu\x00")
-	dst := make([]byte, 0, 256)
-	for i := 0; i < b.N; i++ {
-		dst = DecodeLabels(dst[:0], qname)
 	}
 }
 
