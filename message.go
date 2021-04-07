@@ -213,17 +213,20 @@ func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Cla
 
 	for i := uint16(0); i < msg.Header.ANCount; i++ {
 		var name []byte
-		if payload[0]&0b11000000 == 0b11000000 {
-			name = payload[:2]
-		} else {
-			for j := 0; j < len(payload); j++ {
-				if payload[j] == 0 {
-					name = payload[:j]
-					break
-				}
+		for j, b := range payload {
+			if b&0b11000000 == 0b11000000 {
+				name = payload[:j+2]
+				payload = payload[j+2:]
+				break
+			} else if b == 0 {
+				name = payload[:j+1]
+				payload = payload[j+1:]
+				break
 			}
 		}
-		payload = payload[len(name):]
+		if name == nil {
+			return ErrInvalidAnswer
+		}
 		typ := Type(payload[0])<<8 | Type(payload[1])
 		class := Class(payload[2])<<8 | Class(payload[3])
 		ttl := uint32(payload[4])<<24 | uint32(payload[5])<<16 | uint32(payload[6])<<8 | uint32(payload[7])
@@ -237,6 +240,78 @@ func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Cla
 	}
 
 	return nil
+}
+
+// DecodeName decodes dns labels to dst.
+func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
+	switch len(name) {
+	case 2:
+		if name[1] == 0x0c && name[0] == 0xc0 {
+			dst = append(dst, msg.Domain...)
+			return dst
+		}
+	case 0, 1:
+		return dst
+	}
+
+	var offset int
+	if name[0]&0xc0 == 0xc0 {
+		offset := int(name[0]&0x3f)<<8 + int(name[1])
+		for i, b := range msg.Raw[offset:] {
+			if b == 0 {
+				name = msg.Raw[offset : offset+i+1]
+				break
+			} else if b&0xc0 == 0xc0 {
+				name = msg.Raw[offset : offset+i+2]
+				break
+			}
+		}
+	}
+
+	var p int
+	n := len(dst) + int(name[0])
+	dst = append(dst, name[1:]...)
+	for {
+		if dst[n]&0xc0 == 0xc0 {
+			p = int(dst[n]&0x3f)<<8 + int(dst[n+1])
+			break
+		} else if dst[n] == 0 {
+			break
+		} else {
+			offset = int(dst[n])
+			dst[n] = '.'
+			n += offset + 1
+		}
+	}
+
+	dst = dst[:len(dst)-1]
+	if p != 0 {
+		dst[len(dst)-1] = '.'
+		for i := p; i < len(msg.Raw); i++ {
+			b := msg.Raw[i]
+			if b&0b11000000 == 0b11000000 {
+				// FIXME: support pointer to pointer
+				return dst
+			} else if b == 0 {
+				name = msg.Raw[p : i+1]
+				break
+			}
+		}
+		n = len(dst) + int(name[0])
+		dst = append(dst, name[1:]...)
+		for {
+			if dst[n] == 0 {
+				break
+			} else {
+				offset = int(dst[n])
+				dst[n] = '.'
+				n += offset + 1
+			}
+		}
+		dst = dst[:len(dst)-1]
+	}
+
+	return dst
 }
 
 // VisitAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.
