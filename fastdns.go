@@ -58,6 +58,14 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	}
 
 	if h.Debug {
+		_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+			switch typ {
+			case fastdns.TypeA, fastdns.TypeAAAA:
+				ip := net.IP(data)
+				log.Printf("Answer: CLASS %s TYPE %s TTL %d DATA %s\n", class, typ, ttl, ip)
+			}
+			return true
+		})
 		log.Printf("%s] %s: %s reply %d answers\n", rw.RemoteAddr(), req.Domain, h.DNSTransport.Address, resp.Header.ANCount)
 	}
 
