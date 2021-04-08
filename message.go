@@ -203,6 +203,78 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	return nil
 }
 
+// DecodeName decodes dns labels to dst.
+func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
+	switch len(name) {
+	case 2:
+		if name[1] == 12 && name[0] == 0b11000000 {
+			dst = append(dst, msg.Domain...)
+			return dst
+		}
+	case 0, 1:
+		return dst
+	}
+
+	var offset int
+	if name[0]&0b11000000 == 0b11000000 {
+		offset := int(name[0]&0b00111111)<<8 + int(name[1])
+		for i, b := range msg.Raw[offset:] {
+			if b == 0 {
+				name = msg.Raw[offset : offset+i+1]
+				break
+			} else if b&0b11000000 == 0b11000000 {
+				name = msg.Raw[offset : offset+i+2]
+				break
+			}
+		}
+	}
+
+	var p int
+	n := len(dst) + int(name[0])
+	dst = append(dst, name[1:]...)
+	for {
+		if dst[n]&0b11000000 == 0b11000000 {
+			p = int(dst[n]&0b00111111)<<8 + int(dst[n+1])
+			break
+		} else if dst[n] == 0 {
+			break
+		} else {
+			offset = int(dst[n])
+			dst[n] = '.'
+			n += offset + 1
+		}
+	}
+
+	dst = dst[:len(dst)-1]
+	if p != 0 {
+		dst[len(dst)-1] = '.'
+		for i := p; i < len(msg.Raw); i++ {
+			b := msg.Raw[i]
+			if b&0b11000000 == 0b11000000 {
+				// QQQ: support pointer to pointer
+				return dst
+			} else if b == 0 {
+				name = msg.Raw[p : i+1]
+				break
+			}
+		}
+		n = len(dst) + int(name[0])
+		dst = append(dst, name[1:]...)
+		for {
+			if dst[n] == 0 {
+				break
+			} else {
+				offset = int(dst[n])
+				dst[n] = '.'
+				n += offset + 1
+			}
+		}
+		dst = dst[:len(dst)-1]
+	}
+
+	return dst
+}
+
 // VisitResourceRecords calls f for each item in the msg in the original order of the parsed RR.
 func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
 	if msg.Header.ANCount == 0 {
@@ -242,112 +314,9 @@ func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Cla
 	return nil
 }
 
-// DecodeName decodes dns labels to dst.
-func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
-	switch len(name) {
-	case 2:
-		if name[1] == 0x0c && name[0] == 0xc0 {
-			dst = append(dst, msg.Domain...)
-			return dst
-		}
-	case 0, 1:
-		return dst
-	}
-
-	var offset int
-	if name[0]&0xc0 == 0xc0 {
-		offset := int(name[0]&0x3f)<<8 + int(name[1])
-		for i, b := range msg.Raw[offset:] {
-			if b == 0 {
-				name = msg.Raw[offset : offset+i+1]
-				break
-			} else if b&0xc0 == 0xc0 {
-				name = msg.Raw[offset : offset+i+2]
-				break
-			}
-		}
-	}
-
-	var p int
-	n := len(dst) + int(name[0])
-	dst = append(dst, name[1:]...)
-	for {
-		if dst[n]&0xc0 == 0xc0 {
-			p = int(dst[n]&0x3f)<<8 + int(dst[n+1])
-			break
-		} else if dst[n] == 0 {
-			break
-		} else {
-			offset = int(dst[n])
-			dst[n] = '.'
-			n += offset + 1
-		}
-	}
-
-	dst = dst[:len(dst)-1]
-	if p != 0 {
-		dst[len(dst)-1] = '.'
-		for i := p; i < len(msg.Raw); i++ {
-			b := msg.Raw[i]
-			if b&0b11000000 == 0b11000000 {
-				// FIXME: support pointer to pointer
-				return dst
-			} else if b == 0 {
-				name = msg.Raw[p : i+1]
-				break
-			}
-		}
-		n = len(dst) + int(name[0])
-		dst = append(dst, name[1:]...)
-		for {
-			if dst[n] == 0 {
-				break
-			} else {
-				offset = int(dst[n])
-				dst[n] = '.'
-				n += offset + 1
-			}
-		}
-		dst = dst[:len(dst)-1]
-	}
-
-	return dst
-}
-
 // VisitAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.
 func (msg *Message) VisitAdditionalRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
-	if msg.Header.ANCount == 0 {
-		return ErrInvalidAnswer
-	}
-
-	payload := msg.Raw[16+len(msg.Question.Name):]
-
-	for {
-		var name []byte
-		if payload[0]&0b11000000 == 0b11000000 {
-			name = payload[:2]
-		} else {
-			for i := 0; i < len(payload); i++ {
-				if payload[i] == 0 {
-					name = payload[:i]
-					break
-				}
-			}
-		}
-		payload = payload[len(name):]
-		typ := Type(payload[1])<<8 | Type(payload[2])
-		class := Class(payload[3])<<8 | Class(payload[4])
-		ttl := uint32(payload[5])<<24 | uint32(payload[6])<<16 | uint32(payload[7])<<8 | uint32(payload[8])
-		length := uint16(payload[9])<<8 | uint16(payload[10])
-		data := payload[10 : 10+length]
-		payload = payload[10+length:]
-		ok := f(name, typ, class, ttl, data)
-		if !ok || len(payload) == 0 {
-			break
-		}
-	}
-
-	return nil
+	panic("not implemented")
 }
 
 // AppendMessage appends the dns request to dst and returns the resulting dst.

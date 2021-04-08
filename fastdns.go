@@ -47,6 +47,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		default:
 			fastdns.Error(rw, req, fastdns.RcodeNameError)
 		}
+		return
 	}
 
 	resp := fastdns.AcquireMessage()
