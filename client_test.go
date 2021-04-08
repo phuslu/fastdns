@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestTransportRoundTrip(t *testing.T) {
+func TestClientExchange(t *testing.T) {
 	var cases = []struct {
 		Request *Message
 	}{
@@ -60,17 +60,17 @@ func TestTransportRoundTrip(t *testing.T) {
 		},
 	}
 
-	tr := &Transport{
-		Address:    &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
+	client := &Client{
+		ServerAddr: &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
 		ReadTimout: 1 * time.Second,
 		MaxConns:   1000,
 	}
 
 	for _, c := range cases {
 		resp := AcquireMessage()
-		err := tr.RoundTrip(c.Request, resp)
+		err := client.Exchange(c.Request, resp)
 		if err != nil {
-			t.Errorf("transport=%+v roundtrip(%v) error: %+v\n", tr, c.Request, err)
+			t.Errorf("client=%+v exchange(%v) error: %+v\n", client, c.Request, err)
 		}
 		t.Logf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
 		_ = resp.VisitResourceRecords(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {

@@ -15,8 +15,8 @@ import (
 )
 
 type DNSHandler struct {
-	DNSTransport *fastdns.Transport
-	Debug        bool
+	DNSClient *fastdns.Client
+	Debug     bool
 }
 
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
@@ -53,7 +53,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	resp := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(resp)
 
-	err := h.DNSTransport.RoundTrip(req, resp)
+	err := h.DNSClient.Exchange(req, resp)
 	if err != nil {
 		fastdns.Error(rw, req, fastdns.RcodeServerFailure)
 	}
@@ -68,7 +68,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 			}
 			return true
 		})
-		log.Printf("%s] %s: %s reply %d answers\n", rw.RemoteAddr(), req.Domain, h.DNSTransport.Address, resp.Header.ANCount)
+		log.Printf("%s] %s: %s reply %d answers\n", rw.RemoteAddr(), req.Domain, h.DNSClient.ServerAddr, resp.Header.ANCount)
 	}
 
 	rw.Write(resp.Raw)
@@ -77,9 +77,9 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 func main() {
 	server := &fastdns.ForkServer{
 		Handler: &DNSHandler{
-			DNSTransport: &fastdns.Transport{
-				Address:  &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
-				MaxConns: 4096,
+			DNSClient: &fastdns.Client{
+				ServerAddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
+				MaxConns:   4096,
 			},
 			Debug: os.Getenv("DEBUG") != "",
 		},
