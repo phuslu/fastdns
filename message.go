@@ -320,38 +320,26 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 
 // AppendMessage appends the dns request to dst and returns the resulting dst.
 func AppendMessage(dst []byte, msg *Message) []byte {
-	// fixed size array for avoid bounds check
-	var header [12]byte
-
-	// ID
-	header[0] = byte(msg.Header.ID >> 8)
-	header[1] = byte(msg.Header.ID & 0xff)
-
-	// first 8bit part of the first row
-	// QR :		0
-	// Opcode:	1 2 3 4
-	// AA:		5
-	// TC:		6
-	// RD:		7
-	// second 8bit part of the second row
-	// RA:		0
-	// Z:		1 2 3
-	// RCODE:	4 5 6 7
-	header[2] = byte(msg.Header.Bits >> 8)
-	header[3] = byte(msg.Header.Bits & 0xff)
-
-	// QDCOUNT
-	header[4] = byte(msg.Header.QDCount >> 8)
-	header[5] = byte(msg.Header.QDCount & 0xff)
-	// ANCOUNT
-	header[6] = byte(msg.Header.ANCount >> 8)
-	header[7] = byte(msg.Header.ANCount & 0xff)
-	// NSCOUNT
-	header[8] = byte(msg.Header.NSCount >> 8)
-	header[9] = byte(msg.Header.NSCount & 0xff)
-	// ARCOUNT
-	header[10] = byte(msg.Header.ARCount >> 8)
-	header[11] = byte(msg.Header.ARCount & 0xff)
+	header := [...]byte{
+		// ID
+		byte(msg.Header.ID >> 8), byte(msg.Header.ID & 0xff),
+		// 0  1  2  3  4  5  6  7  8
+		// +--+--+--+--+--+--+--+--+
+		// |QR|   Opcode  |AA|TC|RD|
+		// +--+--+--+--+--+--+--+--+
+		// |RA|   Z    |   RCODE   |
+		// +--+--+--+--+--+--+--+--+
+		byte(msg.Header.Bits >> 8),
+		byte(msg.Header.Bits & 0xff),
+		// QDCOUNT
+		byte(msg.Header.QDCount >> 8), byte(msg.Header.QDCount & 0xff),
+		// ANCOUNT
+		byte(msg.Header.ANCount >> 8), byte(msg.Header.ANCount & 0xff),
+		// NSCOUNT
+		byte(msg.Header.NSCount >> 8), byte(msg.Header.NSCount & 0xff),
+		// ARCOUNT
+		byte(msg.Header.ARCount >> 8), byte(msg.Header.ARCount & 0xff),
+	}
 
 	dst = append(dst, header[:]...)
 
