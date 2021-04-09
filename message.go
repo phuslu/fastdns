@@ -13,80 +13,78 @@ type Message struct {
 	// Domain represents to the parsed query domain in the query.
 	Domain []byte
 
-	/*
-		Header encapsulates the construct of the header part of the DNS
-		query message.
-		It follows the conventions stated at RFC1035 section 4.1.1.
-
-
-		The header contains the following fields:
-
-						0  1  2  3  4  5  6  7
-		      0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		    |                      ID                       |
-		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		    |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
-		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		    |                    QDCOUNT                    |
-		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		    |                    ANCOUNT                    |
-		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		    |                    NSCOUNT                    |
-		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		    |                    ARCOUNT                    |
-		    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	*/
+	// Header encapsulates the construct of the header part of the DNS query message.
+	// It follows the conventions stated at RFC1035 section 4.1.1.
 	Header struct {
-
 		// ID is an arbitrary 16bit request identifier that is
 		// forwarded back in the response so that we can match them up.
+		//
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |                      ID                       |
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		ID uint16
 
-		// 0  1  2  3  4  5  6  7  8
-		// +--+--+--+--+--+--+--+--+
-		// |QR|   Opcode  |AA|TC|RD|
-		// +--+--+--+--+--+--+--+--+
-		// |RA|   Z    |   RCODE   |
-		// +--+--+--+--+--+--+--+--+
+		// Bits is an arbitrary 16bit represents QR, Opcode, AA, TC, RD, RA, Z and RCODE.
+		//
+		//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		Bits uint16
 
 		// QDCOUNT specifies the number of entries in the question section
+		//
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |                    QDCOUNT                    |
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		QDCount uint16
 
-		// ANCount specifies the number of resource records (RR) in the answer
-		// section
+		// ANCount specifies the number of resource records (RR) in the answer section
+		//
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |                    ANCOUNT                    |
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		ANCount uint16
 
-		// NSCount specifies the number of name server resource records in the
-		// authority section
+		// NSCount specifies the number of name server resource records in the authority section
+		//
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |                    NSCOUNT                    |
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		NSCount uint16
 
-		// ARCount specifies the number of resource records in the additional
-		// records section
+		// ARCount specifies the number of resource records in the additional records section
+		//
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |                    ARCOUNT                    |
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		ARCount uint16
 	}
 
-	/*
-	     0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
-	   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	   |                                               |
-	   /                     QNAME                     /
-	   /                                               /
-	   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	   |                     QTYPE                     |
-	   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	   |                     QCLASS                    |
-	   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	*/
+	// Question encapsulates the construct of the question part of the DNS query message.
+	// It follows the conventions stated at RFC1035 section 4.1.2.
 	Question struct {
 		// Name refers to the raw query name to be resolved in the query.
+		//
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |                                               |
+		// /                     QNAME                     /
+		// /                                               /
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		Name []byte
 
 		// Type specifies the type of the query to perform.
+		//
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |                     QTYPE                     |
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		Type Type
 
 		// Class specifies the class of the query to perform.
+		//
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+		// |                     QCLASS                    |
+		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		Class Class
 	}
 }
