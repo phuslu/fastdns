@@ -13,26 +13,14 @@ func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar 
 	header[0] = byte(req.Header.ID >> 8)
 	header[1] = byte(req.Header.ID & 0xff)
 
-	// QR :		0
-	// Opcode:	1 2 3 4
-	// AA:		5
-	// TC:		6
-	// RD:		7
-	b := byte(1) << (7 - 0)
-	b |= byte(req.Header.Opcode) << (7 - (1 + 3))
-	b |= req.Header.AA << (7 - 5)
-	b |= req.Header.TC << (7 - 6)
-	b |= req.Header.RD
-	header[2] = b
-
-	// second 8bit part of the second row
-	// RA:		0
-	// Z:		1 2 3
-	// RCODE:	4 5 6 7
-	b = req.Header.RA << (7 - 0)
-	b |= req.Header.Z << (7 - 1)
-	b |= byte(rcode) << (7 - (4 + 3))
-	header[3] = b
+	// 0  1  2  3  4  5  6  7  8
+	// +--+--+--+--+--+--+--+--+
+	// |QR|   Opcode  |AA|TC|RD|
+	// +--+--+--+--+--+--+--+--+
+	// |RA|   Z    |   RCODE   |
+	// +--+--+--+--+--+--+--+--+
+	header[2] = byte(req.Header.Bits>>8) | 0b10000000
+	header[3] = byte(req.Header.Bits&0b11110000) | byte(rcode)
 
 	// QDCOUNT
 	header[4] = byte(qd >> 8)

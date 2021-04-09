@@ -11,14 +11,7 @@ import (
 //nolint
 type Header struct {
 	ID      uint16
-	QR      byte
-	Opcode  Opcode
-	AA      byte
-	TC      byte
-	RD      byte
-	RA      byte
-	Z       byte
-	RCODE   Rcode
+	Bits    uint16
 	QDCount uint16
 	ANCount uint16
 	NSCount uint16
@@ -64,14 +57,7 @@ func TestAppendHeaderQuestion(t *testing.T) {
 				[]byte("1.50.168.192.in-addr.arpa"),
 				Header{
 					ID:      0x0001,
-					QR:      0x00,
-					Opcode:  0x0000,
-					AA:      0x00,
-					TC:      0x00,
-					RD:      0x01,
-					RA:      0x00,
-					Z:       0x00,
-					RCODE:   0x00,
+					Bits:    0b0000000100000000,
 					QDCount: 0x01,
 					ANCount: 0x00,
 					NSCount: 0x00,
@@ -112,14 +98,7 @@ func TestAppendHeaderQuestion(t *testing.T) {
 				[]byte("hk.phus.lu"),
 				Header{
 					ID:      0x0002,
-					QR:      0x00,
-					Opcode:  0x0000,
-					AA:      0x00,
-					TC:      0x00,
-					RD:      0x01,
-					RA:      0x00,
-					Z:       0x00,
-					RCODE:   0x00,
+					Bits:    0b0000000100000000,
 					QDCount: 0x01,
 					ANCount: 0x00,
 					NSCount: 0x00,

@@ -43,44 +43,13 @@ type Message struct {
 		// forwarded back in the response so that we can match them up.
 		ID uint16
 
-		// QR is an 1bit flag specifying whether this message is a query (0)
-		// of a response (1)
-		// 1bit
-		QR byte
-
-		// Opcode is a 4bit field that specifies the query type.
-		// Possible values are:
-		// 0		- standard query		(QUERY)
-		// 1		- inverse query			(IQUERY)
-		// 2		- server status request		(STATUS)
-		// 3 to 15	- reserved for future use
-		Opcode Opcode
-
-		// AA indicates whether this is an (A)nswer from an (A)uthoritative
-		// server.
-		// Valid in responses only.
-		// 1bit.
-		AA byte
-
-		// TC indicates whether the message was (T)run(C)ated due to the length
-		// being grater than the permitted on the transmission channel.
-		// 1bit.
-		TC byte
-
-		// RD indicates whether (R)ecursion is (D)esired or not.
-		// 1bit.
-		RD byte
-
-		// RA indidicates whether (R)ecursion is (A)vailable or not.
-		// 1bit.
-		RA byte
-
-		// Z is reserved for future use
-		Z byte
-
-		// RCODE contains the (R)esponse (CODE) - it's a 4bit field that is
-		// set as part of responses.
-		RCODE Rcode
+		// 0  1  2  3  4  5  6  7  8
+		// +--+--+--+--+--+--+--+--+
+		// |QR|   Opcode  |AA|TC|RD|
+		// +--+--+--+--+--+--+--+--+
+		// |RA|   Z    |   RCODE   |
+		// +--+--+--+--+--+--+--+--+
+		Bits uint16
 
 		// QDCOUNT specifies the number of entries in the question section
 		QDCount uint16
@@ -146,21 +115,10 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	_ = payload[11]
 
 	// ID
-	dst.Header.ID = uint16(payload[1]) | uint16(payload[0])<<8
+	dst.Header.ID = uint16(payload[0])<<8 | uint16(payload[1])
 
-	// RD, TC, AA, Opcode, QR
-	b := payload[2]
-	dst.Header.RD = b & 0b00000001
-	dst.Header.TC = (b >> 1) & 0b00000001
-	dst.Header.AA = (b >> 2) & 0b00000001
-	dst.Header.Opcode = Opcode((b >> 3) & 0b00001111)
-	dst.Header.QR = (b >> 7) & 0b00000001
-
-	// RA, Z, RCODE
-	b = payload[3]
-	dst.Header.RCODE = Rcode(b & 0b00001111)
-	dst.Header.Z = (b >> 4) & 0b00000111
-	dst.Header.RA = (b >> 7) & 0b00000001
+	// RD, TC, AA, Opcode, QR, RA, Z, RCODE
+	dst.Header.Bits = uint16(payload[2])<<8 | uint16(payload[3])
 
 	// QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT
 	dst.Header.QDCount = uint16(payload[4])<<8 | uint16(payload[5])
@@ -175,6 +133,7 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	// QNAME
 	payload = payload[12:]
 	var i int
+	var b byte
 	for i, b = range payload {
 		if b == 0 {
 			break
@@ -328,26 +287,18 @@ func AppendMessage(dst []byte, msg *Message) []byte {
 	header[0] = byte(msg.Header.ID >> 8)
 	header[1] = byte(msg.Header.ID & 0xff)
 
+	// first 8bit part of the first row
 	// QR :		0
 	// Opcode:	1 2 3 4
 	// AA:		5
 	// TC:		6
 	// RD:		7
-	b := msg.Header.QR << (7 - 0)
-	b |= byte(msg.Header.Opcode) << (7 - (1 + 3))
-	b |= msg.Header.AA << (7 - 5)
-	b |= msg.Header.TC << (7 - 6)
-	b |= msg.Header.RD
-	header[2] = b
-
 	// second 8bit part of the second row
 	// RA:		0
 	// Z:		1 2 3
 	// RCODE:	4 5 6 7
-	b = msg.Header.RA << (7 - 0)
-	b |= msg.Header.Z << (7 - 1)
-	b |= byte(msg.Header.RCODE) << (7 - (4 + 3))
-	header[3] = b
+	header[2] = byte(msg.Header.Bits >> 8)
+	header[3] = byte(msg.Header.Bits & 0xff)
 
 	// QDCOUNT
 	header[4] = byte(msg.Header.QDCount >> 8)
