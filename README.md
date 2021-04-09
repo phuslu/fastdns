@@ -1,4 +1,4 @@
-# fastdns - fast dns server for go
+# Fast DNS implementation for Go
 
 [![godoc][godoc-img]][godoc]
 [![release][release-img]][release]
@@ -19,7 +19,7 @@
 
 ## Getting Started
 
-A fastdns server example
+### A fastdns server example
 ```go
 package main
 
@@ -79,7 +79,7 @@ func main() {
 }
 ```
 
-A fastdns client example
+### A fastdns client example
 ```go
 package main
 
@@ -114,10 +114,10 @@ func main() {
 	log.Printf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
 	_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
 		switch typ {
-		case fastdns.TypeA, fastdns.TypeAAAA:
-			log.Printf("%s: CLASS %s TYPE %s %d %s\n", resp.DecodeName(nil, name), class, typ, ttl, net.IP(data))
 		case fastdns.TypeCNAME:
-			log.Printf("%s: CLASS %s TYPE %s %d %s\n", resp.DecodeName(nil, name), class, typ, ttl, resp.DecodeName(nil, data))
+			log.Printf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
+		case fastdns.TypeA, fastdns.TypeAAAA:
+			log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, net.IP(data))
 		}
 		return true
 	})
@@ -143,6 +143,7 @@ BenchmarkPTR               	21215533	        56.62 ns/op	       0 B/op	       0 
 BenchmarkMX                	19544644	        61.48 ns/op	       0 B/op	       0 allocs/op
 BenchmarkTXT               	27125266	        44.24 ns/op	       0 B/op	       0 allocs/op
 BenchmarkParseMessage      	50415115	        23.94 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetQuestion       	27200953	        46.05 ns/op	       0 B/op	       0 allocs/op
 BenchmarkEncodeDomain      	70150065	        17.12 ns/op	       0 B/op	       0 allocs/op
 
 PASS
