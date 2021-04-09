@@ -278,6 +278,46 @@ func (msg *Message) VisitAdditionalRecords(f func(name []byte, typ Type, class C
 	panic("not implemented")
 }
 
+// SetQustion calls f for each item in the msg in the original order of the parsed AR.
+func (msg *Message) SetQustion(domain string, typ Type, class Class) {
+	// QR = 0, RCODE=0, RD = 1
+	msg.Header.Bits &= 0b0111111111110000
+	msg.Header.Bits |= 0b0000000100000000
+	msg.Header.QDCount = 1
+	msg.Header.ANCount = 0
+	msg.Header.NSCount = 0
+	msg.Header.ARCount = 0
+
+	header := [...]byte{
+		// ID
+		byte(msg.Header.ID >> 8), byte(msg.Header.ID & 0xff),
+		// 0  1  2  3  4  5  6  7  8
+		// +--+--+--+--+--+--+--+--+
+		// |QR|   Opcode  |AA|TC|RD|
+		// +--+--+--+--+--+--+--+--+
+		// |RA|   Z    |   RCODE   |
+		// +--+--+--+--+--+--+--+--+
+		byte(msg.Header.Bits >> 8), byte(msg.Header.Bits & 0xff),
+		// QDCOUNT
+		0, 1,
+		// ANCOUNT
+		0, 0,
+		// NSCOUNT
+		0, 0,
+		// ARCOUNT
+		0, 0,
+	}
+
+	msg.Raw = append(msg.Raw[:0], header[:]...)
+
+	// QNAME
+	msg.Raw = EncodeDomain(msg.Raw, domain)
+	// QTYPE
+	msg.Raw = append(msg.Raw, byte(typ>>8), byte(typ&0xff))
+	// QCLASS
+	msg.Raw = append(msg.Raw, byte(class>>8), byte(class&0xff))
+}
+
 // AppendMessage appends the dns request to dst and returns the resulting dst.
 func AppendMessage(dst []byte, msg *Message) []byte {
 	// fixed size array for avoid bounds check
