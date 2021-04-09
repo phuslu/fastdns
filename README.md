@@ -87,16 +87,17 @@ goos: linux
 goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
-BenchmarkHOST              	24957954	        48.07 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME             	18445345	        64.97 ns/op	       0 B/op	       0 allocs/op
-BenchmarkNS                	13944031	        86.09 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSOA               	13037180	        91.98 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV               	18275102	        65.75 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR               	21348109	        56.23 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                	19645177	        61.10 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT               	27353026	        43.89 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseMessage      	43469206	        27.59 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain      	70167084	        17.11 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST              	24782612	        48.36 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME             	18305860	        65.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNS                	13863037	        86.57 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSOA               	12870259	        93.46 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV               	18135541	        66.33 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR               	21215533	        56.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                	19544644	        61.48 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT               	27125266	        44.24 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseMessage      	50415115	        23.94 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain      	70150065	        17.12 ns/op	       0 B/op	       0 allocs/op
+
 PASS
 ok  	github.com/phuslu/fastdns	19.026s
 ```
