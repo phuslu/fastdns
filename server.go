@@ -138,19 +138,14 @@ func serve(conn *net.UDPConn, handler Handler, logger *log.Logger, concurrency i
 	pool := &workerPool{
 		WorkerFunc: func(ctx *udpCtx) error {
 			rw, req := ctx.rw, ctx.req
-
 			err := ParseMessage(req, req.Raw, false)
 			if err != nil {
-				udpCtxPool.Put(ctx)
-
-				return err
+				Error(rw, req, RcodeFormatError)
+			} else {
+				handler.ServeDNS(rw, req)
 			}
-
-			handler.ServeDNS(rw, req)
-
 			udpCtxPool.Put(ctx)
-
-			return nil
+			return err
 		},
 		MaxWorkersCount:       concurrency,
 		LogAllErrors:          false,
