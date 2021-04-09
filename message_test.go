@@ -235,6 +235,58 @@ func TestAppendMessage(t *testing.T) {
 	}
 }
 
+func TestSetQuestion(t *testing.T) {
+	req := AcquireMessage()
+	defer ReleaseMessage(req)
+
+	req.SetQustion("mail.google.com", TypeA, ClassINET)
+
+	if req.Header.ID == 0 {
+		t.Errorf("req.Header.ID should not empty after SetQuestion")
+	}
+
+	if got, want := req.Header.Bits, uint16(0b0000000100000000); got != want {
+		t.Errorf("req.Header.Bits got=%x want=%x", got, want)
+	}
+
+	if got, want := req.Header.QDCount, uint16(1); got != want {
+		t.Errorf("req.Header.QDCount got=%d want=%d", got, want)
+	}
+
+	if got, want := req.Header.ANCount, uint16(0); got != want {
+		t.Errorf("req.Header.ANCount got=%d want=%d", got, want)
+	}
+
+	if got, want := req.Header.NSCount, uint16(0); got != want {
+		t.Errorf("req.Header.NSCount got=%d want=%d", got, want)
+	}
+
+	if got, want := req.Header.ARCount, uint16(0); got != want {
+		t.Errorf("req.Header.ARCount got=%d want=%d", got, want)
+	}
+
+	if got, want := string(req.Question.Name), "\x04mail\x06google\x03com\x00"; got != want {
+		t.Errorf("req.Question.Name got=%s want=%s", got, want)
+	}
+
+	if got, want := req.Question.Type, TypeA; got != want {
+		t.Errorf("req.Question.Type got=%s want=%s", got, want)
+	}
+
+	if got, want := req.Question.Class, ClassINET; got != want {
+		t.Errorf("req.Question.Class got=%s want=%s", got, want)
+	}
+
+	if got, want := string(req.Domain), "mail.google.com"; got != want {
+		t.Errorf("req.Question.Class got=%s want=%s", got, want)
+	}
+
+	if got, want := append([]byte(nil), req.Raw...), AppendMessage([]byte(nil), req); string(got) != string(want) {
+		t.Errorf("req.Raw got=%s want=%s", got, want)
+	}
+
+}
+
 func BenchmarkParseMessage(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	var msg Message
@@ -243,5 +295,14 @@ func BenchmarkParseMessage(b *testing.B) {
 		if err := ParseMessage(&msg, payload, false); err != nil {
 			b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 		}
+	}
+}
+
+func BenchmarkSetQuestion(b *testing.B) {
+	req := AcquireMessage()
+	defer ReleaseMessage(req)
+
+	for i := 0; i < b.N; i++ {
+		req.SetQustion("mail.google.com", TypeA, ClassINET)
 	}
 }

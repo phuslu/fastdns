@@ -314,10 +314,16 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 
 	// QNAME
 	msg.Raw = EncodeDomain(msg.Raw, domain)
+	msg.Question.Name = msg.Raw[len(header) : len(header)+len(domain)+2]
 	// QTYPE
 	msg.Raw = append(msg.Raw, byte(typ>>8), byte(typ&0xff))
+	msg.Question.Type = typ
 	// QCLASS
 	msg.Raw = append(msg.Raw, byte(class>>8), byte(class&0xff))
+	msg.Question.Class = class
+
+	// Domain
+	msg.Domain = append(msg.Domain[:0], domain...)
 }
 
 // AppendMessage appends the dns request to dst and returns the resulting dst.
