@@ -16,9 +16,9 @@ func TestClientExchange(t *testing.T) {
 	}
 
 	client := &Client{
-		ServerAddr: &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
-		ReadTimout: 1 * time.Second,
-		MaxConns:   1000,
+		ServerAddr:  &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
+		ReadTimeout: 1 * time.Second,
+		MaxConns:    1000,
 	}
 
 	for _, c := range cases {

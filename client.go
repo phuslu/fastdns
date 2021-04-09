@@ -3,6 +3,7 @@ package fastdns
 import (
 	"errors"
 	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -15,8 +16,20 @@ var (
 // Client is an UDP client that supports DNS protocol.
 type Client struct {
 	ServerAddr *net.UDPAddr
-	ReadTimout time.Duration
-	MaxConns   int
+
+	// MaxIdleConns controls the maximum number of idle (keep-alive)
+	// connections. Zero means no limit.
+	MaxIdleConns int
+
+	// MaxConns optionally limits the total number of
+	// connections per host, including connections in the dialing,
+	// active, and idle states. On limit violation, ErrMaxConns will be return.
+	//
+	// Zero means no limit.
+	MaxConns int
+
+	// ReadTimeout is the maximum duration for reading the dns server response.
+	ReadTimeout time.Duration
 
 	mu    sync.Mutex
 	conns []*net.UDPConn
@@ -26,7 +39,7 @@ type Client struct {
 // a Response for the provided Request.
 func (c *Client) Exchange(req, resp *Message) (err error) {
 	err = c.exchange(req, resp)
-	if err != nil {
+	if err != nil && os.IsTimeout(err) {
 		err = c.exchange(req, resp)
 	}
 	return err
@@ -55,8 +68,8 @@ func (c *Client) exchange(req, resp *Message) error {
 		}
 	}
 
-	if c.ReadTimout > 0 {
-		err = conn.SetReadDeadline(time.Now().Add(c.ReadTimout))
+	if c.ReadTimeout > 0 {
+		err = conn.SetReadDeadline(time.Now().Add(c.ReadTimeout))
 		if err != nil {
 			return err
 		}
@@ -101,7 +114,8 @@ func (c *Client) put(conn *net.UDPConn) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if c.MaxConns != 0 && len(c.conns) > c.MaxConns {
+	if (c.MaxIdleConns != 0 && len(c.conns) > c.MaxIdleConns) ||
+		(c.MaxConns != 0 && len(c.conns) > c.MaxConns) {
 		conn.Close()
 
 		return
