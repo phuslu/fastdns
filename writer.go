@@ -2,7 +2,6 @@ package fastdns
 
 import (
 	"net"
-	"sync"
 )
 
 // A ResponseWriter interface is used by an DNS handler to construct an DNS response.
@@ -39,24 +38,6 @@ func (rw *MemoryResponseWriter) Write(p []byte) (n int, err error) {
 	rw.Data = append(rw.Data, p...)
 	n = len(p)
 	return
-}
-
-var memoryResponseWriterPool = sync.Pool{
-	New: func() interface{} {
-		return &MemoryResponseWriter{
-			Data: make([]byte, 0, 1024),
-		}
-	},
-}
-
-// AcquireMemoryResponseWriter returns new dns memory response writer.
-func AcquireMemoryResponseWriter() *MemoryResponseWriter {
-	return memoryResponseWriterPool.Get().(*MemoryResponseWriter)
-}
-
-// ReleaseMemoryResponseWriter returnes the dns memory response writer to the pool.
-func ReleaseMemoryResponseWriter(rw *MemoryResponseWriter) {
-	memoryResponseWriterPool.Put(rw)
 }
 
 type udpResponseWriter struct {
