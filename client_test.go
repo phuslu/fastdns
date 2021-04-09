@@ -23,7 +23,6 @@ func TestClientExchange(t *testing.T) {
 
 	for _, c := range cases {
 		req, resp := AcquireMessage(), AcquireMessage()
-		req.Header.ID = 2
 		req.SetQustion(c.Domain, c.Type, c.Class)
 		err := client.Exchange(req, resp)
 		if err != nil {

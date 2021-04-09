@@ -280,6 +280,8 @@ func (msg *Message) VisitAdditionalRecords(f func(name []byte, typ Type, class C
 
 // SetQustion calls f for each item in the msg in the original order of the parsed AR.
 func (msg *Message) SetQustion(domain string, typ Type, class Class) {
+	// random head id
+	msg.Header.ID = uint16(fastrandn(65536))
 	// QR = 0, RCODE=0, RD = 1
 	msg.Header.Bits &= 0b0111111111110000
 	msg.Header.Bits |= 0b0000000100000000
