@@ -19,6 +19,7 @@
 
 ## Getting Started
 
+A fastdns server example
 ```go
 package main
 
@@ -77,6 +78,52 @@ func main() {
 	}
 }
 ```
+
+A fastdns client example
+```go
+package main
+
+import (
+	"log"
+	"net"
+	"time"
+
+	"github.com/phuslu/fastdns"
+)
+
+func main() {
+	client := &fastdns.Client{
+		ServerAddr: &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
+		ReadTimout: 1 * time.Second,
+		MaxConns:   1000,
+	}
+
+	req := fastdns.AcquireMessage()
+	defer fastdns.ReleaseMessage(req)
+	req.SetQustion("dns.google", fastdns.TypeA, fastdns.ClassINET)
+
+	resp := fastdns.AcquireMessage()
+	defer fastdns.ReleaseMessage(resp)
+
+	err := client.Exchange(req, resp)
+	if err != nil {
+		log.Printf("client=%+v exchange(\"dns.google\") error: %+v\n", client, err)
+		return
+	}
+
+	log.Printf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
+	_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+		switch typ {
+		case fastdns.TypeA, fastdns.TypeAAAA:
+			log.Printf("%s: CLASS %s TYPE %s %d %s\n", resp.DecodeName(nil, name), class, typ, ttl, net.IP(data))
+		case fastdns.TypeCNAME:
+			log.Printf("%s: CLASS %s TYPE %s %d %s\n", resp.DecodeName(nil, name), class, typ, ttl, resp.DecodeName(nil, data))
+		}
+		return true
+	})
+}
+```
+
 
 ## High Performance
 
