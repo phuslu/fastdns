@@ -31,10 +31,10 @@ func TestClientExchange(t *testing.T) {
 		t.Logf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
 		_ = resp.VisitResourceRecords(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
 			switch typ {
-			case TypeA, TypeAAAA:
-				t.Logf("%s: CLASS %s TYPE %s %d %s\n", resp.DecodeName(nil, name), class, typ, ttl, net.IP(data))
 			case TypeCNAME:
-				t.Logf("%s: CLASS %s TYPE %s %d %s\n", resp.DecodeName(nil, name), class, typ, ttl, resp.DecodeName(nil, data))
+				t.Logf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
+			case TypeA, TypeAAAA:
+				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, net.IP(data))
 			}
 			return true
 		})
