@@ -1,0 +1,85 @@
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"time"
+
+	"github.com/phuslu/fastdns"
+)
+
+func main() {
+	var domain, server string
+
+	for i := 1; i < len(os.Args); i++ {
+		arg := os.Args[i]
+		if arg == "" {
+			continue
+		}
+		switch arg[0] {
+		case '@':
+			server = arg[1:]
+		case '+', '-':
+			fmt.Fprintf(os.Stderr, "unsupport parameter: %#v\n", arg)
+			os.Exit(1)
+		default:
+			domain = arg
+		}
+	}
+	if server == "" {
+		server = "8.8.8.8"
+	}
+
+	client := &fastdns.Client{
+		ServerAddr:  &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
+		ReadTimeout: 2 * time.Second,
+		MaxConns:    1000,
+	}
+
+	req := fastdns.AcquireMessage()
+	defer fastdns.ReleaseMessage(req)
+	req.SetQustion(domain, fastdns.TypeA, fastdns.ClassINET)
+
+	resp := fastdns.AcquireMessage()
+	defer fastdns.ReleaseMessage(resp)
+
+	err := client.Exchange(req, resp)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "client=%+v exchange(\"%s\") error: %+v\n", client, domain, err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("\n")
+	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s\n", domain)
+	fmt.Printf(";; global options: +cmd\n")
+	fmt.Printf(";; Got answer:\n")
+	fmt.Printf(";; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: %d\n", resp.Header.ID)
+	fmt.Printf(";; flags: qr rd ra; QUERY: %d, ANSWER: %d, AUTHORITY: %d, ADDITIONAL: %d\n",
+		resp.Header.QDCount, resp.Header.ANCount, resp.Header.NSCount, resp.Header.ARCount)
+
+	fmt.Printf("\n")
+	fmt.Printf(";; OPT PSEUDOSECTION:\n")
+	fmt.Printf("; EDNS: version: 0, flags:; udp: 512\n")
+	fmt.Printf(";; QUESTION SECTION:\n")
+	fmt.Printf(";%s.		%s	%s\n", req.Domain, req.Question.Class, req.Question.Type)
+
+	fmt.Printf("\n")
+	fmt.Printf(";; ANSWER SECTION:\n")
+	_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+		switch typ {
+		case fastdns.TypeCNAME:
+			fmt.Printf("%s.	%d	%s	%s	%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
+		case fastdns.TypeA, fastdns.TypeAAAA:
+			fmt.Printf("%s.	%d	%s	%s	%s\n", resp.DecodeName(nil, name), ttl, class, typ, net.IP(data))
+		}
+		return true
+	})
+
+	fmt.Printf("\n")
+	fmt.Printf(";; Query time: 280 msec\n")
+	fmt.Printf(";; SERVER: %s#53(%s)\n", server, server)
+	fmt.Printf(";; WHEN: %s\n", time.Now().Format(time.RFC822))
+	fmt.Printf(";; MSG SIZE  rcvd: %d\n", len(resp.Raw))
+	fmt.Printf("\n")
+}
