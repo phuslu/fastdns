@@ -26,7 +26,7 @@ func main() {
 			os.Exit(1)
 		default:
 			if domain == "" {
-				qtype, domain = "a", arg
+				qtype, domain = "", arg
 			} else {
 				qtype, domain = domain, arg
 			}
@@ -44,7 +44,12 @@ func main() {
 
 	req := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(req)
-	req.SetQustion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
+
+	if qtype != "" {
+		req.SetQustion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
+	} else {
+		req.SetQustion(domain, fastdns.TypeA, fastdns.ClassINET)
+	}
 
 	resp := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(resp)
@@ -76,7 +81,7 @@ func main() {
 	flags = strings.TrimSpace(flags)
 
 	fmt.Printf("\n")
-	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s +noedns\n", domain)
+	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s%s +noedns\n", qtype+" ", domain)
 	fmt.Printf(";; global options: +cmd\n")
 	fmt.Printf(";; Got answer:\n")
 	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
@@ -93,12 +98,18 @@ func main() {
 	fmt.Printf("\n")
 	fmt.Printf(";; ANSWER SECTION:\n")
 	_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+		var v interface{}
 		switch typ {
-		case fastdns.TypeCNAME:
-			fmt.Printf("%s.	%d	%s	%s	%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
 		case fastdns.TypeA, fastdns.TypeAAAA:
-			fmt.Printf("%s.	%d	%s	%s	%s\n", resp.DecodeName(nil, name), ttl, class, typ, net.IP(data))
+			v = net.IP(data)
+		case fastdns.TypeCNAME, fastdns.TypeNS:
+			v = resp.DecodeName(nil, data)
+		case fastdns.TypeTXT:
+			v = fmt.Sprintf("\"%s\"", data[1:])
+		default:
+			v = fmt.Sprintf("%x", data)
 		}
+		fmt.Printf("%s.	%d	%s	%s	%s\n", resp.DecodeName(nil, name), ttl, class, typ, v)
 		return true
 	})
 
