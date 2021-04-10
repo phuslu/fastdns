@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/phuslu/fastdns"
@@ -44,19 +45,40 @@ func main() {
 	resp := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(resp)
 
+	start := time.Now()
 	err := client.Exchange(req, resp)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "client=%+v exchange(\"%s\") error: %+v\n", client, domain, err)
 		os.Exit(1)
 	}
+	end := time.Now()
+
+	var flags string
+	for _, f := range []struct {
+		b byte
+		s string
+	}{
+		{resp.Header.Bits.QR(), "qr"},
+		{resp.Header.Bits.AA(), "aa"},
+		{resp.Header.Bits.TC(), "tc"},
+		{resp.Header.Bits.RD(), "rd"},
+		{resp.Header.Bits.RA(), "ra"},
+	} {
+		if f.b == 0 {
+			continue
+		}
+		flags += f.s + " "
+	}
+	flags = strings.TrimSpace(flags)
 
 	fmt.Printf("\n")
 	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s\n", domain)
 	fmt.Printf(";; global options: +cmd\n")
 	fmt.Printf(";; Got answer:\n")
-	fmt.Printf(";; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: %d\n", resp.Header.ID)
-	fmt.Printf(";; flags: qr rd ra; QUERY: %d, ANSWER: %d, AUTHORITY: %d, ADDITIONAL: %d\n",
-		resp.Header.QDCount, resp.Header.ANCount, resp.Header.NSCount, resp.Header.ARCount)
+	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
+		resp.Header.Bits.Opcode(), resp.Header.Bits.Rcode(), resp.Header.ID)
+	fmt.Printf(";; flags: %s; QUERY: %d, ANSWER: %d, AUTHORITY: %d, ADDITIONAL: %d\n",
+		flags, resp.Header.QDCount, resp.Header.ANCount, resp.Header.NSCount, resp.Header.ARCount)
 
 	fmt.Printf("\n")
 	fmt.Printf(";; OPT PSEUDOSECTION:\n")
@@ -77,9 +99,9 @@ func main() {
 	})
 
 	fmt.Printf("\n")
-	fmt.Printf(";; Query time: 280 msec\n")
+	fmt.Printf(";; Query time: %d msec\n", end.Sub(start)/time.Millisecond)
 	fmt.Printf(";; SERVER: %s#53(%s)\n", server, server)
-	fmt.Printf(";; WHEN: %s\n", time.Now().Format(time.RFC822))
+	fmt.Printf(";; WHEN: %s\n", time.Now().Format(time.UnixDate))
 	fmt.Printf(";; MSG SIZE  rcvd: %d\n", len(resp.Raw))
 	fmt.Printf("\n")
 }
