@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	var domain, server string
+	var qtype, domain, server string
 
 	for i := 1; i < len(os.Args); i++ {
 		arg := os.Args[i]
@@ -25,7 +25,11 @@ func main() {
 			fmt.Fprintf(os.Stderr, "unsupport parameter: %#v\n", arg)
 			os.Exit(1)
 		default:
-			domain = arg
+			if domain == "" {
+				qtype, domain = "a", arg
+			} else {
+				qtype, domain = domain, arg
+			}
 		}
 	}
 	if server == "" {
@@ -33,14 +37,14 @@ func main() {
 	}
 
 	client := &fastdns.Client{
-		ServerAddr:  &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
+		ServerAddr:  &net.UDPAddr{IP: net.ParseIP(server), Port: 53},
 		ReadTimeout: 2 * time.Second,
 		MaxConns:    1000,
 	}
 
 	req := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(req)
-	req.SetQustion(domain, fastdns.TypeA, fastdns.ClassINET)
+	req.SetQustion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
 
 	resp := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(resp)
