@@ -20,4 +20,5 @@ jobs:
           go vet
           go test -v -cover
           go build -v -race
-          go build -v fastdns.go
+          (cd cmd/fastdig && go build -v)
+          (cd cmd/fastdns && go get -v github.com/valyala/fasthttp && go build -v)
