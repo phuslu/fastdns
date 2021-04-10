@@ -102,6 +102,46 @@ func (c Opcode) String() string {
 	return ""
 }
 
+// Bits is an arbitrary 16bit represents QR, Opcode, AA, TC, RD, RA, Z and RCODE.
+//
+//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+type Bits uint16
+
+func (b Bits) QR() byte {
+	return byte(b >> 15)
+}
+
+func (b Bits) Opcode() Opcode {
+	return Opcode((b & 0b0111111111111111) >> 11)
+}
+
+func (b Bits) AA() byte {
+	return byte((b & 0b0000010000000000) >> 10)
+}
+
+func (b Bits) TC() byte {
+	return byte((b & 0b0000001000000000) >> 9)
+}
+
+func (b Bits) RD() byte {
+	return byte((b & 0b0000000100000000) >> 8)
+}
+
+func (b Bits) RA() byte {
+	return byte((b & 0b0000000010000000) >> 7)
+}
+
+func (b Bits) Z() byte {
+	return byte((b & 0b0000000001110000) >> 4)
+}
+
+func (b Bits) Rcode() Rcode {
+	return Rcode((b & 0b0000000000001111))
+}
+
 // Class is a DNS class.
 type Class uint16
 

@@ -245,7 +245,7 @@ func TestSetQuestion(t *testing.T) {
 		t.Errorf("req.Header.ID should not empty after SetQuestion")
 	}
 
-	if got, want := req.Header.Bits, uint16(0b0000000100000000); got != want {
+	if got, want := req.Header.Bits, Bits(0b0000000100000000); got != want {
 		t.Errorf("req.Header.Bits got=%x want=%x", got, want)
 	}
 

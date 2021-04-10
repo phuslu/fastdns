@@ -30,7 +30,7 @@ type Message struct {
 		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
 		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		Bits uint16
+		Bits Bits
 
 		// QDCOUNT specifies the number of entries in the question section
 		//
@@ -116,7 +116,7 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	dst.Header.ID = uint16(payload[0])<<8 | uint16(payload[1])
 
 	// RD, TC, AA, Opcode, QR, RA, Z, RCODE
-	dst.Header.Bits = uint16(payload[2])<<8 | uint16(payload[3])
+	dst.Header.Bits = Bits(payload[2])<<8 | Bits(payload[3])
 
 	// QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT
 	dst.Header.QDCount = uint16(payload[4])<<8 | uint16(payload[5])

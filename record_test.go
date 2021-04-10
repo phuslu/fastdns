@@ -11,7 +11,7 @@ import (
 //nolint
 type Header struct {
 	ID      uint16
-	Bits    uint16
+	Bits    Bits
 	QDCount uint16
 	ANCount uint16
 	NSCount uint16
