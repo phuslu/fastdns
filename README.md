@@ -124,6 +124,28 @@ func main() {
 }
 ```
 
+### Command Tool
+```bash
+$ go get github.com/phuslu/fastdns/cmd/fastdig
+$ fastdig phus.lu @8.8.8.8
+
+; <<>> DiG 0.0.1-Fastdns <<>> phus.lu +noedns
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: Query, status: Success, id: 56242
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;phus.lu.               IN      A
+
+;; ANSWER SECTION:
+phus.lu.        299     IN      A       101.32.116.118
+
+;; Query time: 11 msec
+;; SERVER: 8.8.8.8#53(8.8.8.8)
+;; WHEN: Sat Apr 10 21:20:57 +08 2021
+;; MSG SIZE  rcvd: 41
+```
 
 ## High Performance
 

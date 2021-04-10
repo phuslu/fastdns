@@ -72,7 +72,7 @@ func main() {
 	flags = strings.TrimSpace(flags)
 
 	fmt.Printf("\n")
-	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s\n", domain)
+	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s +noedns\n", domain)
 	fmt.Printf(";; global options: +cmd\n")
 	fmt.Printf(";; Got answer:\n")
 	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
@@ -81,8 +81,8 @@ func main() {
 		flags, resp.Header.QDCount, resp.Header.ANCount, resp.Header.NSCount, resp.Header.ARCount)
 
 	fmt.Printf("\n")
-	fmt.Printf(";; OPT PSEUDOSECTION:\n")
-	fmt.Printf("; EDNS: version: 0, flags:; udp: 512\n")
+	// fmt.Printf(";; OPT PSEUDOSECTION:\n")
+	// fmt.Printf("; EDNS: version: 0, flags:; udp: 512\n")
 	fmt.Printf(";; QUESTION SECTION:\n")
 	fmt.Printf(";%s.		%s	%s\n", req.Domain, req.Question.Class, req.Question.Type)
 
