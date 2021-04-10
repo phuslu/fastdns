@@ -162,72 +162,48 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 
 // DecodeName decodes dns labels to dst.
 func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
-	switch len(name) {
-	case 2:
-		if name[1] == 12 && name[0] == 0b11000000 {
-			dst = append(dst, msg.Domain...)
-			return dst
-		}
-	case 0, 1:
+	if len(name) < 2 {
 		return dst
 	}
 
+	// fast path for domain pointer
+	if name[1] == 12 && name[0] == 0b11000000 {
+		return append(dst, msg.Domain...)
+	}
+
+	pos := len(dst)
 	var offset int
-	if name[0]&0b11000000 == 0b11000000 {
-		offset := int(name[0]&0b00111111)<<8 + int(name[1])
-		for i, b := range msg.Raw[offset:] {
+	if name[len(name)-1] == 0 {
+		dst = append(dst, name...)
+	} else {
+		dst = append(dst, name[:len(name)-2]...)
+		offset = int(name[len(name)-2]&0b00111111)<<8 + int(name[len(name)-1])
+	}
+
+	for offset != 0 {
+		for i := offset; i < len(msg.Raw); {
+			b := int(msg.Raw[i])
 			if b == 0 {
-				name = msg.Raw[offset : offset+i+1]
+				offset = 0
+				dst = append(dst, 0)
 				break
 			} else if b&0b11000000 == 0b11000000 {
-				name = msg.Raw[offset : offset+i+2]
-				break
-			}
-		}
-	}
-
-	var p int
-	n := len(dst) + int(name[0])
-	dst = append(dst, name[1:]...)
-	for {
-		if dst[n]&0b11000000 == 0b11000000 {
-			p = int(dst[n]&0b00111111)<<8 + int(dst[n+1])
-			break
-		} else if dst[n] == 0 {
-			break
-		} else {
-			offset = int(dst[n])
-			dst[n] = '.'
-			n += offset + 1
-		}
-	}
-
-	dst = dst[:len(dst)-1]
-	if p != 0 {
-		dst[len(dst)-1] = '.'
-		for i := p; i < len(msg.Raw); i++ {
-			b := msg.Raw[i]
-			if b&0b11000000 == 0b11000000 {
-				// QQQ: support pointer to pointer
-				return dst
-			} else if b == 0 {
-				name = msg.Raw[p : i+1]
-				break
-			}
-		}
-		n = len(dst) + int(name[0])
-		dst = append(dst, name[1:]...)
-		for {
-			if dst[n] == 0 {
+				offset = int(b&0b00111111)<<8 + int(msg.Raw[i+1])
 				break
 			} else {
-				offset = int(dst[n])
-				dst[n] = '.'
-				n += offset + 1
+				dst = append(dst, msg.Raw[i:i+b+1]...)
+				i += b + 1
 			}
 		}
-		dst = dst[:len(dst)-1]
 	}
+
+	n := pos
+	for dst[pos] != 0 {
+		i := int(dst[pos])
+		dst[pos] = '.'
+		pos += i + 1
+	}
+	dst = append(dst[:n], dst[n+1:len(dst)-1]...)
 
 	return dst
 }
