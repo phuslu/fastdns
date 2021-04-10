@@ -31,13 +31,13 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		case fastdns.TypeCNAME:
 			fastdns.CNAME(rw, req, 60, []string{"dns.google"}, []net.IP{{8, 8, 8, 8}, {8, 8, 4, 4}})
 		case fastdns.TypeNS:
-			fastdns.SRV(rw, req, 60, "www.google.com", 1000, 1000, 80)
-		case fastdns.TypeMX:
 			fastdns.NS(rw, req, 60, []string{"ns1.zdns.google", "ns2.zdns.google"})
+		case fastdns.TypeMX:
+			fastdns.MX(rw, req, 60, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}}) // nolint
 		case fastdns.TypeSOA:
 			fastdns.SOA(rw, req, 60, "ns1.google.com", "dns-admin.google.com", 1073741824, 900, 900, 1800, 60)
 		case fastdns.TypeSRV:
-			fastdns.MX(rw, req, 60, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}})
+			fastdns.SRV(rw, req, 60, "www.google.com", 1000, 1000, 80)
 		case fastdns.TypePTR:
 			fastdns.PTR(rw, req, 0, "ptr.google.com")
 		case fastdns.TypeTXT:
@@ -69,7 +69,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		log.Printf("%s] %s: %s reply %d answers\n", rw.RemoteAddr(), req.Domain, h.DNSClient.ServerAddr, resp.Header.ANCount)
 	}
 
-	rw.Write(resp.Raw)
+	_, _ = rw.Write(resp.Raw)
 }
 
 func main() {
@@ -87,11 +87,16 @@ func main() {
 		addr2 = fmt.Sprintf("%s:%d", host, port+1)
 	}
 
-	log.Printf("start fast DNS server on %s", addr)
-	go fastdns.ListenAndServe(addr, handler)
+	c := make(chan error)
+	go func() {
+		log.Printf("start fast DNS server on %s", addr)
+		c <- fastdns.ListenAndServe(addr, handler)
+	}()
 
-	log.Printf("start fast DoH server on %s", addr2)
-	go fasthttp.ListenAndServe(addr2, (&FasthttpAdapter{handler}).Handler)
+	go func() {
+		log.Printf("start fast DoH server on %s", addr2)
+		c <- fasthttp.ListenAndServe(addr2, (&FasthttpAdapter{handler}).Handler)
+	}()
 
-	select {}
+	log.Fatalf("listen and serve DNS/DoH error: %+v", <-c)
 }
