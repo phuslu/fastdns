@@ -210,13 +210,13 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 
 // VisitResourceRecords calls f for each item in the msg in the original order of the parsed RR.
 func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
-	if msg.Header.ANCount == 0 {
+	if msg.Header.ANCount+msg.Header.NSCount == 0 {
 		return ErrInvalidAnswer
 	}
 
 	payload := msg.Raw[16+len(msg.Question.Name):]
 
-	for i := uint16(0); i < msg.Header.ANCount; i++ {
+	for i := uint16(0); i < msg.Header.ANCount+msg.Header.NSCount; i++ {
 		var name []byte
 		for j, b := range payload {
 			if b&0b11000000 == 0b11000000 {

@@ -96,7 +96,11 @@ func main() {
 	fmt.Printf(";%s.		%s	%s\n", req.Domain, req.Question.Class, req.Question.Type)
 
 	fmt.Printf("\n")
-	fmt.Printf(";; ANSWER SECTION:\n")
+	if resp.Header.ANCount > 0 {
+		fmt.Printf(";; ANSWER SECTION:\n")
+	} else {
+		fmt.Printf(";; AUTHORITY SECTION:\n")
+	}
 	_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
 		var v interface{}
 		switch typ {
