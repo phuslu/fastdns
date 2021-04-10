@@ -1,17 +1,15 @@
-// +build ignore
-
 package main
 
 import (
 	"fmt"
 	"log"
 	"net"
-	"net/http"
-	_ "net/http/pprof"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/phuslu/fastdns"
+	"github.com/valyala/fasthttp"
 )
 
 type DNSHandler struct {
@@ -75,28 +73,25 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 }
 
 func main() {
-	server := &fastdns.ForkServer{
-		Handler: &DNSHandler{
-			DNSClient: &fastdns.Client{
-				ServerAddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
-				MaxConns:   4096,
-			},
-			Debug: os.Getenv("DEBUG") != "",
+	handler := &DNSHandler{
+		DNSClient: &fastdns.Client{
+			ServerAddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
+			MaxConns:   4096,
 		},
-		ErrorLog: log.Default(),
+		Debug: os.Getenv("DEBUG") != "",
 	}
 
-	if index := server.Index(); index > 0 {
-		go func(index int) {
-			addr := fmt.Sprintf(":%d", 9000+index)
-			server.ErrorLog.Printf("forkserver-%d pid-%d serving http on port %s", index, os.Getpid(), addr)
-			_ = http.ListenAndServe(addr, nil)
-		}(index)
-		server.ErrorLog.Printf("forkserver-%d pid-%d serving dns on port %s", server.Index(), os.Getpid(), os.Args[1])
+	addr, addr2 := os.Args[1], ""
+	if host, portStr, err := net.SplitHostPort(addr); err == nil {
+		port, _ := strconv.Atoi(portStr)
+		addr2 = fmt.Sprintf("%s:%d", host, port+1)
 	}
 
-	err := server.ListenAndServe(os.Args[1])
-	if err != nil {
-		log.Fatalf("dnsserver error: %+v", err)
-	}
+	log.Printf("start fast DNS server on %s", addr)
+	go fastdns.ListenAndServe(addr, handler)
+
+	log.Printf("start fast DoH server on %s", addr2)
+	go fasthttp.ListenAndServe(addr2, (&FasthttpAdapter{handler}).Handler)
+
+	select {}
 }
