@@ -50,9 +50,9 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	case fastdns.TypeNS:
 		fastdns.NS(rw, req, 60, []string{"ns1.zdns.google", "ns2.zdns.google"})
 	case fastdns.TypeMX:
-		fastdns.MX(rw, req, 60, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}}) // nolint
+		fastdns.MX(rw, req, 60, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}})
 	case fastdns.TypeSOA:
-		fastdns.SOA(rw, req, 60, "ns1.google.com", "dns-admin.google.com", 1073741824, 900, 900, 1800, 60)
+		fastdns.SOA(rw, req, 60, "ns1.google.com", "dns-admin.google.com", 300, 900, 900, 1800, 60)
 	case fastdns.TypeSRV:
 		fastdns.SRV(rw, req, 60, "www.google.com", 1000, 1000, 80)
 	case fastdns.TypePTR:
@@ -82,24 +82,27 @@ func main() {
 ### Command Tool
 ```bash
 $ go get github.com/phuslu/fastdns/cmd/fastdig
-$ fastdig phus.lu @8.8.8.8
+$ fastdig www.microsoft.com @8.8.8.8
 
-; <<>> DiG 0.0.1-Fastdns <<>> phus.lu +noedns
+; <<>> DiG 0.0.1-Fastdns <<>> www.microsoft.com +noedns
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: Query, status: Success, id: 56242
-;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+;; ->>HEADER<<- opcode: Query, status: Success, id: 54012
+;; flags: qr rd ra; QUERY: 1, ANSWER: 4, AUTHORITY: 0, ADDITIONAL: 0
 
 ;; QUESTION SECTION:
-;phus.lu.               IN      A
+;www.microsoft.com.		IN	A
 
 ;; ANSWER SECTION:
-phus.lu.        299     IN      A       101.32.116.118
+www.microsoft.com.	2690	IN	CNAME	www.microsoft.com-c-3.edgekey.net
+www.microsoft.com-c-3.edgekey.net.	408	IN	CNAME	www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net
+www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.	330	IN	CNAME	e13678.dscb.akamaiedge.net
+e13678.dscb.akamaiedge.net.	11	IN	A	23.195.153.175
 
-;; Query time: 11 msec
+;; Query time: 6 msec
 ;; SERVER: 8.8.8.8#53(8.8.8.8)
-;; WHEN: Sat Apr 10 21:20:57 +08 2021
-;; MSG SIZE  rcvd: 41
+;; WHEN: Sun Apr 11 03:34:51 +08 2021
+;; MSG SIZE  rcvd: 202
 ```
 
 ## High Performance
