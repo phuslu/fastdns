@@ -11,30 +11,7 @@ import (
 )
 
 func main() {
-	var qtype, domain, server string
-	var options []string
-
-	for i := 1; i < len(os.Args); i++ {
-		arg := os.Args[i]
-		if arg == "" {
-			continue
-		}
-		switch arg[0] {
-		case '@':
-			server = arg[1:]
-		case '+':
-			options = append(options, arg[1:])
-		default:
-			if domain == "" {
-				domain, qtype = arg, "A"
-			} else {
-				qtype = arg
-			}
-		}
-	}
-	if server == "" {
-		server = "8.8.8.8"
-	}
+	domain, qtype, server, options := parse(os.Args[1:])
 
 	client := &fastdns.Client{
 		ServerAddr:  &net.UDPAddr{IP: net.ParseIP(server), Port: 53},
@@ -42,13 +19,11 @@ func main() {
 		MaxConns:    1000,
 	}
 
-	req := fastdns.AcquireMessage()
+	req, resp := fastdns.AcquireMessage(), fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(req)
+	defer fastdns.ReleaseMessage(resp)
 
 	req.SetQustion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
-
-	resp := fastdns.AcquireMessage()
-	defer fastdns.ReleaseMessage(resp)
 
 	start := time.Now()
 	err := client.Exchange(req, resp)
@@ -61,8 +36,39 @@ func main() {
 	if opt("short", options) {
 		short(resp)
 	} else {
-		cmd(req, resp, server, end.Sub(start))
+		cmd(req, resp, server, start, end)
 	}
+}
+
+func parse(args []string) (domain, qtype, server string, options []string) {
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if arg == "" {
+			continue
+		}
+		switch arg[0] {
+		case '@':
+			server = arg[1:]
+		case '+':
+			options = append(options, arg[1:])
+		default:
+			if domain == "" {
+				domain = arg
+			} else {
+				qtype = arg
+			}
+		}
+	}
+	if server == "" {
+		server = "8.8.8.8"
+	}
+	if qtype == "" {
+		qtype = "A"
+	}
+	if fastdns.ParseType(qtype) == 0 && fastdns.ParseType(domain) != 0 {
+		domain, qtype = qtype, domain
+	}
+	return
 }
 
 func opt(option string, options []string) bool {
@@ -92,7 +98,7 @@ func short(resp *fastdns.Message) {
 	})
 }
 
-func cmd(req, resp *fastdns.Message, server string, dur time.Duration) {
+func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	var flags string
 	for _, f := range []struct {
 		b byte
@@ -112,7 +118,7 @@ func cmd(req, resp *fastdns.Message, server string, dur time.Duration) {
 	flags = strings.TrimSpace(flags)
 
 	fmt.Printf("\n")
-	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s %s +noedns\n", req.Question.Type, req.Domain)
+	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s %s +cmd\n", req.Question.Type, req.Domain)
 	fmt.Printf(";; global options: +cmd\n")
 	fmt.Printf(";; Got answer:\n")
 	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
@@ -149,9 +155,9 @@ func cmd(req, resp *fastdns.Message, server string, dur time.Duration) {
 	})
 
 	fmt.Printf("\n")
-	fmt.Printf(";; Query time: %d msec\n", dur/time.Millisecond)
+	fmt.Printf(";; Query time: %d msec\n", end.Sub(start)/time.Millisecond)
 	fmt.Printf(";; SERVER: %s#53(%s)\n", server, server)
-	fmt.Printf(";; WHEN: %s\n", time.Now().Format(time.UnixDate))
+	fmt.Printf(";; WHEN: %s\n", start.Format(time.UnixDate))
 	fmt.Printf(";; MSG SIZE  rcvd: %d\n", len(resp.Raw))
 	fmt.Printf("\n")
 }
