@@ -1,9 +1,10 @@
 github.com/andybalholm/brotli v1.0.1 h1:KqhlKozYbRtJvsPrrEeXcO+N2l6NYT5A2QAFmSULpEc=
 github.com/andybalholm/brotli v1.0.1/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
-github.com/klauspost/compress v1.11.8 h1:difgzQsp5mdAz9v8lm3P/I+EpDKMU/6uTMw1y1FObuo=
 github.com/klauspost/compress v1.11.8/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
-github.com/phuslu/fastdns v0.4.3 h1:c8HuY0qTppPkBvHoFG5WQehYdss+iEIZ23ugN7RqUIQ=
-github.com/phuslu/fastdns v0.4.3/go.mod h1:R55RzIGh0IE9M69Y5VUH0y+711IcP1lgiX5CWtXmAgU=
+github.com/klauspost/compress v1.11.13 h1:eSvu8Tmq6j2psUJqJrLcWH6K3w5Dwc+qipbaA6eVEN4=
+github.com/klauspost/compress v1.11.13/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
+github.com/phuslu/fastdns v0.5.0 h1:6tR+xaNnL+GwUwq1MuHkzWFKMw5Rn2aHRR/dkZHq+bQ=
+github.com/phuslu/fastdns v0.5.0/go.mod h1:R55RzIGh0IE9M69Y5VUH0y+711IcP1lgiX5CWtXmAgU=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.23.0 h1:0ufwSD9BhWa6f8HWdmdq4FHQ23peRo3Ng/Qs8m5NcFs=
