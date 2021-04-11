@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/phuslu/fastdns"
 	"github.com/valyala/fasthttp"
@@ -52,6 +53,10 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	defer fastdns.ReleaseMessage(resp)
 
 	err := h.DNSClient.Exchange(req, resp)
+	if err == fastdns.ErrMaxConns {
+		time.Sleep(10 * time.Millisecond)
+		err = h.DNSClient.Exchange(req, resp)
+	}
 	if err != nil {
 		fastdns.Error(rw, req, fastdns.RcodeServerFailure)
 	}
