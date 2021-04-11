@@ -236,8 +236,8 @@ func AppendNSRecord(dst []byte, req *Message, ttl uint32, nameservers []net.NS) 
 }
 
 // AppendSOARecord appends the SOA records to dst and returns the resulting dst.
-func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname string, serial, refresh, retry, expire, minimum uint32) []byte {
-	length := 2 + len(mname) + 2 + len(rname) + 4 + 4 + 4 + 4 + 4
+func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) []byte {
+	length := 2 + len(mname.Host) + 2 + len(rname.Host) + 4 + 4 + 4 + 4 + 4
 	// fixed size array for avoid bounds check
 	answer := [...]byte{
 		// NAME
@@ -254,9 +254,9 @@ func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname string, 
 	dst = append(dst, answer[:]...)
 
 	// MNAME
-	dst = EncodeDomain(dst, mname)
+	dst = EncodeDomain(dst, mname.Host)
 	// RNAME
-	dst = EncodeDomain(dst, rname)
+	dst = EncodeDomain(dst, rname.Host)
 
 	section := [...]byte{
 		// SERIAL

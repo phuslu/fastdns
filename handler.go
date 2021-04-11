@@ -44,7 +44,7 @@ func NS(rw ResponseWriter, req *Message, ttl uint32, nameservers []net.NS) {
 }
 
 // SOA replies to the request with the specified SOA records.
-func SOA(rw ResponseWriter, req *Message, ttl uint32, mname, rname string, serial, refresh, retry, expire, minimum uint32) {
+func SOA(rw ResponseWriter, req *Message, ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) {
 	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, 1, 0, 0)
 	req.Raw = AppendSOARecord(req.Raw, req, ttl, mname, rname, serial, refresh, retry, expire, minimum)
 	_, _ = rw.Write(req.Raw)

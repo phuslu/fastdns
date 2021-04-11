@@ -251,8 +251,8 @@ func TestAppendSOARecord(t *testing.T) {
 	cases := []struct {
 		Hex     string
 		TTL     uint32
-		MName   string
-		RName   string
+		MName   net.NS
+		RName   net.NS
 		Serial  uint32
 		Refresh uint32
 		Retry   uint32
@@ -262,8 +262,8 @@ func TestAppendSOARecord(t *testing.T) {
 		{
 			"c00c000600010000012c003a036e733106676f6f676c6503636f6d0009646e732d61646d696e06676f6f676c6503636f6d00400000000000038400000384000007080000003c",
 			300,
-			"ns1.google.com",
-			"dns-admin.google.com",
+			net.NS{Host: "ns1.google.com"},
+			net.NS{Host: "dns-admin.google.com"},
 			1073741824,
 			900,
 			900,
@@ -436,7 +436,7 @@ func BenchmarkAppendSOARecord(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		payload = AppendSOARecord(payload[:0], req, 300, "ns1.google.com", "dns-admin.google.com", 1073741824, 900, 900, 1800, 60)
+		payload = AppendSOARecord(payload[:0], req, 300, net.NS{Host: "ns1.google.com"}, net.NS{Host: "dns-admin.google.com"}, 1073741824, 900, 900, 1800, 60)
 	}
 }
 

@@ -40,7 +40,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		case fastdns.TypeMX:
 			fastdns.MX(rw, req, 60, []net.MX{{"mail.gmail.com", 10}, {"smtp.gmail.com", 10}}) // nolint
 		case fastdns.TypeSOA:
-			fastdns.SOA(rw, req, 60, "ns1.google.com", "dns-admin.google.com", 1073741824, 900, 900, 1800, 60)
+			fastdns.SOA(rw, req, 60, net.NS{"ns1.google.com"}, net.NS{"dns-admin.google.com"}, 180, 900, 900, 1800, 60)
 		case fastdns.TypePTR:
 			fastdns.PTR(rw, req, 0, "ptr.google.com")
 		case fastdns.TypeTXT:
