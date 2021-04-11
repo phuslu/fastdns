@@ -178,6 +178,38 @@ func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ip
 	return dst
 }
 
+// AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
+func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srvs []net.SRV) []byte {
+	// SRV Records
+	for _, srv := range srvs {
+		length := 8 + len(srv.Target)
+		// fixed size array for avoid bounds check
+		answer := [...]byte{
+			// NAME
+			0xc0, 0x0c,
+			// TYPE
+			0x00, byte(TypeSRV),
+			// CLASS
+			byte(req.Question.Class >> 8), byte(req.Question.Class),
+			// TTL
+			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+			// RDLENGTH
+			byte(length >> 8), byte(length),
+			// PRIOVRITY
+			byte(srv.Priority >> 8), byte(srv.Priority),
+			// WEIGHT
+			byte(srv.Weight >> 8), byte(srv.Weight),
+			// PORT
+			byte(srv.Port >> 8), byte(srv.Port),
+		}
+		dst = append(dst, answer[:]...)
+		// RDATA
+		dst = EncodeDomain(dst, srv.Target)
+	}
+
+	return dst
+}
+
 // AppendNSRecord appends the NS records to dst and returns the resulting dst.
 func AppendNSRecord(dst []byte, req *Message, ttl uint32, nameservers []net.NS) []byte {
 	// NS Records
@@ -239,38 +271,6 @@ func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname string, 
 		byte(minimum >> 24), byte(minimum >> 16), byte(minimum >> 8), byte(minimum),
 	}
 	dst = append(dst, section[:]...)
-
-	return dst
-}
-
-// AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
-func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srvs []net.SRV) []byte {
-	// SRV Records
-	for _, srv := range srvs {
-		length := 8 + len(srv.Target)
-		// fixed size array for avoid bounds check
-		answer := [...]byte{
-			// NAME
-			0xc0, 0x0c,
-			// TYPE
-			0x00, byte(TypeSRV),
-			// CLASS
-			byte(req.Question.Class >> 8), byte(req.Question.Class),
-			// TTL
-			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
-			// RDLENGTH
-			byte(length >> 8), byte(length),
-			// PRIOVRITY
-			byte(srv.Priority >> 8), byte(srv.Priority),
-			// WEIGHT
-			byte(srv.Weight >> 8), byte(srv.Weight),
-			// PORT
-			byte(srv.Port >> 8), byte(srv.Port),
-		}
-		dst = append(dst, answer[:]...)
-		// RDATA
-		dst = EncodeDomain(dst, srv.Target)
-	}
 
 	return dst
 }

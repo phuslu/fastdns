@@ -188,6 +188,35 @@ func TestAppendCNAMERecord(t *testing.T) {
 
 }
 
+func TestAppendSRVRecord(t *testing.T) {
+	cases := []struct {
+		Hex string
+		TTL uint32
+		SRV net.SRV
+	}{
+		{
+			"c00c002100010000012c001203e803e8005002686b0470687573026c7500",
+			300,
+			net.SRV{Target: "hk.phus.lu", Port: 80, Priority: 1000, Weight: 1000},
+		},
+		{
+			"c00c002100010000012c00120400040001bb0273670470687573026c7500",
+			300,
+			net.SRV{Target: "sg.phus.lu", Port: 443, Priority: 1024, Weight: 1024},
+		},
+	}
+
+	req := new(Message)
+	req.Question.Class = ClassINET
+
+	for _, c := range cases {
+		if got, want := hex.EncodeToString(AppendSRVRecord(nil, req, c.TTL, []net.SRV{c.SRV})), c.Hex; got != want {
+			t.Errorf("AppendSRVRecord(%v) error got=%#v want=%#v", c.SRV, got, want)
+		}
+	}
+
+}
+
 func TestAppendNSRecord(t *testing.T) {
 	cases := []struct {
 		Hex         string
@@ -250,35 +279,6 @@ func TestAppendSOARecord(t *testing.T) {
 	for _, c := range cases {
 		if got, want := hex.EncodeToString(AppendSOARecord(nil, req, c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)), c.Hex; got != want {
 			t.Errorf("AppendSOARecord(%v) error got=%#v want=%#v", c.MName, got, want)
-		}
-	}
-
-}
-
-func TestAppendSRVRecord(t *testing.T) {
-	cases := []struct {
-		Hex string
-		TTL uint32
-		SRV net.SRV
-	}{
-		{
-			"c00c002100010000012c001203e803e8005002686b0470687573026c7500",
-			300,
-			net.SRV{Target: "hk.phus.lu", Port: 80, Priority: 1000, Weight: 1000},
-		},
-		{
-			"c00c002100010000012c00120400040001bb0273670470687573026c7500",
-			300,
-			net.SRV{Target: "sg.phus.lu", Port: 443, Priority: 1024, Weight: 1024},
-		},
-	}
-
-	req := new(Message)
-	req.Question.Class = ClassINET
-
-	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendSRVRecord(nil, req, c.TTL, []net.SRV{c.SRV})), c.Hex; got != want {
-			t.Errorf("AppendSRVRecord(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
 	}
 
@@ -399,6 +399,20 @@ func BenchmarkAppendCNAMERecord(b *testing.B) {
 	}
 }
 
+func BenchmarkAppendSRVRecord(b *testing.B) {
+	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	req := new(Message)
+
+	if err := ParseMessage(req, payload, false); err != nil {
+		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
+	}
+
+	srv := net.SRV{Target: "service1.example.org", Port: 443, Priority: 100, Weight: 100}
+	for i := 0; i < b.N; i++ {
+		payload = AppendSRVRecord(payload[:0], req, 3000, []net.SRV{srv})
+	}
+}
+
 func BenchmarkAppendNSRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
@@ -423,20 +437,6 @@ func BenchmarkAppendSOARecord(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		payload = AppendSOARecord(payload[:0], req, 300, "ns1.google.com", "dns-admin.google.com", 1073741824, 900, 900, 1800, 60)
-	}
-}
-
-func BenchmarkAppendSRVRecord(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
-	req := new(Message)
-
-	if err := ParseMessage(req, payload, false); err != nil {
-		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
-	}
-
-	srv := net.SRV{Target: "service1.example.org", Port: 443, Priority: 100, Weight: 100}
-	for i := 0; i < b.N; i++ {
-		payload = AppendSRVRecord(payload[:0], req, 3000, []net.SRV{srv})
 	}
 }
 

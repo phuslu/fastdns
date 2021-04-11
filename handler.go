@@ -29,6 +29,13 @@ func CNAME(rw ResponseWriter, req *Message, ttl uint32, cnames []string, ips []n
 	_, _ = rw.Write(req.Raw)
 }
 
+// SRV replies to the request with the specified SRV records.
+func SRV(rw ResponseWriter, req *Message, ttl uint32, srvs []net.SRV) {
+	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(srvs)), 0, 0)
+	req.Raw = AppendSRVRecord(req.Raw, req, ttl, srvs)
+	_, _ = rw.Write(req.Raw)
+}
+
 // NS replies to the request with the specified CName and Host records.
 func NS(rw ResponseWriter, req *Message, ttl uint32, nameservers []net.NS) {
 	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(nameservers)), 0, 0)
@@ -40,13 +47,6 @@ func NS(rw ResponseWriter, req *Message, ttl uint32, nameservers []net.NS) {
 func SOA(rw ResponseWriter, req *Message, ttl uint32, mname, rname string, serial, refresh, retry, expire, minimum uint32) {
 	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, 1, 0, 0)
 	req.Raw = AppendSOARecord(req.Raw, req, ttl, mname, rname, serial, refresh, retry, expire, minimum)
-	_, _ = rw.Write(req.Raw)
-}
-
-// SRV replies to the request with the specified SRV records.
-func SRV(rw ResponseWriter, req *Message, ttl uint32, srvs []net.SRV) {
-	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(srvs)), 0, 0)
-	req.Raw = AppendSRVRecord(req.Raw, req, ttl, srvs)
 	_, _ = rw.Write(req.Raw)
 }
 

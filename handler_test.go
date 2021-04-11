@@ -94,6 +94,28 @@ func TestHandlerCNAME(t *testing.T) {
 	}
 }
 
+func TestHandlerSRV(t *testing.T) {
+	var cases = []struct {
+		Hex string
+		TTL uint32
+		SRV net.SRV
+	}{
+		{
+			"00028100000100010000000002686b0470687573026c750000010001c00c002100010000012c001c03e803e81f41087365727669636531076578616d706c6503636f6d00",
+			300,
+			net.SRV{Target: "service1.example.com", Port: 8001, Priority: 1000, Weight: 1000},
+		},
+	}
+
+	rw := &MemoryResponseWriter{}
+	for _, c := range cases {
+		SRV(rw, mockHandlerMessage, c.TTL, []net.SRV{c.SRV})
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
+			t.Errorf("SRV(%v) error got=%#v want=%#v", c.SRV, got, want)
+		}
+	}
+}
+
 func TestHandlerNS(t *testing.T) {
 	var cases = []struct {
 		Hex        string
@@ -146,28 +168,6 @@ func TestHandlerSOA(t *testing.T) {
 		SOA(rw, mockHandlerMessage, c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("SOA(%v) error got=%#v want=%#v", c.MName, got, want)
-		}
-	}
-}
-
-func TestHandlerSRV(t *testing.T) {
-	var cases = []struct {
-		Hex string
-		TTL uint32
-		SRV net.SRV
-	}{
-		{
-			"00028100000100010000000002686b0470687573026c750000010001c00c002100010000012c001c03e803e81f41087365727669636531076578616d706c6503636f6d00",
-			300,
-			net.SRV{Target: "service1.example.com", Port: 8001, Priority: 1000, Weight: 1000},
-		},
-	}
-
-	rw := &MemoryResponseWriter{}
-	for _, c := range cases {
-		SRV(rw, mockHandlerMessage, c.TTL, []net.SRV{c.SRV})
-		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
-			t.Errorf("SRV(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
 	}
 }
@@ -260,6 +260,13 @@ func BenchmarkCNAME(b *testing.B) {
 	}
 }
 
+func BenchmarkSRV(b *testing.B) {
+	srv := net.SRV{Target: "service1.example.org", Port: 8001, Priority: 1000, Weight: 1000}
+	for i := 0; i < b.N; i++ {
+		SRV(&nilResponseWriter{}, mockHandlerMessage, 3000, []net.SRV{srv})
+	}
+}
+
 func BenchmarkNS(b *testing.B) {
 	nameservers := []net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}}
 	for i := 0; i < b.N; i++ {
@@ -270,13 +277,6 @@ func BenchmarkNS(b *testing.B) {
 func BenchmarkSOA(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		SOA(&nilResponseWriter{}, mockHandlerMessage, 3000, "ns1.google.com", "dns-admin.google.com", 42, 900, 900, 1800, 60)
-	}
-}
-
-func BenchmarkSRV(b *testing.B) {
-	srv := net.SRV{Target: "service1.example.org", Port: 8001, Priority: 1000, Weight: 1000}
-	for i := 0; i < b.N; i++ {
-		SRV(&nilResponseWriter{}, mockHandlerMessage, 3000, []net.SRV{srv})
 	}
 }
 
