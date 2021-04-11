@@ -13,11 +13,13 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// DNSHandler is a fastdns Handler
 type DNSHandler struct {
 	DNSClient *fastdns.Client
 	Debug     bool
 }
 
+// ServeDNS implements fastdns.Handler
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	if h.Debug {
 		log.Printf("%s] %s: CLASS %s TYPE %s\n", rw.RemoteAddr(), req.Domain, req.Question.Class, req.Question.Type)
@@ -100,7 +102,7 @@ func main() {
 
 	go func() {
 		log.Printf("start fast DoH server on %s", addr2)
-		c <- fasthttp.ListenAndServe(addr2, (&FasthttpAdapter{handler}).Handler)
+		c <- fasthttp.ListenAndServe(addr2, (&fasthttpAdapter{handler}).Handler)
 	}()
 
 	log.Fatalf("listen and serve DNS/DoH error: %+v", <-c)

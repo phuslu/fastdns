@@ -110,34 +110,42 @@ func (c Opcode) String() string {
 // +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 type Bits uint16
 
+// QR is QR bit in Bits
 func (b Bits) QR() byte {
 	return byte(b >> 15)
 }
 
+// Opcode is Opcode in Bits
 func (b Bits) Opcode() Opcode {
 	return Opcode((b & 0b0111111111111111) >> 11)
 }
 
+// AA is AA bit in Bits
 func (b Bits) AA() byte {
 	return byte((b & 0b0000010000000000) >> 10)
 }
 
+// TC is TC bit in Bits
 func (b Bits) TC() byte {
 	return byte((b & 0b0000001000000000) >> 9)
 }
 
+// RD is RD bit in Bits
 func (b Bits) RD() byte {
 	return byte((b & 0b0000000100000000) >> 8)
 }
 
+// RA is RA bit in Bits
 func (b Bits) RA() byte {
 	return byte((b & 0b0000000010000000) >> 7)
 }
 
+// Z is Z bits in Bits
 func (b Bits) Z() byte {
 	return byte((b & 0b0000000001110000) >> 4)
 }
 
+// Rcode is Rcode in Bits
 func (b Bits) Rcode() Rcode {
 	return Rcode((b & 0b0000000000001111))
 }
@@ -438,6 +446,7 @@ func (t Type) String() string {
 	return ""
 }
 
+// ParseType converts a question type string into a question type value.
 func ParseType(s string) (t Type) {
 	switch s {
 	case "A", "a":

@@ -264,12 +264,12 @@ func TestAppendSRVRecord(t *testing.T) {
 		{
 			"c00c002100010000012c001203e803e8005002686b0470687573026c7500",
 			300,
-			net.SRV{"hk.phus.lu", 80, 1000, 1000},
+			net.SRV{Target: "hk.phus.lu", Port: 80, Priority: 1000, Weight: 1000},
 		},
 		{
 			"c00c002100010000012c00120400040001bb0273670470687573026c7500",
 			300,
-			net.SRV{"sg.phus.lu", 443, 1024, 1024},
+			net.SRV{Target: "sg.phus.lu", Port: 443, Priority: 1024, Weight: 1024},
 		},
 	}
 
@@ -434,9 +434,9 @@ func BenchmarkAppendSRVRecord(b *testing.B) {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
-	target := "service1.example.org"
+	srv := net.SRV{Target: "service1.example.org", Port: 443, Priority: 100, Weight: 100}
 	for i := 0; i < b.N; i++ {
-		payload = AppendSRVRecord(payload[:0], req, 3000, []net.SRV{{target, 443, 100, 100}})
+		payload = AppendSRVRecord(payload[:0], req, 3000, []net.SRV{srv})
 	}
 }
 

@@ -24,11 +24,11 @@ var memPool = sync.Pool{
 	},
 }
 
-type FasthttpAdapter struct {
+type fasthttpAdapter struct {
 	FastdnsHandler fastdns.Handler
 }
 
-func (h *FasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
+func (h *fasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
 	mem := memPool.Get().(*memCtx)
 
 	rw, req := mem.rw, mem.req
