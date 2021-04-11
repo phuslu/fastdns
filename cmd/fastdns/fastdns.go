@@ -36,9 +36,9 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		case fastdns.TypeSRV:
 			fastdns.SRV(rw, req, 60, []net.SRV{{"www.google.com", 443, 1000, 1000}})
 		case fastdns.TypeNS:
-			fastdns.NS(rw, req, 60, []string{"ns1.zdns.google", "ns2.zdns.google"})
+			fastdns.NS(rw, req, 60, []net.NS{{"ns1.zdns.google"}, {"ns2.zdns.google"}})
 		case fastdns.TypeMX:
-			fastdns.MX(rw, req, 60, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}}) // nolint
+			fastdns.MX(rw, req, 60, []net.MX{{"mail.gmail.com", 10}, {"smtp.gmail.com", 10}}) // nolint
 		case fastdns.TypeSOA:
 			fastdns.SOA(rw, req, 60, "ns1.google.com", "dns-admin.google.com", 1073741824, 900, 900, 1800, 60)
 		case fastdns.TypePTR:

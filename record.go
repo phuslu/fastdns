@@ -179,9 +179,9 @@ func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ip
 }
 
 // AppendNSRecord appends the NS records to dst and returns the resulting dst.
-func AppendNSRecord(dst []byte, req *Message, ttl uint32, nameservers []string) []byte {
+func AppendNSRecord(dst []byte, req *Message, ttl uint32, nameservers []net.NS) []byte {
 	// NS Records
-	for _, nameserver := range nameservers {
+	for _, ns := range nameservers {
 		// fixed size array for avoid bounds check
 		answer := [...]byte{
 			// NAME
@@ -193,11 +193,11 @@ func AppendNSRecord(dst []byte, req *Message, ttl uint32, nameservers []string) 
 			// TTL
 			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
 			// RDLENGTH
-			0x00, byte(len(nameserver) + 2),
+			0x00, byte(len(ns.Host) + 2),
 		}
 		dst = append(dst, answer[:]...)
 		// RDATA
-		dst = EncodeDomain(dst, nameserver)
+		dst = EncodeDomain(dst, ns.Host)
 	}
 
 	return dst
@@ -275,17 +275,11 @@ func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srvs []net.SRV) []byt
 	return dst
 }
 
-// MXRecord represents an DNS MXRecord contains Priority and Host.
-type MXRecord struct {
-	Priority uint16
-	Host     string
-}
-
 // AppendMXRecord appends the MX records to dst and returns the resulting dst.
-func AppendMXRecord(dst []byte, req *Message, ttl uint32, mx []MXRecord) []byte {
+func AppendMXRecord(dst []byte, req *Message, ttl uint32, mxs []net.MX) []byte {
 	// MX Records
-	for _, rr := range mx {
-		length := 4 + len(rr.Host)
+	for _, mx := range mxs {
+		length := 4 + len(mx.Host)
 		// fixed size array for avoid bounds check
 		answer := [...]byte{
 			// NAME
@@ -299,11 +293,11 @@ func AppendMXRecord(dst []byte, req *Message, ttl uint32, mx []MXRecord) []byte 
 			// RDLENGTH
 			byte(length >> 8), byte(length),
 			// PRIOVRITY
-			byte(rr.Priority >> 8), byte(rr.Priority),
+			byte(mx.Pref >> 8), byte(mx.Pref),
 		}
 		dst = append(dst, answer[:]...)
 		// RDATA
-		dst = EncodeDomain(dst, rr.Host)
+		dst = EncodeDomain(dst, mx.Host)
 	}
 
 	return dst

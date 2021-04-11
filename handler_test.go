@@ -97,19 +97,19 @@ func TestHandlerCNAME(t *testing.T) {
 func TestHandlerNS(t *testing.T) {
 	var cases = []struct {
 		Hex        string
-		Nameserver string
 		TTL        uint32
+		Nameserver net.NS
 	}{
 		{
 			"00028100000100010000000002686b0470687573026c750000010001c00c000200010000012c0010026e73076578616d706c6503636f6d00",
-			"ns.example.com",
 			300,
+			net.NS{Host: "ns.example.com"},
 		},
 	}
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		NS(rw, mockHandlerMessage, c.TTL, []string{c.Nameserver})
+		NS(rw, mockHandlerMessage, c.TTL, []net.NS{c.Nameserver})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("NS(%v) error got=%#v want=%#v", c.Nameserver, got, want)
 		}
@@ -175,19 +175,19 @@ func TestHandlerSRV(t *testing.T) {
 func TestHandlerMX(t *testing.T) {
 	var cases = []struct {
 		Hex string
-		MX  string
 		TTL uint32
+		MX  net.MX
 	}{
 		{
 			"00028100000100010000000002686b0470687573026c750000010001c00c000f00010000012c0013000a03707472076578616d706c65036f726700",
-			"ptr.example.org",
 			300,
+			net.MX{Host: "ptr.example.org", Pref: 10},
 		},
 	}
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		MX(rw, mockHandlerMessage, c.TTL, []MXRecord{{10, c.MX}})
+		MX(rw, mockHandlerMessage, c.TTL, []net.MX{c.MX})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("MX(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
@@ -261,7 +261,7 @@ func BenchmarkCNAME(b *testing.B) {
 }
 
 func BenchmarkNS(b *testing.B) {
-	nameservers := []string{"ns1.google.com", "ns2.google.com"}
+	nameservers := []net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}}
 	for i := 0; i < b.N; i++ {
 		NS(&nilResponseWriter{}, mockHandlerMessage, 3000, nameservers)
 	}
@@ -288,9 +288,9 @@ func BenchmarkPTR(b *testing.B) {
 }
 
 func BenchmarkMX(b *testing.B) {
-	mx := []MXRecord{{100, "mail.google.com"}}
+	mx := net.MX{Host: "mail.google.com", Pref: 100}
 	for i := 0; i < b.N; i++ {
-		MX(&nilResponseWriter{}, mockHandlerMessage, 3000, mx)
+		MX(&nilResponseWriter{}, mockHandlerMessage, 3000, []net.MX{mx})
 	}
 }
 

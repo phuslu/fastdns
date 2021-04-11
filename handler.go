@@ -30,7 +30,7 @@ func CNAME(rw ResponseWriter, req *Message, ttl uint32, cnames []string, ips []n
 }
 
 // NS replies to the request with the specified CName and Host records.
-func NS(rw ResponseWriter, req *Message, ttl uint32, nameservers []string) {
+func NS(rw ResponseWriter, req *Message, ttl uint32, nameservers []net.NS) {
 	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(nameservers)), 0, 0)
 	req.Raw = AppendNSRecord(req.Raw, req, ttl, nameservers)
 	_, _ = rw.Write(req.Raw)
@@ -51,9 +51,9 @@ func SRV(rw ResponseWriter, req *Message, ttl uint32, srvs []net.SRV) {
 }
 
 // MX replies to the request with the specified MX records.
-func MX(rw ResponseWriter, req *Message, ttl uint32, mx []MXRecord) {
-	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(mx)), 0, 0)
-	req.Raw = AppendMXRecord(req.Raw, req, ttl, mx)
+func MX(rw ResponseWriter, req *Message, ttl uint32, mxs []net.MX) {
+	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(mxs)), 0, 0)
+	req.Raw = AppendMXRecord(req.Raw, req, ttl, mxs)
 	_, _ = rw.Write(req.Raw)
 }
 

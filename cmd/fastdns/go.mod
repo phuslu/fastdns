@@ -6,3 +6,5 @@ require (
 	github.com/phuslu/fastdns v0.4.3
 	github.com/valyala/fasthttp v1.23.0
 )
+
+replace github.com/phuslu/fastdns v0.4.3 => ../../

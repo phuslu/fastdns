@@ -191,18 +191,18 @@ func TestAppendCNAMERecord(t *testing.T) {
 func TestAppendNSRecord(t *testing.T) {
 	cases := []struct {
 		Hex         string
-		Nameservers []string
 		TTL         uint32
+		Nameservers []net.NS
 	}{
 		{
 			"c00c000200010000012c0010036e733106676f6f676c6503636f6d00",
-			[]string{"ns1.google.com"},
 			300,
+			[]net.NS{{Host: "ns1.google.com"}},
 		},
 		{
 			"c00c000200010000012c0010036e733106676f6f676c6503636f6d00c00c000200010000012c0010036e733206676f6f676c6503636f6d00",
-			[]string{"ns1.google.com", "ns2.google.com"},
 			300,
+			[]net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}},
 		},
 	}
 
@@ -287,18 +287,18 @@ func TestAppendSRVRecord(t *testing.T) {
 func TestAppendMXRecord(t *testing.T) {
 	cases := []struct {
 		Hex string
-		MX  string
 		TTL uint32
+		MX  net.MX
 	}{
 		{
 			"c00c000f00010000012c000e000a02686b0470687573026c7500",
-			"hk.phus.lu",
 			300,
+			net.MX{Host: "hk.phus.lu", Pref: 10},
 		},
 		{
 			"c00c000f00010000012c000e000a0273670470687573026c7500",
-			"sg.phus.lu",
 			300,
+			net.MX{Host: "sg.phus.lu", Pref: 10},
 		},
 	}
 
@@ -306,7 +306,7 @@ func TestAppendMXRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendMXRecord(nil, req, c.TTL, []MXRecord{{10, c.MX}})), c.Hex; got != want {
+		if got, want := hex.EncodeToString(AppendMXRecord(nil, req, c.TTL, []net.MX{c.MX})), c.Hex; got != want {
 			t.Errorf("AppendMXRecord(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
 	}
@@ -407,7 +407,7 @@ func BenchmarkAppendNSRecord(b *testing.B) {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
-	nameservers := []string{"ns1.google.com", "ns2.google.com"}
+	nameservers := []net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}}
 	for i := 0; i < b.N; i++ {
 		payload = AppendNSRecord(payload[:0], req, 300, nameservers)
 	}
@@ -462,9 +462,9 @@ func BenchmarkAppendMXRecord(b *testing.B) {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
-	mx := []MXRecord{{100, "mail.google.com"}}
+	mx := net.MX{Host: "mail.google.com", Pref: 100}
 	for i := 0; i < b.N; i++ {
-		payload = AppendMXRecord(payload[:0], req, 3000, mx)
+		payload = AppendMXRecord(payload[:0], req, 3000, []net.MX{mx})
 	}
 }
 
