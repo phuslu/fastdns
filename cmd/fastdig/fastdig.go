@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
@@ -87,7 +88,9 @@ func short(resp *fastdns.Message) {
 		case fastdns.TypeA, fastdns.TypeAAAA:
 			v = net.IP(data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
-			v = resp.DecodeName(nil, data)
+			v = fmt.Sprintf("%s.", resp.DecodeName(nil, data))
+		case fastdns.TypeMX:
+			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(data), resp.DecodeName(nil, data[2:]))
 		case fastdns.TypeTXT:
 			v = fmt.Sprintf("\"%s\"", data[1:])
 		default:
@@ -118,8 +121,8 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	flags = strings.TrimSpace(flags)
 
 	fmt.Printf("\n")
-	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s %s +cmd\n", req.Question.Type, req.Domain)
-	fmt.Printf(";; global options: +cmd\n")
+	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s %s\n", req.Question.Type, req.Domain)
+	fmt.Printf(";; global options: +cmd +noedns\n")
 	fmt.Printf(";; Got answer:\n")
 	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
 		resp.Header.Bits.Opcode(), resp.Header.Bits.Rcode(), resp.Header.ID)
@@ -144,7 +147,9 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		case fastdns.TypeA, fastdns.TypeAAAA:
 			v = net.IP(data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
-			v = resp.DecodeName(nil, data)
+			v = fmt.Sprintf("%s.", resp.DecodeName(nil, data))
+		case fastdns.TypeMX:
+			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(data), resp.DecodeName(nil, data[2:]))
 		case fastdns.TypeTXT:
 			v = fmt.Sprintf("\"%s\"", data[1:])
 		default:
