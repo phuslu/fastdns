@@ -244,9 +244,9 @@ func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname string, 
 }
 
 // AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
-func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srv string, priovrity, weight, port uint16) []byte {
+func AppendSRVRecord(dst []byte, req *Message, ttl uint32, target string, priovrity, weight, port uint16) []byte {
 	// SRV Records
-	length := 8 + len(srv)
+	length := 8 + len(target)
 	// fixed size array for avoid bounds check
 	answer := [...]byte{
 		// NAME
@@ -268,7 +268,7 @@ func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srv string, priovrity
 	}
 	dst = append(dst, answer[:]...)
 	// RDATA
-	dst = EncodeDomain(dst, srv)
+	dst = EncodeDomain(dst, target)
 
 	return dst
 }

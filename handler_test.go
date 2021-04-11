@@ -153,7 +153,7 @@ func TestHandlerSOA(t *testing.T) {
 func TestHandlerSRV(t *testing.T) {
 	var cases = []struct {
 		Hex       string
-		SRV       string
+		Target    string
 		Priovrity uint16
 		Weight    uint16
 		Port      uint16
@@ -171,9 +171,9 @@ func TestHandlerSRV(t *testing.T) {
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		SRV(rw, mockHandlerMessage, c.TTL, c.SRV, c.Priovrity, c.Weight, c.Port)
+		SRV(rw, mockHandlerMessage, c.TTL, c.Target, c.Priovrity, c.Weight, c.Port)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
-			t.Errorf("SRV(%v) error got=%#v want=%#v", c.SRV, got, want)
+			t.Errorf("SRV(%v) error got=%#v want=%#v", c.Target, got, want)
 		}
 	}
 }
@@ -280,9 +280,9 @@ func BenchmarkSOA(b *testing.B) {
 }
 
 func BenchmarkSRV(b *testing.B) {
-	srv := "service1.example.org"
+	target := "service1.example.org"
 	for i := 0; i < b.N; i++ {
-		SRV(&nilResponseWriter{}, mockHandlerMessage, 3000, srv, 100, 100, 443)
+		SRV(&nilResponseWriter{}, mockHandlerMessage, 3000, target, 100, 100, 443)
 	}
 }
 

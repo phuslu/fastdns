@@ -258,7 +258,7 @@ func TestAppendSOARecord(t *testing.T) {
 func TestAppendSRVRecord(t *testing.T) {
 	cases := []struct {
 		Hex       string
-		SRV       string
+		Target    string
 		Priovrity uint16
 		Weight    uint16
 		Port      uint16
@@ -286,8 +286,8 @@ func TestAppendSRVRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendSRVRecord(nil, req, c.TTL, c.SRV, c.Priovrity, c.Weight, c.Port)), c.Hex; got != want {
-			t.Errorf("AppendSRVRecord(%v) error got=%#v want=%#v", c.SRV, got, want)
+		if got, want := hex.EncodeToString(AppendSRVRecord(nil, req, c.TTL, c.Target, c.Priovrity, c.Weight, c.Port)), c.Hex; got != want {
+			t.Errorf("AppendSRVRecord(%v) error got=%#v want=%#v", c.Target, got, want)
 		}
 	}
 
@@ -443,9 +443,9 @@ func BenchmarkAppendSRVRecord(b *testing.B) {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
-	srv := "service1.example.org"
+	target := "service1.example.org"
 	for i := 0; i < b.N; i++ {
-		payload = AppendSRVRecord(payload[:0], req, 3000, srv, 100, 100, 443)
+		payload = AppendSRVRecord(payload[:0], req, 3000, target, 100, 100, 443)
 	}
 }
 
