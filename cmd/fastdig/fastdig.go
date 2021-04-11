@@ -12,6 +12,7 @@ import (
 
 func main() {
 	var qtype, domain, server string
+	var options []string
 
 	for i := 1; i < len(os.Args); i++ {
 		arg := os.Args[i]
@@ -21,14 +22,13 @@ func main() {
 		switch arg[0] {
 		case '@':
 			server = arg[1:]
-		case '+', '-':
-			fmt.Fprintf(os.Stderr, "unsupport parameter: %#v\n", arg)
-			os.Exit(1)
+		case '+':
+			options = append(options, arg[1:])
 		default:
 			if domain == "" {
-				qtype, domain = "", arg
+				domain, qtype = arg, "A"
 			} else {
-				qtype, domain = domain, arg
+				qtype = arg
 			}
 		}
 	}
@@ -45,11 +45,7 @@ func main() {
 	req := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(req)
 
-	if qtype != "" {
-		req.SetQustion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
-	} else {
-		req.SetQustion(domain, fastdns.TypeA, fastdns.ClassINET)
-	}
+	req.SetQustion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
 
 	resp := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(resp)
@@ -62,7 +58,38 @@ func main() {
 	}
 	end := time.Now()
 
-	cmd(req, resp, server, end.Sub(start))
+	if opt("short", options) {
+		short(resp)
+	} else {
+		cmd(req, resp, server, end.Sub(start))
+	}
+}
+
+func opt(option string, options []string) bool {
+	for _, s := range options {
+		if s == option {
+			return true
+		}
+	}
+	return false
+}
+
+func short(resp *fastdns.Message) {
+	_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+		var v interface{}
+		switch typ {
+		case fastdns.TypeA, fastdns.TypeAAAA:
+			v = net.IP(data)
+		case fastdns.TypeCNAME, fastdns.TypeNS:
+			v = resp.DecodeName(nil, data)
+		case fastdns.TypeTXT:
+			v = fmt.Sprintf("\"%s\"", data[1:])
+		default:
+			v = fmt.Sprintf("%x", data)
+		}
+		fmt.Printf("%s\n", v)
+		return true
+	})
 }
 
 func cmd(req, resp *fastdns.Message, server string, dur time.Duration) {
