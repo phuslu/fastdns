@@ -62,6 +62,10 @@ func main() {
 	}
 	end := time.Now()
 
+	cmd(req, resp, server, end.Sub(start))
+}
+
+func cmd(req, resp *fastdns.Message, server string, dur time.Duration) {
 	var flags string
 	for _, f := range []struct {
 		b byte
@@ -81,7 +85,7 @@ func main() {
 	flags = strings.TrimSpace(flags)
 
 	fmt.Printf("\n")
-	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s%s +noedns\n", qtype+" ", domain)
+	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s %s +noedns\n", req.Question.Type, req.Domain)
 	fmt.Printf(";; global options: +cmd\n")
 	fmt.Printf(";; Got answer:\n")
 	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
@@ -118,7 +122,7 @@ func main() {
 	})
 
 	fmt.Printf("\n")
-	fmt.Printf(";; Query time: %d msec\n", end.Sub(start)/time.Millisecond)
+	fmt.Printf(";; Query time: %d msec\n", dur/time.Millisecond)
 	fmt.Printf(";; SERVER: %s#53(%s)\n", server, server)
 	fmt.Printf(";; WHEN: %s\n", time.Now().Format(time.UnixDate))
 	fmt.Printf(";; MSG SIZE  rcvd: %d\n", len(resp.Raw))
