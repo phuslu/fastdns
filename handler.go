@@ -44,9 +44,9 @@ func SOA(rw ResponseWriter, req *Message, ttl uint32, mname, rname string, seria
 }
 
 // SRV replies to the request with the specified SRV records.
-func SRV(rw ResponseWriter, req *Message, ttl uint32, target string, priovrity, weight, port uint16) {
-	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, 1, 0, 0)
-	req.Raw = AppendSRVRecord(req.Raw, req, ttl, target, priovrity, weight, port)
+func SRV(rw ResponseWriter, req *Message, ttl uint32, srvs []net.SRV) {
+	req.Raw = AppendHeaderQuestion(req.Raw[:0], req, RcodeSuccess, 1, uint16(len(srvs)), 0, 0)
+	req.Raw = AppendSRVRecord(req.Raw, req, ttl, srvs)
 	_, _ = rw.Write(req.Raw)
 }
 

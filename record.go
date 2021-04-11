@@ -244,31 +244,33 @@ func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname string, 
 }
 
 // AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
-func AppendSRVRecord(dst []byte, req *Message, ttl uint32, target string, priovrity, weight, port uint16) []byte {
+func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srvs []net.SRV) []byte {
 	// SRV Records
-	length := 8 + len(target)
-	// fixed size array for avoid bounds check
-	answer := [...]byte{
-		// NAME
-		0xc0, 0x0c,
-		// TYPE
-		0x00, byte(TypeSRV),
-		// CLASS
-		byte(req.Question.Class >> 8), byte(req.Question.Class),
-		// TTL
-		byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
-		// RDLENGTH
-		byte(length >> 8), byte(length),
-		// PRIOVRITY
-		byte(priovrity >> 8), byte(priovrity),
-		// WEIGHT
-		byte(weight >> 8), byte(weight),
-		// PORT
-		byte(port >> 8), byte(port),
+	for _, srv := range srvs {
+		length := 8 + len(srv.Target)
+		// fixed size array for avoid bounds check
+		answer := [...]byte{
+			// NAME
+			0xc0, 0x0c,
+			// TYPE
+			0x00, byte(TypeSRV),
+			// CLASS
+			byte(req.Question.Class >> 8), byte(req.Question.Class),
+			// TTL
+			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+			// RDLENGTH
+			byte(length >> 8), byte(length),
+			// PRIOVRITY
+			byte(srv.Priority >> 8), byte(srv.Priority),
+			// WEIGHT
+			byte(srv.Weight >> 8), byte(srv.Weight),
+			// PORT
+			byte(srv.Port >> 8), byte(srv.Port),
+		}
+		dst = append(dst, answer[:]...)
+		// RDATA
+		dst = EncodeDomain(dst, srv.Target)
 	}
-	dst = append(dst, answer[:]...)
-	// RDATA
-	dst = EncodeDomain(dst, target)
 
 	return dst
 }

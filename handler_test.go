@@ -152,28 +152,22 @@ func TestHandlerSOA(t *testing.T) {
 
 func TestHandlerSRV(t *testing.T) {
 	var cases = []struct {
-		Hex       string
-		Target    string
-		Priovrity uint16
-		Weight    uint16
-		Port      uint16
-		TTL       uint32
+		Hex string
+		TTL uint32
+		SRV net.SRV
 	}{
 		{
 			"00028100000100010000000002686b0470687573026c750000010001c00c002100010000012c001c03e803e81f41087365727669636531076578616d706c6503636f6d00",
-			"service1.example.com",
-			1000,
-			1000,
-			8001,
 			300,
+			net.SRV{"service1.example.com", 8001, 1000, 1000},
 		},
 	}
 
 	rw := &MemoryResponseWriter{}
 	for _, c := range cases {
-		SRV(rw, mockHandlerMessage, c.TTL, c.Target, c.Priovrity, c.Weight, c.Port)
+		SRV(rw, mockHandlerMessage, c.TTL, []net.SRV{c.SRV})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
-			t.Errorf("SRV(%v) error got=%#v want=%#v", c.Target, got, want)
+			t.Errorf("SRV(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
 	}
 }
@@ -282,7 +276,7 @@ func BenchmarkSOA(b *testing.B) {
 func BenchmarkSRV(b *testing.B) {
 	target := "service1.example.org"
 	for i := 0; i < b.N; i++ {
-		SRV(&nilResponseWriter{}, mockHandlerMessage, 3000, target, 100, 100, 443)
+		SRV(&nilResponseWriter{}, mockHandlerMessage, 3000, []net.SRV{{target, 443, 100, 100}})
 	}
 }
 

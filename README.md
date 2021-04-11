@@ -47,14 +47,14 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		fastdns.HOST(rw, req, 60, []net.IP{net.ParseIP("2001:4860:4860::8888")})
 	case fastdns.TypeCNAME:
 		fastdns.CNAME(rw, req, 60, []string{"dns.google"}, []net.IP{{8, 8, 8, 8}, {8, 8, 4, 4}})
+	case fastdns.TypeSRV:
+		fastdns.SRV(rw, req, 60, []net.SRV{{"www.google.com", 443, 1000, 1000}})
 	case fastdns.TypeNS:
 		fastdns.NS(rw, req, 60, []string{"ns1.zdns.google", "ns2.zdns.google"})
 	case fastdns.TypeMX:
 		fastdns.MX(rw, req, 60, []fastdns.MXRecord{{10, "mail.gmail.com"}, {20, "smtp.gmail.com"}})
 	case fastdns.TypeSOA:
 		fastdns.SOA(rw, req, 60, "ns1.google.com", "dns-admin.google.com", 300, 900, 900, 1800, 60)
-	case fastdns.TypeSRV:
-		fastdns.SRV(rw, req, 60, "www.google.com", 1000, 1000, 80)
 	case fastdns.TypePTR:
 		fastdns.PTR(rw, req, 0, "ptr.google.com")
 	case fastdns.TypeTXT:
