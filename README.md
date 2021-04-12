@@ -82,27 +82,25 @@ func main() {
 ### Command Tool
 ```bash
 $ go get github.com/phuslu/fastdns/cmd/fastdig
-$ fastdig www.microsoft.com @8.8.8.8
+$ fastdig ip.phus.lu @8.8.8.8
 
-; <<>> DiG 0.0.1-Fastdns <<>> www.microsoft.com +noedns
-;; global options: +cmd
+; <<>> DiG 0.0.1-Fastdns <<>> ip.phus.lu
+;; global options: +cmd +noedns
 ;; Got answer:
-;; ->>HEADER<<- opcode: Query, status: Success, id: 54012
-;; flags: qr rd ra; QUERY: 1, ANSWER: 4, AUTHORITY: 0, ADDITIONAL: 0
+;; ->>HEADER<<- opcode: Query, status: Success, id: 2775
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 0
 
 ;; QUESTION SECTION:
-;www.microsoft.com.		IN	A
+;ip.phus.lu.            IN      A
 
 ;; ANSWER SECTION:
-www.microsoft.com.	2690	IN	CNAME	www.microsoft.com-c-3.edgekey.net
-www.microsoft.com-c-3.edgekey.net.	408	IN	CNAME	www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net
-www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.	330	IN	CNAME	e13678.dscb.akamaiedge.net
-e13678.dscb.akamaiedge.net.	11	IN	A	23.195.153.175
+ip.phus.lu.     299     IN      CNAME   phus.lu.
+phus.lu.        299     IN      A       101.32.116.118
 
-;; Query time: 6 msec
+;; Query time: 15 msec
 ;; SERVER: 8.8.8.8#53(8.8.8.8)
-;; WHEN: Sun Apr 11 03:34:51 +08 2021
-;; MSG SIZE  rcvd: 202
+;; WHEN: Mon Apr 12 22:07:16 +08 2021
+;; MSG SIZE  rcvd: 58
 ```
 
 ## High Performance
