@@ -262,9 +262,18 @@ func (msg *Message) VisitAdditionalRecords(f func(name []byte, typ Type, class C
 func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 	// random head id
 	msg.Header.ID = uint16(fastrandn(65536))
-	// QR = 0, RCODE=0, RD = 1
+
+	// QR = 0, RCODE = 0, RD = 1
+	//
+	// 0  1  2  3  4  5  6  7  8
+	// +--+--+--+--+--+--+--+--+
+	// |QR|   Opcode  |AA|TC|RD|
+	// +--+--+--+--+--+--+--+--+
+	// |RA|   Z    |   RCODE   |
+	// +--+--+--+--+--+--+--+--+
 	msg.Header.Bits &= 0b0111111111110000
 	msg.Header.Bits |= 0b0000000100000000
+
 	msg.Header.QDCount = 1
 	msg.Header.ANCount = 0
 	msg.Header.NSCount = 0
@@ -273,12 +282,7 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 	header := [...]byte{
 		// ID
 		byte(msg.Header.ID >> 8), byte(msg.Header.ID),
-		// 0  1  2  3  4  5  6  7  8
-		// +--+--+--+--+--+--+--+--+
-		// |QR|   Opcode  |AA|TC|RD|
-		// +--+--+--+--+--+--+--+--+
-		// |RA|   Z    |   RCODE   |
-		// +--+--+--+--+--+--+--+--+
+		// Bits
 		byte(msg.Header.Bits >> 8), byte(msg.Header.Bits),
 		// QDCOUNT
 		0, 1,

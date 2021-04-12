@@ -13,24 +13,27 @@ func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar 
 	header[0] = byte(req.Header.ID >> 8)
 	header[1] = byte(req.Header.ID)
 
-	// 0  1  2  3  4  5  6  7  8
-	// +--+--+--+--+--+--+--+--+
-	// |QR|   Opcode  |AA|TC|RD|
-	// +--+--+--+--+--+--+--+--+
-	// |RA|   Z    |   RCODE   |
-	// +--+--+--+--+--+--+--+--+
+	// QR = 1, RCODE = rcode
+	//
+	// 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	header[2] = byte(req.Header.Bits>>8) | 0b10000000
 	header[3] = byte(req.Header.Bits&0b11110000) | byte(rcode)
 
 	// QDCOUNT
 	header[4] = byte(qd >> 8)
 	header[5] = byte(qd)
+
 	// ANCOUNT
 	header[6] = byte(an >> 8)
 	header[7] = byte(an)
+
 	// NSCOUNT
 	header[8] = byte(ns >> 8)
 	header[9] = byte(ns)
+
 	// ARCOUNT
 	header[10] = byte(ar >> 8)
 	header[11] = byte(ar)
