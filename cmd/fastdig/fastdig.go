@@ -91,6 +91,14 @@ func short(resp *fastdns.Message) {
 			v = fmt.Sprintf("%s.", resp.DecodeName(nil, data))
 		case fastdns.TypeMX:
 			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(data), resp.DecodeName(nil, data[2:]))
+		case fastdns.TypeTXT:
+			v = fmt.Sprintf("\"%s\"", data[1:])
+		case fastdns.TypeSRV:
+			priority := binary.BigEndian.Uint16(data)
+			weight := binary.BigEndian.Uint16(data[2:])
+			port := binary.BigEndian.Uint16(data[4:])
+			target := resp.DecodeName(nil, data[6:])
+			v = fmt.Sprintf("%d %d %d %s.", priority, weight, port, target)
 		case fastdns.TypeSOA:
 			var mname []byte
 			for i, b := range data {
@@ -110,8 +118,6 @@ func short(resp *fastdns.Message) {
 			expire := binary.BigEndian.Uint32(data[len(data)-8:])
 			minimum := binary.BigEndian.Uint32(data[len(data)-4:])
 			v = fmt.Sprintf("%s. %s. %d %d %d %d %d", mname, nname, serial, refresh, retry, expire, minimum)
-		case fastdns.TypeTXT:
-			v = fmt.Sprintf("\"%s\"", data[1:])
 		default:
 			v = fmt.Sprintf("%x", data)
 		}
@@ -169,6 +175,14 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 			v = fmt.Sprintf("%s.", resp.DecodeName(nil, data))
 		case fastdns.TypeMX:
 			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(data), resp.DecodeName(nil, data[2:]))
+		case fastdns.TypeTXT:
+			v = fmt.Sprintf("\"%s\"", data[1:])
+		case fastdns.TypeSRV:
+			priority := binary.BigEndian.Uint16(data)
+			weight := binary.BigEndian.Uint16(data[2:])
+			port := binary.BigEndian.Uint16(data[4:])
+			target := resp.DecodeName(nil, data[6:])
+			v = fmt.Sprintf("%d %d %d %s.", priority, weight, port, target)
 		case fastdns.TypeSOA:
 			var mname []byte
 			for i, b := range data {
@@ -188,8 +202,6 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 			expire := binary.BigEndian.Uint32(data[len(data)-8:])
 			minimum := binary.BigEndian.Uint32(data[len(data)-4:])
 			v = fmt.Sprintf("%s. %s. %d %d %d %d %d", mname, nname, serial, refresh, retry, expire, minimum)
-		case fastdns.TypeTXT:
-			v = fmt.Sprintf("\"%s\"", data[1:])
 		default:
 			v = fmt.Sprintf("%x", data)
 		}
