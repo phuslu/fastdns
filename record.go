@@ -11,7 +11,7 @@ func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar 
 
 	// ID
 	header[0] = byte(req.Header.ID >> 8)
-	header[1] = byte(req.Header.ID & 0xff)
+	header[1] = byte(req.Header.ID)
 
 	// 0  1  2  3  4  5  6  7  8
 	// +--+--+--+--+--+--+--+--+
@@ -24,16 +24,16 @@ func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar 
 
 	// QDCOUNT
 	header[4] = byte(qd >> 8)
-	header[5] = byte(qd & 0xff)
+	header[5] = byte(qd)
 	// ANCOUNT
 	header[6] = byte(an >> 8)
-	header[7] = byte(an & 0xff)
+	header[7] = byte(an)
 	// NSCOUNT
 	header[8] = byte(ns >> 8)
-	header[9] = byte(ns & 0xff)
+	header[9] = byte(ns)
 	// ARCOUNT
 	header[10] = byte(ar >> 8)
-	header[11] = byte(ar & 0xff)
+	header[11] = byte(ar)
 
 	dst = append(dst, header[:]...)
 
@@ -42,9 +42,9 @@ func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar 
 		// QNAME
 		dst = append(dst, req.Question.Name...)
 		// QTYPE
-		dst = append(dst, byte(req.Question.Type>>8), byte(req.Question.Type&0xff))
+		dst = append(dst, byte(req.Question.Type>>8), byte(req.Question.Type))
 		// QCLASS
-		dst = append(dst, byte(req.Question.Class>>8), byte(req.Question.Class&0xff))
+		dst = append(dst, byte(req.Question.Class>>8), byte(req.Question.Class))
 	}
 
 	return dst

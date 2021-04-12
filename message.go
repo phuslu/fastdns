@@ -272,14 +272,14 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 
 	header := [...]byte{
 		// ID
-		byte(msg.Header.ID >> 8), byte(msg.Header.ID & 0xff),
+		byte(msg.Header.ID >> 8), byte(msg.Header.ID),
 		// 0  1  2  3  4  5  6  7  8
 		// +--+--+--+--+--+--+--+--+
 		// |QR|   Opcode  |AA|TC|RD|
 		// +--+--+--+--+--+--+--+--+
 		// |RA|   Z    |   RCODE   |
 		// +--+--+--+--+--+--+--+--+
-		byte(msg.Header.Bits >> 8), byte(msg.Header.Bits & 0xff),
+		byte(msg.Header.Bits >> 8), byte(msg.Header.Bits),
 		// QDCOUNT
 		0, 1,
 		// ANCOUNT
@@ -296,10 +296,10 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 	msg.Raw = EncodeDomain(msg.Raw, domain)
 	msg.Question.Name = msg.Raw[len(header) : len(header)+len(domain)+2]
 	// QTYPE
-	msg.Raw = append(msg.Raw, byte(typ>>8), byte(typ&0xff))
+	msg.Raw = append(msg.Raw, byte(typ>>8), byte(typ))
 	msg.Question.Type = typ
 	// QCLASS
-	msg.Raw = append(msg.Raw, byte(class>>8), byte(class&0xff))
+	msg.Raw = append(msg.Raw, byte(class>>8), byte(class))
 	msg.Question.Class = class
 
 	// Domain
@@ -310,23 +310,17 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 func AppendMessage(dst []byte, msg *Message) []byte {
 	header := [...]byte{
 		// ID
-		byte(msg.Header.ID >> 8), byte(msg.Header.ID & 0xff),
-		// 0  1  2  3  4  5  6  7  8
-		// +--+--+--+--+--+--+--+--+
-		// |QR|   Opcode  |AA|TC|RD|
-		// +--+--+--+--+--+--+--+--+
-		// |RA|   Z    |   RCODE   |
-		// +--+--+--+--+--+--+--+--+
-		byte(msg.Header.Bits >> 8),
-		byte(msg.Header.Bits & 0xff),
+		byte(msg.Header.ID >> 8), byte(msg.Header.ID),
+		// Bits
+		byte(msg.Header.Bits >> 8), byte(msg.Header.Bits),
 		// QDCOUNT
-		byte(msg.Header.QDCount >> 8), byte(msg.Header.QDCount & 0xff),
+		byte(msg.Header.QDCount >> 8), byte(msg.Header.QDCount),
 		// ANCOUNT
-		byte(msg.Header.ANCount >> 8), byte(msg.Header.ANCount & 0xff),
+		byte(msg.Header.ANCount >> 8), byte(msg.Header.ANCount),
 		// NSCOUNT
-		byte(msg.Header.NSCount >> 8), byte(msg.Header.NSCount & 0xff),
+		byte(msg.Header.NSCount >> 8), byte(msg.Header.NSCount),
 		// ARCOUNT
-		byte(msg.Header.ARCount >> 8), byte(msg.Header.ARCount & 0xff),
+		byte(msg.Header.ARCount >> 8), byte(msg.Header.ARCount),
 	}
 
 	dst = append(dst, header[:]...)
@@ -353,9 +347,9 @@ func AppendMessage(dst []byte, msg *Message) []byte {
 			dst = append(dst, 0)
 		}
 		// QTYPE
-		dst = append(dst, byte(msg.Question.Type>>8), byte(msg.Question.Type&0xff))
+		dst = append(dst, byte(msg.Question.Type>>8), byte(msg.Question.Type))
 		// QCLASS
-		dst = append(dst, byte(msg.Question.Class>>8), byte(msg.Question.Class&0xff))
+		dst = append(dst, byte(msg.Question.Class>>8), byte(msg.Question.Class))
 	}
 
 	return dst
