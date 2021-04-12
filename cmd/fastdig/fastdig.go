@@ -34,6 +34,10 @@ func main() {
 	}
 	end := time.Now()
 
+	if opt("raw", options) {
+		fmt.Printf("%x\n", resp.Raw)
+	}
+
 	if opt("short", options) {
 		short(resp)
 	} else {
