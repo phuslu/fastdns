@@ -287,6 +287,22 @@ func TestSetQuestion(t *testing.T) {
 
 }
 
+func TestDecodeName(t *testing.T) {
+	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
+
+	resp := AcquireMessage()
+	defer ReleaseMessage(resp)
+
+	err := ParseMessage(resp, payload, true)
+	if err != nil {
+		t.Errorf("ParseMessage(%+v) error: %+v", payload, err)
+	}
+
+	if got, want := string(resp.DecodeName(nil, []byte("\x04todd\xc0\x2a"))), "todd.ns.cloudflare.com"; got != want {
+		t.Errorf("DecodeName(0xc02a) got=%s want=%s", got, want)
+	}
+}
+
 func BenchmarkParseMessage(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	var msg Message
@@ -304,5 +320,23 @@ func BenchmarkSetQuestion(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		req.SetQustion("mail.google.com", TypeA, ClassINET)
+	}
+}
+
+func BenchmarkDecodeName(b *testing.B) {
+	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
+
+	resp := AcquireMessage()
+	defer ReleaseMessage(resp)
+
+	err := ParseMessage(resp, payload, true)
+	if err != nil {
+		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
+	}
+
+	var dst [256]byte
+	name := []byte("\x04todd\xc0\x2a")
+	for i := 0; i < b.N; i++ {
+		resp.DecodeName(dst[:0], name)
 	}
 }
