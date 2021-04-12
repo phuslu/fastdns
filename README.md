@@ -124,6 +124,7 @@ BenchmarkMX                	19056997	        63.02 ns/op	       0 B/op	       0 
 BenchmarkTXT               	27121401	        44.27 ns/op	       0 B/op	       0 allocs/op
 BenchmarkParseMessage      	48858211	        24.44 ns/op	       0 B/op	       0 allocs/op
 BenchmarkSetQuestion       	26983996	        44.55 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeName        	34159032	        33.67 ns/op	       0 B/op	       0 allocs/op
 BenchmarkEncodeDomain      	60727620	        19.34 ns/op	       0 B/op	       0 allocs/op
 
 PASS
