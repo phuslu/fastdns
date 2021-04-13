@@ -321,29 +321,48 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 	msg.Header.Bits &= 0b1111111111110000
 	msg.Header.Bits |= 0b1000000000000000 | Bits(rcode)
 
-	// ANCount
-	// msg.Header.QDCount = 1
-	msg.Header.ANCount = ancount
-	msg.Header.NSCount = 0
-	msg.Header.ARCount = 0
-
 	// Raw
-	if ancount != 0 {
-		msg.Raw = msg.Raw[:12+len(msg.Question.Name)+4]
-	} else {
+	if rcode != 0 {
 		msg.Raw = msg.Raw[:12]
+
+		// Bits
+		msg.Raw[2] = byte(msg.Header.Bits >> 8)
+		msg.Raw[3] = byte(msg.Header.Bits)
+
+		// QDCount
+		msg.Raw[4] = 0
+		msg.Raw[5] = 0
+
+		// ANCOUNT
+		msg.Raw[6] = 0
+		msg.Raw[7] = 0
+
+		// NSCOUNT
+		msg.Raw[8] = 0
+		msg.Raw[9] = 0
+
+		// ARCOUNT
+		msg.Raw[10] = 0
+		msg.Raw[11] = 0
+
+		msg.Header.QDCount = 0
+		msg.Header.ANCount = 0
+		msg.Header.NSCount = 0
+		msg.Header.ARCount = 0
+
+		return
 	}
+
+	msg.Raw = msg.Raw[:12+len(msg.Question.Name)+4]
 	header := msg.Raw[:12]
 
 	// Bits
 	header[2] = byte(msg.Header.Bits >> 8)
 	header[3] = byte(msg.Header.Bits)
 
-	// set QDCOUNT = 0 if RCODE != 0
-	if rcode != 0 {
-		header[4] = 0
-		header[5] = 0
-	}
+	// QDCount
+	header[4] = 0
+	header[5] = 1
 
 	// ANCOUNT
 	header[6] = byte(ancount >> 8)
@@ -357,6 +376,10 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 	header[10] = 0
 	header[11] = 0
 
+	msg.Header.QDCount = 1
+	msg.Header.ANCount = ancount
+	msg.Header.NSCount = 0
+	msg.Header.ARCount = 0
 }
 
 var msgPool = sync.Pool{
