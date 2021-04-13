@@ -52,14 +52,26 @@ type CoreStats struct {
 	RequestSizeBytesSum          uint64
 	RequestSizeBytesCount        uint64
 
-	RequestTypeCountTotal_A    uint64
-	RequestTypeCountTotal_AAAA uint64
-	RequestTypeCountTotal_NS   uint64
-	RequestTypeCountTotal_PTR  uint64
-	RequestTypeCountTotal_SRV  uint64
+	RequestTypeCountTotal_A     uint64
+	RequestTypeCountTotal_AAAA  uint64
+	RequestTypeCountTotal_NS    uint64
+	RequestTypeCountTotal_PTR   uint64
+	RequestTypeCountTotal_SRV   uint64
+	RequestTypeCountTotal_CNAME uint64
+	RequestTypeCountTotal_SOA   uint64
+	RequestTypeCountTotal_MX    uint64
+	RequestTypeCountTotal_TXT   uint64
 
 	ResponseRcodeCountTotal_NOERROR  uint64
+	ResponseRcodeCountTotal_FORMERR  uint64
+	ResponseRcodeCountTotal_SERVFAIL uint64
+	ResponseRcodeCountTotal_NOTIMP   uint64
 	ResponseRcodeCountTotal_NXDOMAIN uint64
+	ResponseRcodeCountTotal_REFUSED  uint64
+	ResponseRcodeCountTotal_YXDOMAIN uint64
+	ResponseRcodeCountTotal_XRRSET   uint64
+	ResponseRcodeCountTotal_NOTAUTH  uint64
+	ResponseRcodeCountTotal_NOTZONE  uint64
 
 	ResponseSizeBytesBucket_0     uint64
 	ResponseSizeBytesBucket_100   uint64
@@ -167,8 +179,16 @@ func (s *CoreStats) UpdateStats(addr net.Addr, msg *Message, duration time.Durat
 		atomic.AddUint64(&s.RequestTypeCountTotal_A, 1)
 	case TypeAAAA:
 		atomic.AddUint64(&s.RequestTypeCountTotal_AAAA, 1)
+	case TypeCNAME:
+		atomic.AddUint64(&s.RequestTypeCountTotal_CNAME, 1)
 	case TypeNS:
 		atomic.AddUint64(&s.RequestTypeCountTotal_NS, 1)
+	case TypeSOA:
+		atomic.AddUint64(&s.RequestTypeCountTotal_SOA, 1)
+	case TypeMX:
+		atomic.AddUint64(&s.RequestTypeCountTotal_MX, 1)
+	case TypeTXT:
+		atomic.AddUint64(&s.RequestTypeCountTotal_TXT, 1)
 	case TypePTR:
 		atomic.AddUint64(&s.RequestTypeCountTotal_PTR, 1)
 	case TypeSRV:
@@ -179,8 +199,24 @@ func (s *CoreStats) UpdateStats(addr net.Addr, msg *Message, duration time.Durat
 	switch msg.Header.Bits.Rcode() {
 	case RcodeSuccess:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOERROR, 1)
+	case RcodeFormatError:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_FORMERR, 1)
+	case RcodeServerFailure:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_SERVFAIL, 1)
 	case RcodeNameError:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOTIMP, 1)
+	case RcodeNotImplemented:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_NXDOMAIN, 1)
+	case RcodeRefused:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_REFUSED, 1)
+	case RcodeYXDomain:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_YXDOMAIN, 1)
+	case RcodeNXRrset:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_XRRSET, 1)
+	case RcodeNotAuth:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOTAUTH, 1)
+	case RcodeNotZone:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOTZONE, 1)
 	}
 
 	// response size
@@ -265,8 +301,20 @@ coredns_dns_request_type_count_total{server="{server}",type="AAAA",zone="{zone}"
 coredns_dns_request_type_count_total{server="{server}",type="NS",zone="{zone}"} {request_type_count_total_ns}
 coredns_dns_request_type_count_total{server="{server}",type="PTR",zone="{zone}"} {request_type_count_total_ptr}
 coredns_dns_request_type_count_total{server="{server}",type="SRV",zone="{zone}"} {request_type_count_total_srv}
+coredns_dns_request_type_count_total{server="{server}",type="CNAME",zone="{zone}"} {request_type_count_total_cname}
+coredns_dns_request_type_count_total{server="{server}",type="SOA",zone="{zone}"} {request_type_count_total_soa}
+coredns_dns_request_type_count_total{server="{server}",type="MX",zone="{zone}"} {request_type_count_total_mx}
+coredns_dns_request_type_count_total{server="{server}",type="TXT",zone="{zone}"} {request_type_count_total_txt}
 coredns_dns_response_rcode_count_total{rcode="NOERROR",server="{server}",zone="{zone}"} {response_rcode_count_total_noerror}
+coredns_dns_response_rcode_count_total{rcode="FORMERR",server="{server}",zone="{zone}"} {response_rcode_count_total_formerr}
+coredns_dns_response_rcode_count_total{rcode="SERVFAIL",server="{server}",zone="{zone}"} {response_rcode_count_total_servfail}
 coredns_dns_response_rcode_count_total{rcode="NXDOMAIN",server="{server}",zone="{zone}"} {response_rcode_count_total_nxdomain}
+coredns_dns_response_rcode_count_total{rcode="NOTIMP",server="{server}",zone="{zone}"} {response_rcode_count_total_notimp}
+coredns_dns_response_rcode_count_total{rcode="REFUSED",server="{server}",zone="{zone}"} {response_rcode_count_total_refused}
+coredns_dns_response_rcode_count_total{rcode="YXDOMAIN",server="{server}",zone="{zone}"} {response_rcode_count_total_yxdomain}
+coredns_dns_response_rcode_count_total{rcode="XRRSET",server="{server}",zone="{zone}"} {response_rcode_count_total_xrrset}
+coredns_dns_response_rcode_count_total{rcode="NOTAUTH",server="{server}",zone="{zone}"} {response_rcode_count_total_notauth}
+coredns_dns_response_rcode_count_total{rcode="NOTZONE",server="{server}",zone="{zone}"} {response_rcode_count_total_notzone}
 coredns_dns_response_size_bytes_bucket{proto="{proto}",server="{server}",zone="{zone}",le="0"} {response_size_bytes_bucket_0}
 coredns_dns_response_size_bytes_bucket{proto="{proto}",server="{server}",zone="{zone}",le="100"} {response_size_bytes_bucket_100}
 coredns_dns_response_size_bytes_bucket{proto="{proto}",server="{server}",zone="{zone}",le="200"} {response_size_bytes_bucket_200}
@@ -331,8 +379,20 @@ coredns_dns_response_size_bytes_count{proto="{proto}",server="{server}",zone="{z
 		"request_type_count_total_ns":             atomic.LoadUint64(&s.RequestTypeCountTotal_NS),
 		"request_type_count_total_ptr":            atomic.LoadUint64(&s.RequestTypeCountTotal_PTR),
 		"request_type_count_total_srv":            atomic.LoadUint64(&s.RequestTypeCountTotal_SRV),
+		"request_type_count_total_cname":          atomic.LoadUint64(&s.RequestTypeCountTotal_CNAME),
+		"request_type_count_total_soa":            atomic.LoadUint64(&s.RequestTypeCountTotal_SOA),
+		"request_type_count_total_mx":             atomic.LoadUint64(&s.RequestTypeCountTotal_MX),
+		"request_type_count_total_txt":            atomic.LoadUint64(&s.RequestTypeCountTotal_TXT),
 		"response_rcode_count_total_noerror":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOERROR),
+		"response_rcode_count_total_formerr":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_FORMERR),
+		"response_rcode_count_total_servfail":     atomic.LoadUint64(&s.ResponseRcodeCountTotal_SERVFAIL),
 		"response_rcode_count_total_nxdomain":     atomic.LoadUint64(&s.ResponseRcodeCountTotal_NXDOMAIN),
+		"response_rcode_count_total_notimp":       atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTIMP),
+		"response_rcode_count_total_refused":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_REFUSED),
+		"response_rcode_count_total_yxdomain":     atomic.LoadUint64(&s.ResponseRcodeCountTotal_YXDOMAIN),
+		"response_rcode_count_total_xrrset":       atomic.LoadUint64(&s.ResponseRcodeCountTotal_XRRSET),
+		"response_rcode_count_total_notauth":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTAUTH),
+		"response_rcode_count_total_notzone":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTZONE),
 		"response_size_bytes_bucket_0":            atomic.LoadUint64(&s.ResponseSizeBytesBucket_0),
 		"response_size_bytes_bucket_100":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_100),
 		"response_size_bytes_bucket_200":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_200),
