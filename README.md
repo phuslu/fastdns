@@ -126,18 +126,19 @@ goos: linux
 goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
-BenchmarkHOST              	24803638	        48.38 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME             	18300250	        65.59 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV               	16979125	        70.74 ns/op	       0 B/op	       0 allocs/op
-BenchmarkNS                	13861065	        86.52 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSOA               	12355112	        97.15 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR               	21184699	        56.66 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                	19056997	        63.02 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT               	27121401	        44.27 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseMessage      	48858211	        24.44 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetQuestion       	26983996	        44.55 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeName        	34159032	        33.67 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain      	60727620	        19.34 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST              	33714019	        35.50 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME             	19525077	        61.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV               	18085641	        66.18 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNS                	14765006	        81.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSOA               	13095116	        90.40 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR               	25070546	        47.98 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                	22039374	        55.53 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT               	35151956	        34.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseMessage      	44680574	        27.02 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetQuestion       	24864686	        48.89 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetRcode          	129398640	         9.38 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeName        	30526934	        39.30 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain      	62231484	        19.30 ns/op	       0 B/op	       0 allocs/op
 
 PASS
 ok  	github.com/phuslu/fastdns	19.026s
