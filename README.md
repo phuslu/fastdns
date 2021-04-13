@@ -10,6 +10,7 @@
 
 * 0 Dependency
 * Similar Interface with net/http
+* Compatible metrics with coredns
 * High Performance
     - 0-allocs dns request parser
     - 0-allocs dns records marshaller
@@ -65,14 +66,22 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 }
 
 func main() {
+	addr := ":53"
+
 	server := &fastdns.ForkServer{
 		Handler: &DNSHandler{
 			Debug: os.Getenv("DEBUG") != "",
 		},
+		Stats: &fastdns.CoreStats{
+			Family: "1",
+			Proto:  "udp",
+			Server: "dns://" + addr,
+			Zone:   ".",
+		}
 		Logger: log.Default(),
 	}
 
-	err := server.ListenAndServe(":53")
+	err := server.ListenAndServe(addr)
 	if err != nil {
 		log.Fatalf("dnsserver error: %+v", err)
 	}
