@@ -14,6 +14,9 @@ type Server struct {
 	// handler to invoke
 	Handler Handler
 
+	// Stats to invoke
+	Stats Stats
+
 	// ErrorLog specifies an optional logger for errors accepting
 	// connections, unexpected behavior from handlers, and
 	// underlying FileSystem errors.
@@ -49,7 +52,7 @@ func (s *Server) ListenAndServe(addr string) error {
 
 	// s.ErrorLog.Printf("server-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
-	return serve(conn, s.Handler, s.ErrorLog, s.Concurrency)
+	return serve(conn, s.Handler, s.Stats, s.ErrorLog, s.Concurrency)
 }
 
 // Index indicates the index of Server instances.
@@ -78,6 +81,7 @@ func (s *Server) spawn(addr string, maxProcs int) (err error) {
 		go func(index int) {
 			server := &Server{
 				Handler:     s.Handler,
+				Stats:       s.Stats,
 				ErrorLog:    s.ErrorLog,
 				MaxProcs:    s.MaxProcs,
 				Concurrency: s.Concurrency,
@@ -101,6 +105,7 @@ func (s *Server) spawn(addr string, maxProcs int) (err error) {
 		go func(index int) {
 			server := &Server{
 				Handler:     s.Handler,
+				Stats:       s.Stats,
 				ErrorLog:    s.ErrorLog,
 				MaxProcs:    s.MaxProcs,
 				Concurrency: s.Concurrency,
@@ -130,19 +135,23 @@ var udpCtxPool = sync.Pool{
 	},
 }
 
-func serve(conn *net.UDPConn, handler Handler, logger *log.Logger, concurrency int) error {
+func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, concurrency int) error {
 	if concurrency == 0 {
 		concurrency = 256 * 1024
 	}
 
 	pool := &workerPool{
 		WorkerFunc: func(ctx *udpCtx) error {
+			start := time.Now()
 			rw, req := ctx.rw, ctx.req
 			err := ParseMessage(req, req.Raw, false)
 			if err != nil {
 				Error(rw, req, RcodeFormatError)
 			} else {
 				handler.ServeDNS(rw, req)
+			}
+			if stats != nil {
+				stats.UpdateStats(rw.RemoteAddr(), b2s(req.Domain), req.Question.Type, time.Since(start))
 			}
 			udpCtxPool.Put(ctx)
 			return err

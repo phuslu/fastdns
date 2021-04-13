@@ -26,9 +26,25 @@ var memPool = sync.Pool{
 
 type fasthttpAdapter struct {
 	FastdnsHandler fastdns.Handler
+	FastdnsStats   fastdns.Stats
 }
 
 func (h *fasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
+	switch string(ctx.Path()) {
+	case "/dns-query":
+		h.HandlerDoH(ctx)
+	case "/metrics":
+		h.HandlerMetrics(ctx)
+	default:
+		ctx.NotFound()
+	}
+}
+
+func (h *fasthttpAdapter) HandlerMetrics(ctx *fasthttp.RequestCtx) {
+	ctx.SuccessString("text/plain; charset=utf-8", h.FastdnsStats.OpenMetrics())
+}
+
+func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
 	mem := memPool.Get().(*memCtx)
 
 	rw, req := mem.rw, mem.req

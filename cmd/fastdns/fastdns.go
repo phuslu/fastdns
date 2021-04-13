@@ -80,6 +80,12 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 }
 
 func main() {
+	addr, addr2 := os.Args[1], ""
+	if host, portStr, err := net.SplitHostPort(addr); err == nil {
+		port, _ := strconv.Atoi(portStr)
+		addr2 = fmt.Sprintf("%s:%d", host, port+1)
+	}
+
 	handler := &DNSHandler{
 		DNSClient: &fastdns.Client{
 			ServerAddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
@@ -88,21 +94,31 @@ func main() {
 		Debug: os.Getenv("DEBUG") != "",
 	}
 
-	addr, addr2 := os.Args[1], ""
-	if host, portStr, err := net.SplitHostPort(addr); err == nil {
-		port, _ := strconv.Atoi(portStr)
-		addr2 = fmt.Sprintf("%s:%d", host, port+1)
+	stats := &fastdns.CoreStats{
+		Family: "1",
+		Proto:  "udp",
+		Server: "dns://" + addr,
+		Zone:   ".",
 	}
 
 	c := make(chan error)
 	go func() {
 		log.Printf("start fast DNS server on %s", addr)
-		c <- fastdns.ListenAndServe(addr, handler)
+		server := &fastdns.Server{
+			Handler:  handler,
+			Stats:    stats,
+			ErrorLog: log.Default(),
+		}
+		c <- server.ListenAndServe(addr)
 	}()
 
 	go func() {
 		log.Printf("start fast DoH server on %s", addr2)
-		c <- fasthttp.ListenAndServe(addr2, (&fasthttpAdapter{handler}).Handler)
+		adapter := &fasthttpAdapter{
+			FastdnsHandler: handler,
+			FastdnsStats:   stats,
+		}
+		c <- fasthttp.ListenAndServe(addr2, adapter.Handler)
 	}()
 
 	log.Fatalf("listen and serve DNS/DoH error: %+v", <-c)

@@ -14,6 +14,9 @@ type ForkServer struct {
 	// handler to invoke
 	Handler Handler
 
+	// stats to invoke
+	Stats Stats
+
 	// ErrorLog specifies an optional logger for errors accepting
 	// connections, unexpected behavior from handlers, and
 	// underlying FileSystem errors.
@@ -57,7 +60,7 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 
 	// s.ErrorLog.Printf("forkserver-%d pid-%d serving dns on %s", s.Index(), os.Getpid(), conn.LocalAddr())
 
-	return serve(conn, s.Handler, s.ErrorLog, s.Concurrency)
+	return serve(conn, s.Handler, s.Stats, s.ErrorLog, s.Concurrency)
 }
 
 // Index indicates the index of Server instances.
