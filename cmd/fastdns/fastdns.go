@@ -95,6 +95,7 @@ func main() {
 	}
 
 	stats := &fastdns.CoreStats{
+		Prefix: "coredns_",
 		Family: "1",
 		Proto:  "udp",
 		Server: "dns://" + addr,

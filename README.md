@@ -73,6 +73,7 @@ func main() {
 			Debug: os.Getenv("DEBUG") != "",
 		},
 		Stats: &fastdns.CoreStats{
+			Prefix: "coredns_",
 			Family: "1",
 			Proto:  "udp",
 			Server: "dns://" + addr,
