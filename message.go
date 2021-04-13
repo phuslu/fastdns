@@ -310,53 +310,53 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 	msg.Domain = append(msg.Domain[:0], domain...)
 }
 
-// AppendMessage appends the dns request to dst and returns the resulting dst.
-func AppendMessage(dst []byte, msg *Message) []byte {
-	header := [...]byte{
-		// ID
-		byte(msg.Header.ID >> 8), byte(msg.Header.ID),
-		// Bits
-		byte(msg.Header.Bits >> 8), byte(msg.Header.Bits),
-		// QDCOUNT
-		byte(msg.Header.QDCount >> 8), byte(msg.Header.QDCount),
-		// ANCOUNT
-		byte(msg.Header.ANCount >> 8), byte(msg.Header.ANCount),
-		// NSCOUNT
-		byte(msg.Header.NSCount >> 8), byte(msg.Header.NSCount),
-		// ARCOUNT
-		byte(msg.Header.ARCount >> 8), byte(msg.Header.ARCount),
+// SetRcode sets QR=1, RCODE=rcode, ANCount=ancount then updates Raw.
+func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
+	// QR = 1, RCODE = rcode
+	//
+	//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	msg.Header.Bits &= 0b1111111111110000
+	msg.Header.Bits |= 0b1000000000000000 | Bits(rcode)
+
+	// ANCount
+	// msg.Header.QDCount = 1
+	msg.Header.ANCount = ancount
+	msg.Header.NSCount = 0
+	msg.Header.ARCount = 0
+
+	// Raw
+	if ancount != 0 {
+		msg.Raw = msg.Raw[:12+len(msg.Question.Name)+4]
+	} else {
+		msg.Raw = msg.Raw[:12]
+	}
+	header := msg.Raw[:12]
+
+	// Bits
+	header[2] = byte(msg.Header.Bits >> 8)
+	header[3] = byte(msg.Header.Bits)
+
+	// set QDCOUNT = 0 if RCODE != 0
+	if rcode != 0 {
+		header[4] = 0
+		header[5] = 0
 	}
 
-	dst = append(dst, header[:]...)
+	// ANCOUNT
+	header[6] = byte(ancount >> 8)
+	header[7] = byte(ancount)
 
-	// question
-	if msg.Header.QDCount != 0 {
-		// QNAME
-		if msg.Question.Name != nil {
-			dst = append(dst, msg.Question.Name...)
-		} else {
-			i := len(dst)
-			j := i + len(msg.Domain)
-			dst = append(dst, '.')
-			dst = append(dst, msg.Domain...)
-			var n byte = 0
-			for k := j; k >= i; k-- {
-				if dst[k] == '.' {
-					dst[k] = n
-					n = 0
-				} else {
-					n++
-				}
-			}
-			dst = append(dst, 0)
-		}
-		// QTYPE
-		dst = append(dst, byte(msg.Question.Type>>8), byte(msg.Question.Type))
-		// QCLASS
-		dst = append(dst, byte(msg.Question.Class>>8), byte(msg.Question.Class))
-	}
+	// NSCOUNT
+	header[8] = 0
+	header[9] = 0
 
-	return dst
+	// ARCOUNT
+	header[10] = 0
+	header[11] = 0
+
 }
 
 var msgPool = sync.Pool{

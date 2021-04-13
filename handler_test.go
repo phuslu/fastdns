@@ -7,7 +7,7 @@ import (
 )
 
 var mockHandlerMessage = &Message{
-	nil,
+	[]byte("\x00\x02\x81\x80\x00\x01\x00\x01\x00\x00\x00\x00\x02\x68\x6b\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01\xc0\x0c\x00\x01\x00\x01\x00\x00\x01\x2b\x00\x04\x77\x1c\x56\xbe"),
 	[]byte("hk.phus.lu"),
 	Header{
 		ID:      0x0002,
@@ -35,7 +35,12 @@ func TestHandlerError(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, AcquireMessage()
+	defer ReleaseMessage(req)
+
+	*req = *mockHandlerMessage
+	req.Raw = append([]byte(nil), mockHandlerMessage.Raw...)
+
 	if rw.RemoteAddr() != nil {
 		t.Errorf("MemoryResponseWriter shall return empty addr")
 	}
@@ -43,7 +48,7 @@ func TestHandlerError(t *testing.T) {
 		t.Errorf("MemoryResponseWriter shall return empty addr")
 	}
 	for _, c := range cases {
-		Error(rw, mockHandlerMessage, c.Rcode)
+		Error(rw, req, c.Rcode)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("Error(%v) error got=%#v want=%#v", c.Rcode, got, want)
 		}
