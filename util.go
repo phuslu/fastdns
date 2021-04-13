@@ -93,6 +93,7 @@ func template(dst []byte, template string, startTag, endTag byte, m map[string]i
 	return dst
 }
 
+// nolint
 func b2s(b []byte) string { return *(*string)(unsafe.Pointer(&b)) }
 
 // fastrandn returns a pseudorandom uint32 in [0,n).

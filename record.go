@@ -6,6 +6,15 @@ import (
 
 // AppendHeaderQuestion appends the dns request to dst with the specified QDCount/ANCount/NSCount/ARCount.
 func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar uint16) []byte {
+	// QR = 1, RCODE = rcode
+	//
+	//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	req.Header.Bits &= 0b1111111111110000
+	req.Header.Bits |= 0b1000000000000000 | Bits(rcode)
+
 	// fixed size array for avoid bounds check
 	var header [12]byte
 
@@ -13,14 +22,9 @@ func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar 
 	header[0] = byte(req.Header.ID >> 8)
 	header[1] = byte(req.Header.ID)
 
-	// QR = 1, RCODE = rcode
-	//
-	// 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
-	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	header[2] = byte(req.Header.Bits>>8) | 0b10000000
-	header[3] = byte(req.Header.Bits&0b11110000) | byte(rcode)
+	// Bits
+	header[2] = byte(req.Header.Bits >> 8)
+	header[3] = byte(req.Header.Bits)
 
 	// QDCOUNT
 	header[4] = byte(qd >> 8)

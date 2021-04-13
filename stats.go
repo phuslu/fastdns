@@ -7,7 +7,7 @@ import (
 )
 
 type Stats interface {
-	UpdateStats(addr net.Addr, req *Message, duration time.Duration)
+	UpdateStats(addr net.Addr, msg *Message, duration time.Duration)
 	OpenMetrics() (metrics string)
 }
 
@@ -82,7 +82,7 @@ type CoreStats struct {
 	Family, Proto, Server, Zone string
 }
 
-func (s *CoreStats) UpdateStats(addr net.Addr, req *Message, duration time.Duration) {
+func (s *CoreStats) UpdateStats(addr net.Addr, msg *Message, duration time.Duration) {
 	atomic.AddUint64(&s.RequstCountTotal, 1)
 	// request seconds
 	switch {
@@ -125,7 +125,7 @@ func (s *CoreStats) UpdateStats(addr net.Addr, req *Message, duration time.Durat
 	atomic.AddUint64(&s.RequestDurationSecondsCount, 1)
 
 	// request size
-	size := 12 + len(req.Question.Name) + 4
+	size := 12 + len(msg.Question.Name) + 4
 	switch {
 	case size == 0:
 		atomic.AddUint64(&s.RequestSizeBytesBucket_0, 1)
@@ -162,7 +162,7 @@ func (s *CoreStats) UpdateStats(addr net.Addr, req *Message, duration time.Durat
 	atomic.AddUint64(&s.RequestSizeBytesCount, 1)
 
 	// request type
-	switch req.Question.Type {
+	switch msg.Question.Type {
 	case TypeA:
 		atomic.AddUint64(&s.RequestTypeCountTotal_A, 1)
 	case TypeAAAA:
@@ -176,7 +176,7 @@ func (s *CoreStats) UpdateStats(addr net.Addr, req *Message, duration time.Durat
 	}
 
 	// response rcode
-	switch req.Header.Bits.Rcode() {
+	switch msg.Header.Bits.Rcode() {
 	case RcodeSuccess:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOERROR, 1)
 	case RcodeNameError:
@@ -184,7 +184,7 @@ func (s *CoreStats) UpdateStats(addr net.Addr, req *Message, duration time.Durat
 	}
 
 	// response size
-	size = len(req.Raw)
+	size = len(msg.Raw)
 	switch {
 	case size == 0:
 		atomic.AddUint64(&s.ResponseSizeBytesBucket_0, 1)
