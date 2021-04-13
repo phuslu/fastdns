@@ -151,7 +151,7 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, 
 				handler.ServeDNS(rw, req)
 			}
 			if stats != nil {
-				stats.UpdateStats(rw.RemoteAddr(), b2s(req.Domain), req.Question.Type, time.Since(start))
+				stats.UpdateStats(rw.RemoteAddr(), req, time.Since(start))
 			}
 			udpCtxPool.Put(ctx)
 			return err
