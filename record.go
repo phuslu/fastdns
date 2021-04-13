@@ -4,59 +4,6 @@ import (
 	"net"
 )
 
-// AppendHeaderQuestion appends the dns request to dst with the specified QDCount/ANCount/NSCount/ARCount.
-func AppendHeaderQuestion(dst []byte, req *Message, rcode Rcode, qd, an, ns, ar uint16) []byte {
-	// QR = 1, RCODE = rcode
-	//
-	//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
-	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	req.Header.Bits &= 0b1111111111110000
-	req.Header.Bits |= 0b1000000000000000 | Bits(rcode)
-
-	// fixed size array for avoid bounds check
-	var header [12]byte
-
-	// ID
-	header[0] = byte(req.Header.ID >> 8)
-	header[1] = byte(req.Header.ID)
-
-	// Bits
-	header[2] = byte(req.Header.Bits >> 8)
-	header[3] = byte(req.Header.Bits)
-
-	// QDCOUNT
-	header[4] = byte(qd >> 8)
-	header[5] = byte(qd)
-
-	// ANCOUNT
-	header[6] = byte(an >> 8)
-	header[7] = byte(an)
-
-	// NSCOUNT
-	header[8] = byte(ns >> 8)
-	header[9] = byte(ns)
-
-	// ARCOUNT
-	header[10] = byte(ar >> 8)
-	header[11] = byte(ar)
-
-	dst = append(dst, header[:]...)
-
-	// question
-	if qd != 0 {
-		// QNAME
-		dst = append(dst, req.Question.Name...)
-		// QTYPE
-		dst = append(dst, byte(req.Question.Type>>8), byte(req.Question.Type))
-		// QCLASS
-		dst = append(dst, byte(req.Question.Class>>8), byte(req.Question.Class))
-	}
-
-	return dst
-}
-
 // AppendHostRecord appends the Host records to dst and returns the resulting dst.
 func AppendHostRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte {
 	for _, ip := range ips {
