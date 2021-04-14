@@ -126,19 +126,29 @@ goos: linux
 goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
-BenchmarkHOST              	33714019	        35.50 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME             	19525077	        61.67 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV               	18085641	        66.18 ns/op	       0 B/op	       0 allocs/op
-BenchmarkNS                	14765006	        81.39 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSOA               	13095116	        90.40 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR               	25070546	        47.98 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                	22039374	        55.53 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT               	35151956	        34.15 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseMessage      	44680574	        27.02 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetQuestion       	24864686	        48.89 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetRcode          	129398640	         9.38 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeName        	30526934	        39.30 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain      	62231484	        19.30 ns/op	       0 B/op	       0 allocs/op
+
+BenchmarkHOST              	39442191	        30.31 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME             	22563691	        53.23 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV               	20890515	        57.63 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNS                	16634973	        71.98 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSOA               	14635425	        82.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR               	27980914	        42.96 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                	24721230	        48.75 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT               	39824239	        30.14 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseMessage      	50639167	        23.86 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetQuestion       	26985039	        46.08 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetRcode          	175744434	         6.833 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeName        	33319760	        36.07 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendHostRecord  	55649703	        21.56 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendCNAMERecord 	29943513	        40.04 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSRVRecord   	26827544	        45.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendNSRecord    	20113075	        59.70 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSOARecord   	17054136	        69.81 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendPTRRecord   	36748305	        32.60 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendMXRecord    	34203414	        35.04 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendTXTRecord   	65836453	        18.22 ns/op	       0 B/op	       0 allocs/op
+BenchmarkUpdateStats       	14161730	        84.78 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain      	63253357	        19.27 ns/op	       0 B/op	       0 allocs/op
 
 PASS
 ok  	github.com/phuslu/fastdns	19.026s
