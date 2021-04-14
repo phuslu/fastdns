@@ -312,13 +312,13 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 
 // SetRcode sets QR=1, RCODE=rcode, ANCount=ancount then updates Raw.
 func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
-	// QR = 1, RD = 0, RCODE = rcode
+	// QR = 1, RCODE = rcode
 	//
 	//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	msg.Header.Bits &= 0b1111111101110000
+	msg.Header.Bits &= 0b1111111111110000
 	msg.Header.Bits |= 0b1000000000000000 | Bits(rcode)
 
 	// Raw
