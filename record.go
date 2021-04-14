@@ -4,8 +4,8 @@ import (
 	"net"
 )
 
-// AppendHostRecord appends the Host records to dst and returns the resulting dst.
-func AppendHostRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte {
+// AppendHOSTRecord appends the Host records to dst and returns the resulting dst.
+func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte {
 	for _, ip := range ips {
 		if ip4 := ip.To4(); ip4 != nil {
 			// hint golang compiler remove ip bounds check

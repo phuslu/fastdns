@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAppendHostRecord(t *testing.T) {
+func TestAppendHOSTRecord(t *testing.T) {
 	cases := []struct {
 		Hex string
 		IPs []net.IP
@@ -29,8 +29,8 @@ func TestAppendHostRecord(t *testing.T) {
 	req.Question.Class = ClassINET
 
 	for _, c := range cases {
-		if got, want := hex.EncodeToString(AppendHostRecord(nil, req, c.TTL, c.IPs)), c.Hex; got != want {
-			t.Errorf("AppendHostRecord(%v) error got=%#v want=%#v", c.IPs, got, want)
+		if got, want := hex.EncodeToString(AppendHOSTRecord(nil, req, c.TTL, c.IPs)), c.Hex; got != want {
+			t.Errorf("AppendHOSTRecord(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
 
@@ -258,7 +258,7 @@ func TestAppendTXTRecord(t *testing.T) {
 
 }
 
-func BenchmarkAppendHostRecord(b *testing.B) {
+func BenchmarkAppendHOSTRecord(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -268,7 +268,7 @@ func BenchmarkAppendHostRecord(b *testing.B) {
 
 	ips := []net.IP{net.ParseIP("8.8.8.8")}
 	for i := 0; i < b.N; i++ {
-		payload = AppendHostRecord(payload[:0], req, 3000, ips)
+		payload = AppendHOSTRecord(payload[:0], req, 3000, ips)
 	}
 }
 

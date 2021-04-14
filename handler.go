@@ -18,7 +18,7 @@ func Error(rw ResponseWriter, req *Message, rcode Rcode) {
 // HOST replies to the request with the specified Host records.
 func HOST(rw ResponseWriter, req *Message, ttl uint32, ips []net.IP) {
 	req.SetRcode(RcodeSuccess, uint16(len(ips)))
-	req.Raw = AppendHostRecord(req.Raw, req, ttl, ips)
+	req.Raw = AppendHOSTRecord(req.Raw, req, ttl, ips)
 	_, _ = rw.Write(req.Raw)
 }
 

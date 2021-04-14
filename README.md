@@ -139,7 +139,7 @@ BenchmarkParseMessage      	50639167	        23.86 ns/op	       0 B/op	       0 
 BenchmarkSetQuestion       	26985039	        46.08 ns/op	       0 B/op	       0 allocs/op
 BenchmarkSetRcode          	175744434	         6.833 ns/op	       0 B/op	       0 allocs/op
 BenchmarkDecodeName        	33319760	        36.07 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendHostRecord  	55649703	        21.56 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendHOSTRecord  	55649703	        21.56 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendCNAMERecord 	29943513	        40.04 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendSRVRecord   	26827544	        45.00 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendNSRecord    	20113075	        59.70 ns/op	       0 B/op	       0 allocs/op
