@@ -136,11 +136,11 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		b byte
 		s string
 	}{
-		{resp.Header.Bits.QR(), "qr"},
-		{resp.Header.Bits.AA(), "aa"},
-		{resp.Header.Bits.TC(), "tc"},
-		{resp.Header.Bits.RD(), "rd"},
-		{resp.Header.Bits.RA(), "ra"},
+		{resp.Header.Flags.QR(), "qr"},
+		{resp.Header.Flags.AA(), "aa"},
+		{resp.Header.Flags.TC(), "tc"},
+		{resp.Header.Flags.RD(), "rd"},
+		{resp.Header.Flags.RA(), "ra"},
 	} {
 		if f.b == 0 {
 			continue
@@ -154,7 +154,7 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	fmt.Printf(";; global options: +cmd +noedns\n")
 	fmt.Printf(";; Got answer:\n")
 	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
-		resp.Header.Bits.Opcode(), resp.Header.Bits.Rcode(), resp.Header.ID)
+		resp.Header.Flags.Opcode(), resp.Header.Flags.Rcode(), resp.Header.ID)
 	fmt.Printf(";; flags: %s; QUERY: %d, ANSWER: %d, AUTHORITY: %d, ADDITIONAL: %d\n",
 		flags, resp.Header.QDCount, resp.Header.ANCount, resp.Header.NSCount, resp.Header.ARCount)
 

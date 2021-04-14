@@ -198,7 +198,7 @@ func (s *CoreStats) UpdateStats(addr net.Addr, msg *Message, duration time.Durat
 	}
 
 	// response rcode
-	switch msg.Header.Bits.Rcode() {
+	switch msg.Header.Flags.Rcode() {
 	case RcodeSuccess:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOERROR, 1)
 	case RcodeFormatError:

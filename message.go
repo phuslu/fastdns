@@ -24,13 +24,13 @@ type Message struct {
 		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		ID uint16
 
-		// Bits is an arbitrary 16bit represents QR, Opcode, AA, TC, RD, RA, Z and RCODE.
+		// Flags is an arbitrary 16bit represents QR, Opcode, AA, TC, RD, RA, Z and RCODE.
 		//
 		//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
 		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 		// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
 		// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-		Bits Bits
+		Flags Flags
 
 		// QDCOUNT specifies the number of entries in the question section
 		//
@@ -116,7 +116,7 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	dst.Header.ID = uint16(payload[0])<<8 | uint16(payload[1])
 
 	// RD, TC, AA, Opcode, QR, RA, Z, RCODE
-	dst.Header.Bits = Bits(payload[2])<<8 | Bits(payload[3])
+	dst.Header.Flags = Flags(payload[2])<<8 | Flags(payload[3])
 
 	// QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT
 	dst.Header.QDCount = uint16(payload[4])<<8 | uint16(payload[5])
@@ -270,8 +270,8 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	msg.Header.Bits &= 0b0111111111110000
-	msg.Header.Bits |= 0b0000000100000000
+	msg.Header.Flags &= 0b0111111111110000
+	msg.Header.Flags |= 0b0000000100000000
 
 	msg.Header.QDCount = 1
 	msg.Header.ANCount = 0
@@ -281,8 +281,8 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 	header := [...]byte{
 		// ID
 		byte(msg.Header.ID >> 8), byte(msg.Header.ID),
-		// Bits
-		byte(msg.Header.Bits >> 8), byte(msg.Header.Bits),
+		// Flags
+		byte(msg.Header.Flags >> 8), byte(msg.Header.Flags),
 		// QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT
 		0, 1, 0, 0, 0, 0, 0, 0,
 	}
@@ -311,8 +311,8 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
 	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-	msg.Header.Bits &= 0b1111111111110000
-	msg.Header.Bits |= 0b1000000000000000 | Bits(rcode)
+	msg.Header.Flags &= 0b1111111111110000
+	msg.Header.Flags |= 0b1000000000000000 | Flags(rcode)
 
 	// Error
 	if rcode != 0 {
@@ -323,9 +323,9 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 
 		msg.Raw = msg.Raw[:12]
 
-		// Bits
-		msg.Raw[2] = byte(msg.Header.Bits >> 8)
-		msg.Raw[3] = byte(msg.Header.Bits)
+		// Flags
+		msg.Raw[2] = byte(msg.Header.Flags >> 8)
+		msg.Raw[3] = byte(msg.Header.Flags)
 
 		// QDCount
 		msg.Raw[4] = 0
@@ -354,9 +354,9 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 	msg.Raw = msg.Raw[:12+len(msg.Question.Name)+4]
 	header := msg.Raw[:12]
 
-	// Bits
-	header[2] = byte(msg.Header.Bits >> 8)
-	header[3] = byte(msg.Header.Bits)
+	// Flags
+	header[2] = byte(msg.Header.Flags >> 8)
+	header[3] = byte(msg.Header.Flags)
 
 	// QDCount
 	header[4] = 0

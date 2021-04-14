@@ -39,7 +39,7 @@ func TestParseMessageOK(t *testing.T) {
 	cases[0].Message.Raw = cases[0].Raw
 	cases[0].Message.Domain = []byte("1.50.168.192.in-addr.arpa")
 	cases[0].Message.Header.ID = 0x0001
-	cases[0].Message.Header.Bits = 0b0000000100000000
+	cases[0].Message.Header.Flags = 0b0000000100000000
 	cases[0].Message.Header.QDCount = 0x01
 	cases[0].Message.Header.ANCount = 0x00
 	cases[0].Message.Header.NSCount = 0x00
@@ -75,7 +75,7 @@ func TestParseMessageOK(t *testing.T) {
 	cases[1].Message.Raw = cases[1].Raw
 	cases[1].Message.Domain = []byte("hk.phus.lu")
 	cases[1].Message.Header.ID = 0x0002
-	cases[1].Message.Header.Bits = 0b0000000100000000
+	cases[1].Message.Header.Flags = 0b0000000100000000
 	cases[1].Message.Header.QDCount = 0x01
 	cases[1].Message.Header.ANCount = 0x00
 	cases[1].Message.Header.NSCount = 0x00
@@ -139,8 +139,8 @@ func TestSetQuestion(t *testing.T) {
 		t.Errorf("req.Header.ID should not empty after SetQuestion")
 	}
 
-	if got, want := req.Header.Bits, Bits(0b0000000100000000); got != want {
-		t.Errorf("req.Header.Bits got=%x want=%x", got, want)
+	if got, want := req.Header.Flags, Flags(0b0000000100000000); got != want {
+		t.Errorf("req.Header.Flags got=%x want=%x", got, want)
 	}
 
 	if got, want := req.Header.QDCount, uint16(1); got != want {
