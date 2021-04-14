@@ -303,8 +303,8 @@ func (msg *Message) SetRequestQustion(domain string, typ Type, class Class) {
 	msg.Domain = append(msg.Domain[:0], domain...)
 }
 
-// SetRcode sets QR=1, RCODE=rcode, ANCount=ancount then updates Raw.
-func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
+// SetResponseHeader sets QR=1, RCODE=rcode, ANCount=ancount then updates Raw.
+func (msg *Message) SetResponseHeader(rcode Rcode, ancount uint16) {
 	// QR = 1, RCODE = rcode
 	//
 	//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F

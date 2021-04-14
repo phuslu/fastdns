@@ -212,14 +212,14 @@ func BenchmarkSetQuestion(b *testing.B) {
 	}
 }
 
-func BenchmarkSetRcode(b *testing.B) {
+func BenchmarkSetResponseHeader(b *testing.B) {
 	req := AcquireMessage()
 	defer ReleaseMessage(req)
 
 	req.SetRequestQustion("mail.google.com", TypeA, ClassINET)
 
 	for i := 0; i < b.N; i++ {
-		req.SetRcode(RcodeSuccess, 4)
+		req.SetResponseHeader(RcodeSuccess, 4)
 	}
 }
 

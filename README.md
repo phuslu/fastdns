@@ -136,8 +136,8 @@ BenchmarkPTR               	27980914	        42.96 ns/op	       0 B/op	       0 
 BenchmarkMX                	24721230	        48.75 ns/op	       0 B/op	       0 allocs/op
 BenchmarkTXT               	39824239	        30.14 ns/op	       0 B/op	       0 allocs/op
 BenchmarkParseMessage      	50639167	        23.86 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetQuestion       	26985039	        46.08 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetRcode          	175744434	         6.833 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetRequestQustion	26985039	        46.08 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetResponseHeader 	175744434	         6.833 ns/op	       0 B/op	       0 allocs/op
 BenchmarkDecodeName        	33319760	        36.07 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendHOSTRecord  	55649703	        21.56 ns/op	       0 B/op	       0 allocs/op
 BenchmarkAppendCNAMERecord 	29943513	        40.04 ns/op	       0 B/op	       0 allocs/op
