@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/phuslu/fastdns"
+	"github.com/valyala/bytebufferpool"
 	"github.com/valyala/fasthttp"
 )
 
@@ -41,7 +42,12 @@ func (h *fasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
 }
 
 func (h *fasthttpAdapter) HandlerMetrics(ctx *fasthttp.RequestCtx) {
-	ctx.SuccessString("text/plain; charset=utf-8", h.FastdnsStats.OpenMetrics())
+	b := bytebufferpool.Get()
+	defer bytebufferpool.Put(b)
+
+	b.B = h.FastdnsStats.AppendOpenMetrics(b.B[:0])
+
+	ctx.Success("text/plain; charset=utf-8", b.B)
 }
 
 func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {

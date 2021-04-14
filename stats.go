@@ -8,7 +8,7 @@ import (
 
 type Stats interface {
 	UpdateStats(addr net.Addr, msg *Message, duration time.Duration)
-	OpenMetrics() (metrics string)
+	AppendOpenMetrics(dst []byte) []byte
 }
 
 type CoreStats struct {
@@ -257,8 +257,8 @@ func (s *CoreStats) UpdateStats(addr net.Addr, msg *Message, duration time.Durat
 	atomic.AddUint64(&s.ResponseSizeBytesCount, 1)
 }
 
-func (s *CoreStats) OpenMetrics() string {
-	return string(template(nil, `
+func (s *CoreStats) AppendOpenMetrics(dst []byte) []byte {
+	return template(dst, `
 {prefix}dns_request_count_total{family="{family}",proto="{proto}",server="{server}",zone="{zone}"} {request_count_total}
 {prefix}dns_request_duration_seconds_bucket{server="{server}",zone="{zone}",le="0.00025"} {request_duration_seconds_bucket_0_00025}
 {prefix}dns_request_duration_seconds_bucket{server="{server}",zone="{zone}",le="0.0005"} {request_duration_seconds_bucket_0_0005}
@@ -411,5 +411,5 @@ func (s *CoreStats) OpenMetrics() string {
 		"response_size_bytes_bucket_inf":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_Inf),
 		"response_size_bytes_sum":                 atomic.LoadUint64(&s.ResponseSizeBytesSum),
 		"response_size_bytes_count":               atomic.LoadUint64(&s.ResponseSizeBytesCount),
-	}, false))
+	}, false)
 }
