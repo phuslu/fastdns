@@ -24,7 +24,7 @@ func main() {
 	defer fastdns.ReleaseMessage(req)
 	defer fastdns.ReleaseMessage(resp)
 
-	req.SetQustion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
+	req.SetRequestQustion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
 
 	start := time.Now()
 	err := client.Exchange(req, resp)

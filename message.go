@@ -259,8 +259,8 @@ func (msg *Message) VisitAdditionalRecords(f func(name []byte, typ Type, class C
 	panic("not implemented")
 }
 
-// SetQustion calls f for each item in the msg in the original order of the parsed AR.
-func (msg *Message) SetQustion(domain string, typ Type, class Class) {
+// SetRequestQustion set question for DNS request.
+func (msg *Message) SetRequestQustion(domain string, typ Type, class Class) {
 	// random head id
 	msg.Header.ID = uint16(fastrandn(65536))
 
