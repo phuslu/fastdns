@@ -219,7 +219,7 @@ func BenchmarkSetResponseHeader(b *testing.B) {
 	req.SetRequestQustion("mail.google.com", TypeA, ClassINET)
 
 	for i := 0; i < b.N; i++ {
-		req.SetResponseHeader(RcodeSuccess, 4)
+		req.SetResponseHeader(RcodeNoError, 4)
 	}
 }
 

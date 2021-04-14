@@ -199,21 +199,21 @@ func (s *CoreStats) UpdateStats(addr net.Addr, msg *Message, duration time.Durat
 
 	// response rcode
 	switch msg.Header.Flags.Rcode() {
-	case RcodeSuccess:
+	case RcodeNoError:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOERROR, 1)
-	case RcodeFormatError:
+	case RcodeFormErr:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_FORMERR, 1)
-	case RcodeServerFailure:
+	case RcodeServFail:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_SERVFAIL, 1)
-	case RcodeNameError:
-		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOTIMP, 1)
-	case RcodeNotImplemented:
+	case RcodeNXDomain:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_NXDOMAIN, 1)
+	case RcodeNotImp:
+		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOTIMP, 1)
 	case RcodeRefused:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_REFUSED, 1)
 	case RcodeYXDomain:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_YXDOMAIN, 1)
-	case RcodeNXRrset:
+	case RcodeNXRRSet:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_XRRSET, 1)
 	case RcodeNotAuth:
 		atomic.AddUint64(&s.ResponseRcodeCountTotal_NOTAUTH, 1)

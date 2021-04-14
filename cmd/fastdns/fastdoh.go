@@ -60,7 +60,7 @@ func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
 
 	err := fastdns.ParseMessage(req, ctx.PostBody(), true)
 	if err != nil {
-		fastdns.Error(rw, req, fastdns.RcodeFormatError)
+		fastdns.Error(rw, req, fastdns.RcodeFormErr)
 	} else {
 		h.FastdnsHandler.ServeDNS(rw, req)
 	}

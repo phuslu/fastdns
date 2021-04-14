@@ -62,7 +62,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	case fastdns.TypeTXT:
 		fastdns.TXT(rw, req, 60, "greetingfromgoogle")
 	default:
-		fastdns.Error(rw, req, fastdns.RcodeNameError)
+		fastdns.Error(rw, req, fastdns.RcodeNXDomain)
 	}
 }
 
@@ -168,7 +168,7 @@ This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg
 [coverage-img]: http://gocover.io/_badge/github.com/phuslu/fastdns
 [coverage]: https://gocover.io/github.com/phuslu/fastdns
 [benchmark]: https://github.com/phuslu/fastdns/actions?query=workflow%3Abenchmark
-[flamegraph]: https://cdn.jsdelivr.net/gh/phuslu/fastdns@0.2.1/torch.svg
+[flamegraph]: https://cdn.jsdelivr.net/gh/phuslu/fastdns/torch.svg
 [fasthttp]: https://github.com/valyala/fasthttp
 [rawdns]: https://github.com/cirocosta/rawdns
 [miekg/dns]: https://github.com/miekg/dns

@@ -146,7 +146,7 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, 
 			rw, req := ctx.rw, ctx.req
 			err := ParseMessage(req, req.Raw, false)
 			if err != nil {
-				Error(rw, req, RcodeFormatError)
+				Error(rw, req, RcodeFormErr)
 			} else {
 				handler.ServeDNS(rw, req)
 			}

@@ -26,7 +26,7 @@ func TestHandlerError(t *testing.T) {
 	}{
 		{
 			"000281830000000000000000",
-			RcodeNameError,
+			RcodeNXDomain,
 		},
 	}
 

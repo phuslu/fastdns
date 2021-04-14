@@ -315,7 +315,7 @@ func (msg *Message) SetResponseHeader(rcode Rcode, ancount uint16) {
 	msg.Header.Flags |= 0b1000000000000000 | Flags(rcode)
 
 	// Error
-	if rcode != 0 {
+	if rcode != RcodeNoError {
 		msg.Header.QDCount = 0
 		msg.Header.ANCount = 0
 		msg.Header.NSCount = 0

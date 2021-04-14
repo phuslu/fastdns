@@ -6,69 +6,67 @@ type Rcode byte
 
 // Message Response Codes, see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
 const (
-	RcodeSuccess        Rcode = 0  // Success   - No Error                          [DNS]
-	RcodeFormatError    Rcode = 1  // FormErr   - Format Error                      [DNS]
-	RcodeServerFailure  Rcode = 2  // ServFail  - Server Failure                    [DNS]
-	RcodeNameError      Rcode = 3  // NXDomain  - Non-Existent Domain               [DNS]
-	RcodeNotImplemented Rcode = 4  // NotImp    - Not Implemented                   [DNS]
-	RcodeRefused        Rcode = 5  // Refused   - Query Refused                     [DNS]
-	RcodeYXDomain       Rcode = 6  // YXDomain  - Name Exists when it should not    [DNS Update]
-	RcodeYXRrset        Rcode = 7  // YXRRSet   - RR Set Exists when it should not  [DNS Update]
-	RcodeNXRrset        Rcode = 8  // NXRRSet   - RR Set that should exist does not [DNS Update]
-	RcodeNotAuth        Rcode = 9  // NotAuth   - Server Not Authoritative for zone [DNS Update]
-	RcodeNotZone        Rcode = 10 // NotZone   - Name not contained in zone        [DNS Update/TSIG]
-	RcodeBadSig         Rcode = 16 // BADSIG    - TSIG Signature Failure            [TSIG]
-	RcodeBadVers        Rcode = 16 // BADVERS   - Bad OPT Version                   [EDNS0]
-	RcodeBadKey         Rcode = 17 // BADKEY    - Key not recognized                [TSIG]
-	RcodeBadTime        Rcode = 18 // BADTIME   - Signature out of time window      [TSIG]
-	RcodeBadMode        Rcode = 19 // BADMODE   - Bad TKEY Mode                     [TKEY]
-	RcodeBadName        Rcode = 20 // BADNAME   - Duplicate key name                [TKEY]
-	RcodeBadAlg         Rcode = 21 // BADALG    - Algorithm not supported           [TKEY]
-	RcodeBadTrunc       Rcode = 22 // BADTRUNC  - Bad Truncation                    [TSIG]
-	RcodeBadCookie      Rcode = 23 // BADCOOKIE - Bad/missing Server Cookie         [DNS Cookies]
+	RcodeNoError   Rcode = 0  // No Error                          [DNS]
+	RcodeFormErr   Rcode = 1  // Format Error                      [DNS]
+	RcodeServFail  Rcode = 2  // Server Failure                    [DNS]
+	RcodeNXDomain  Rcode = 3  // Non-Existent Domain               [DNS]
+	RcodeNotImp    Rcode = 4  // Not Implemented                   [DNS]
+	RcodeRefused   Rcode = 5  // Query Refused                     [DNS]
+	RcodeYXDomain  Rcode = 6  // Name Exists when it should not    [DNS Update]
+	RcodeYXRRSet   Rcode = 7  // RR Set Exists when it should not  [DNS Update]
+	RcodeNXRRSet   Rcode = 8  // RR Set that should exist does not [DNS Update]
+	RcodeNotAuth   Rcode = 9  // Server Not Authoritative for zone [DNS Update]
+	RcodeNotZone   Rcode = 10 // Name not contained in zone        [DNS Update/TSIG]
+	RcodeBADSIG    Rcode = 16 // TSIG Signature Failure            [TSIG]
+	RcodeBADVERS   Rcode = 16 // Bad OPT Version                   [EDNS0]
+	RcodeBADKEY    Rcode = 17 // Key not recognized                [TSIG]
+	RcodeBADTIME   Rcode = 18 // Signature out of time window      [TSIG]
+	RcodeBADMODE   Rcode = 19 // Bad TKEY Mode                     [TKEY]
+	RcodeBADNAME   Rcode = 20 // Duplicate key name                [TKEY]
+	RcodeBADALG    Rcode = 21 // Algorithm not supported           [TKEY]
+	RcodeBADTRUNC  Rcode = 22 // Bad Truncation                    [TSIG]
+	RcodeBADCOOKIE Rcode = 23 // Bad/missing Server Cookie         [DNS Cookies]
 )
 
 func (c Rcode) String() string {
 	switch c {
-	case RcodeSuccess:
-		return "Success"
-	case RcodeFormatError:
-		return "FormatError"
-	case RcodeServerFailure:
-		return "ServerFailure"
-	case RcodeNameError:
-		return "NameError"
-	case RcodeNotImplemented:
-		return "NotImplemented"
+	case RcodeNoError:
+		return "NoError"
+	case RcodeFormErr:
+		return "FormErr"
+	case RcodeServFail:
+		return "ServFail"
+	case RcodeNXDomain:
+		return "NXDomain"
+	case RcodeNotImp:
+		return "NotImp"
 	case RcodeRefused:
 		return "Refused"
 	case RcodeYXDomain:
 		return "YXDomain"
-	case RcodeYXRrset:
-		return "YXRrset"
-	case RcodeNXRrset:
-		return "NXRrset"
+	case RcodeYXRRSet:
+		return "YXRRSet"
+	case RcodeNXRRSet:
+		return "NXRRSet"
 	case RcodeNotAuth:
 		return "NotAuth"
 	case RcodeNotZone:
 		return "NotZone"
-	case RcodeBadSig:
-		return "BadSig"
-	// case RcodeBadVers:
-	// 	return "BadVers"
-	case RcodeBadKey:
+	case RcodeBADSIG: // RcodeBADVERS
+		return "BadSig/BadVers"
+	case RcodeBADKEY:
 		return "BadKey"
-	case RcodeBadTime:
+	case RcodeBADTIME:
 		return "BadTime"
-	case RcodeBadMode:
+	case RcodeBADMODE:
 		return "BadMode"
-	case RcodeBadName:
+	case RcodeBADNAME:
 		return "BadName"
-	case RcodeBadAlg:
+	case RcodeBADALG:
 		return "BadAlg"
-	case RcodeBadTrunc:
+	case RcodeBADTRUNC:
 		return "BadTrunc"
-	case RcodeBadCookie:
+	case RcodeBADCOOKIE:
 		return "BadCookie"
 	}
 	return ""

@@ -46,7 +46,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		case fastdns.TypeTXT:
 			fastdns.TXT(rw, req, 60, "greetingfromgoogle")
 		default:
-			fastdns.Error(rw, req, fastdns.RcodeNameError)
+			fastdns.Error(rw, req, fastdns.RcodeNXDomain)
 		}
 		return
 	}
@@ -60,7 +60,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		err = h.DNSClient.Exchange(req, resp)
 	}
 	if err != nil {
-		fastdns.Error(rw, req, fastdns.RcodeServerFailure)
+		fastdns.Error(rw, req, fastdns.RcodeServFail)
 	}
 
 	if h.Debug {
