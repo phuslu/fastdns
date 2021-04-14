@@ -238,6 +238,7 @@ func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Cla
 		if name == nil {
 			return ErrInvalidAnswer
 		}
+		_ = payload[9] // hint compiler to remove bounds check
 		typ := Type(payload[0])<<8 | Type(payload[1])
 		class := Class(payload[2])<<8 | Class(payload[3])
 		ttl := uint32(payload[4])<<24 | uint32(payload[5])<<16 | uint32(payload[6])<<8 | uint32(payload[7])
@@ -265,12 +266,10 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 
 	// QR = 0, RCODE = 0, RD = 1
 	//
-	// 0  1  2  3  4  5  6  7  8
-	// +--+--+--+--+--+--+--+--+
-	// |QR|   Opcode  |AA|TC|RD|
-	// +--+--+--+--+--+--+--+--+
-	// |RA|   Z    |   RCODE   |
-	// +--+--+--+--+--+--+--+--+
+	//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	// |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+	// +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 	msg.Header.Bits &= 0b0111111111110000
 	msg.Header.Bits |= 0b0000000100000000
 
@@ -284,14 +283,8 @@ func (msg *Message) SetQustion(domain string, typ Type, class Class) {
 		byte(msg.Header.ID >> 8), byte(msg.Header.ID),
 		// Bits
 		byte(msg.Header.Bits >> 8), byte(msg.Header.Bits),
-		// QDCOUNT
-		0, 1,
-		// ANCOUNT
-		0, 0,
-		// NSCOUNT
-		0, 0,
-		// ARCOUNT
-		0, 0,
+		// QDCOUNT, ANCOUNT, NSCOUNT, ARCOUNT
+		0, 1, 0, 0, 0, 0, 0, 0,
 	}
 
 	msg.Raw = append(msg.Raw[:0], header[:]...)
@@ -321,7 +314,7 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 	msg.Header.Bits &= 0b1111111111110000
 	msg.Header.Bits |= 0b1000000000000000 | Bits(rcode)
 
-	// Raw
+	// Error
 	if rcode != 0 {
 		msg.Header.QDCount = 0
 		msg.Header.ANCount = 0
