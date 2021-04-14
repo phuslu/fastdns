@@ -7,23 +7,6 @@ import (
 	"testing"
 )
 
-//nolint
-type Header struct {
-	ID      uint16
-	Bits    Bits
-	QDCount uint16
-	ANCount uint16
-	NSCount uint16
-	ARCount uint16
-}
-
-//nolint
-type Question struct {
-	Name  []byte
-	Type  Type
-	Class Class
-}
-
 func TestAppendHostRecord(t *testing.T) {
 	cases := []struct {
 		Hex string

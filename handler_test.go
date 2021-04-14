@@ -6,22 +6,17 @@ import (
 	"testing"
 )
 
-var mockHandlerMessage = &Message{
-	[]byte("\x00\x02\x81\x80\x00\x01\x00\x01\x00\x00\x00\x00\x02\x68\x6b\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01\xc0\x0c\x00\x01\x00\x01\x00\x00\x01\x2b\x00\x04\x77\x1c\x56\xbe"),
-	[]byte("hk.phus.lu"),
-	Header{
-		ID:      0x0002,
-		Bits:    0b0000000100000000,
-		QDCount: 0x01,
-		ANCount: 0x00,
-		NSCount: 0x00,
-		ARCount: 0x00,
-	},
-	Question{
-		Name:  []byte("\x02hk\x04phus\x02lu\x00"),
-		Type:  TypeA,
-		Class: ClassINET,
-	},
+func mockMessage() (msg *Message) {
+	// domain = hk.phus.lu
+	payload, _ := hex.DecodeString("00028180000100010000000002686b0470687573026c750000010001c00c000100010000012b0004771c56be")
+
+	msg = AcquireMessage()
+	err := ParseMessage(msg, payload, true)
+	if err != nil {
+		panic(err)
+	}
+
+	return
 }
 
 func TestHandlerError(t *testing.T) {
@@ -35,11 +30,7 @@ func TestHandlerError(t *testing.T) {
 		},
 	}
 
-	rw, req := &MemoryResponseWriter{}, AcquireMessage()
-	defer ReleaseMessage(req)
-
-	*req = *mockHandlerMessage
-	req.Raw = append([]byte(nil), mockHandlerMessage.Raw...)
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 
 	if rw.RemoteAddr() != nil {
 		t.Errorf("MemoryResponseWriter shall return empty addr")
@@ -68,9 +59,9 @@ func TestHandlerHost(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		HOST(rw, mockHandlerMessage, c.TTL, []net.IP{c.IP})
+		HOST(rw, req, c.TTL, []net.IP{c.IP})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("HOST(%v) error got=%#v want=%#v", c.IP, got, want)
 		}
@@ -90,9 +81,9 @@ func TestHandlerCNAME(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		CNAME(rw, mockHandlerMessage, c.TTL, []string{c.CNAME}, nil)
+		CNAME(rw, req, c.TTL, []string{c.CNAME}, nil)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("CNAME(%v) error got=%#v want=%#v", c.CNAME, got, want)
 		}
@@ -112,9 +103,9 @@ func TestHandlerSRV(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		SRV(rw, mockHandlerMessage, c.TTL, []net.SRV{c.SRV})
+		SRV(rw, req, c.TTL, []net.SRV{c.SRV})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("SRV(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
@@ -134,9 +125,9 @@ func TestHandlerNS(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		NS(rw, mockHandlerMessage, c.TTL, []net.NS{c.Nameserver})
+		NS(rw, req, c.TTL, []net.NS{c.Nameserver})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("NS(%v) error got=%#v want=%#v", c.Nameserver, got, want)
 		}
@@ -168,9 +159,9 @@ func TestHandlerSOA(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		SOA(rw, mockHandlerMessage, c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)
+		SOA(rw, req, c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("SOA(%v) error got=%#v want=%#v", c.MName, got, want)
 		}
@@ -190,9 +181,9 @@ func TestHandlerMX(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		MX(rw, mockHandlerMessage, c.TTL, []net.MX{c.MX})
+		MX(rw, req, c.TTL, []net.MX{c.MX})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("MX(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
@@ -212,9 +203,9 @@ func TestHandlerPTR(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		PTR(rw, mockHandlerMessage, c.TTL, c.PTR)
+		PTR(rw, req, c.TTL, c.PTR)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("PTR(%v) error got=%#v want=%#v", c.PTR, got, want)
 		}
@@ -234,9 +225,9 @@ func TestHandlerTXT(t *testing.T) {
 		},
 	}
 
-	rw := &MemoryResponseWriter{}
+	rw, req := &MemoryResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		TXT(rw, mockHandlerMessage, c.TTL, c.TXT)
+		TXT(rw, req, c.TTL, c.TXT)
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("TXT(%v) error got=%#v want=%#v", c.TXT, got, want)
 		}
@@ -252,56 +243,64 @@ func (rw *nilResponseWriter) LocalAddr() net.Addr { return nil }
 func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p), nil }
 
 func BenchmarkHOST(b *testing.B) {
+	req := mockMessage()
 	ips := []net.IP{net.ParseIP("8.8.8.8")}
 	for i := 0; i < b.N; i++ {
-		HOST(&nilResponseWriter{}, mockHandlerMessage, 3000, ips)
+		HOST(&nilResponseWriter{}, req, 3000, ips)
 	}
 }
 
 func BenchmarkCNAME(b *testing.B) {
+	req := mockMessage()
 	cnames := []string{"cname.example.org"}
 	for i := 0; i < b.N; i++ {
-		CNAME(&nilResponseWriter{}, mockHandlerMessage, 3000, cnames, nil)
+		CNAME(&nilResponseWriter{}, req, 3000, cnames, nil)
 	}
 }
 
 func BenchmarkSRV(b *testing.B) {
+	req := mockMessage()
 	srv := net.SRV{Target: "service1.example.org", Port: 8001, Priority: 1000, Weight: 1000}
 	for i := 0; i < b.N; i++ {
-		SRV(&nilResponseWriter{}, mockHandlerMessage, 3000, []net.SRV{srv})
+		SRV(&nilResponseWriter{}, req, 3000, []net.SRV{srv})
 	}
 }
 
 func BenchmarkNS(b *testing.B) {
+	req := mockMessage()
 	nameservers := []net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}}
 	for i := 0; i < b.N; i++ {
-		NS(&nilResponseWriter{}, mockHandlerMessage, 3000, nameservers)
+		NS(&nilResponseWriter{}, req, 3000, nameservers)
 	}
 }
 
 func BenchmarkSOA(b *testing.B) {
+	req := mockMessage()
 	for i := 0; i < b.N; i++ {
-		SOA(&nilResponseWriter{}, mockHandlerMessage, 3000, net.NS{Host: "ns1.google.com"}, net.NS{Host: "dns-admin.google.com"}, 42, 900, 900, 1800, 60)
+		SOA(&nilResponseWriter{}, req, 3000, net.NS{Host: "ns1.google.com"}, net.NS{Host: "dns-admin.google.com"}, 42, 900, 900, 1800, 60)
 	}
 }
 
 func BenchmarkPTR(b *testing.B) {
+	req := mockMessage()
 	ptr := "ptr.example.org"
 	for i := 0; i < b.N; i++ {
-		PTR(&nilResponseWriter{}, mockHandlerMessage, 3000, ptr)
+		PTR(&nilResponseWriter{}, req, 3000, ptr)
 	}
 }
 
 func BenchmarkMX(b *testing.B) {
+	req := mockMessage()
 	mx := net.MX{Host: "mail.google.com", Pref: 100}
 	for i := 0; i < b.N; i++ {
-		MX(&nilResponseWriter{}, mockHandlerMessage, 3000, []net.MX{mx})
+		MX(&nilResponseWriter{}, req, 3000, []net.MX{mx})
 	}
 }
 
 func BenchmarkTXT(b *testing.B) {
+	req := mockMessage()
 	txt := "iamatxtrecord"
 	for i := 0; i < b.N; i++ {
-		TXT(&nilResponseWriter{}, mockHandlerMessage, 3000, txt)
+		TXT(&nilResponseWriter{}, req, 3000, txt)
 	}
 }

@@ -7,96 +7,86 @@ import (
 )
 
 func TestParseMessageOK(t *testing.T) {
-	var cases = []struct {
+	var cases = [2]struct {
+		Raw     []byte
 		Message *Message
-	}{
-		{
-			/*
-				Domain Name System (query)
-				    Transaction ID: 0x0001
-				    Flags: 0x0100 Standard query
-				        0... .... .... .... = Response: Message is a query
-				        .000 0... .... .... = Opcode: Standard query (0)
-				        .... ..0. .... .... = Truncated: Message is not truncated
-				        .... ...1 .... .... = Recursion desired: Do query recursively
-				        .... .... .0.. .... = Z: reserved (0)
-				        .... .... ...0 .... = Non-authenticated data: Unacceptable
-				    Questions: 1
-				    Answer RRs: 0
-				    Authority RRs: 0
-				    Additional RRs: 0
-				    Queries
-				        1.50.168.192.in-addr.arpa: type PTR, class IN
-				            Name: 1.50.168.192.in-addr.arpa
-				            [Name Length: 25]
-				            [Label Count: 6]
-				            Type: PTR (domain name PoinTeR) (12)
-				            Class: IN (0x0001)
-			*/
-			&Message{
-				[]byte("\x00\x01\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x01\x31\x02\x35\x30\x03\x31\x36\x38\x03\x31\x39\x32\x07\x69\x6e\x2d\x61\x64\x64\x72\x04\x61\x72\x70\x61\x00\x00\x0c\x00\x01"),
-				[]byte("1.50.168.192.in-addr.arpa"),
-				Header{
-					ID:      0x0001,
-					Bits:    0b0000000100000000,
-					QDCount: 0x01,
-					ANCount: 0x00,
-					NSCount: 0x00,
-					ARCount: 0x00,
-				},
-				Question{
-					Name:  []byte("\x011\x0250\x03168\x03192\x07in-addr\x04arpa\x00"),
-					Type:  TypePTR,
-					Class: ClassINET,
-				},
-			},
-		},
-		{
-			/*
-				Domain Name System (query)
-				    Transaction ID: 0x0002
-				    Flags: 0x0100 Standard query
-				        0... .... .... .... = Response: Message is a query
-				        .000 0... .... .... = Opcode: Standard query (0)
-				        .... ..0. .... .... = Truncated: Message is not truncated
-				        .... ...1 .... .... = Recursion desired: Do query recursively
-				        .... .... .0.. .... = Z: reserved (0)
-				        .... .... ...0 .... = Non-authenticated data: Unacceptable
-				    Questions: 1
-				    Answer RRs: 0
-				    Authority RRs: 0
-				    Additional RRs: 0
-				    Queries
-				        hk.phus.lu: type A, class IN
-				            Name: hk.phus.lu
-				            [Name Length: 10]
-				            [Label Count: 3]
-				            Type: A (Host Address) (1)
-				            Class: IN (0x0001)
-			*/
-			&Message{
-				[]byte("\x00\x02\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x02\x68\x6b\x04\x70\x68\x75\x73\x02\x6c\x75\x00\x00\x01\x00\x01"),
-				[]byte("hk.phus.lu"),
-				Header{
-					ID:      0x0002,
-					Bits:    0b0000000100000000,
-					QDCount: 0x01,
-					ANCount: 0x00,
-					NSCount: 0x00,
-					ARCount: 0x00,
-				},
-				Question{
-					Name:  []byte("\x02hk\x04phus\x02lu\x00"),
-					Type:  TypeA,
-					Class: ClassINET,
-				},
-			},
-		},
-	}
+	}{}
+
+	/*
+		Domain Name System (query)
+		    Transaction ID: 0x0001
+		    Flags: 0x0100 Standard query
+		        0... .... .... .... = Response: Message is a query
+		        .000 0... .... .... = Opcode: Standard query (0)
+		        .... ..0. .... .... = Truncated: Message is not truncated
+		        .... ...1 .... .... = Recursion desired: Do query recursively
+		        .... .... .0.. .... = Z: reserved (0)
+		        .... .... ...0 .... = Non-authenticated data: Unacceptable
+		    Questions: 1
+		    Answer RRs: 0
+		    Authority RRs: 0
+		    Additional RRs: 0
+		    Queries
+		        1.50.168.192.in-addr.arpa: type PTR, class IN
+		            Name: 1.50.168.192.in-addr.arpa
+		            [Name Length: 25]
+		            [Label Count: 6]
+		            Type: PTR (domain name PoinTeR) (12)
+		            Class: IN (0x0001)
+	*/
+	cases[0].Raw, _ = hex.DecodeString("0001010000010000000000000131023530033136380331393207696e2d61646472046172706100000c0001")
+	cases[0].Message = AcquireMessage()
+	cases[0].Message.Raw = cases[0].Raw
+	cases[0].Message.Domain = []byte("1.50.168.192.in-addr.arpa")
+	cases[0].Message.Header.ID = 0x0001
+	cases[0].Message.Header.Bits = 0b0000000100000000
+	cases[0].Message.Header.QDCount = 0x01
+	cases[0].Message.Header.ANCount = 0x00
+	cases[0].Message.Header.NSCount = 0x00
+	cases[0].Message.Header.ARCount = 0x00
+	cases[0].Message.Question.Name = []byte("\x011\x0250\x03168\x03192\x07in-addr\x04arpa\x00")
+	cases[0].Message.Question.Type = TypePTR
+	cases[0].Message.Question.Class = ClassINET
+
+	/*
+		Domain Name System (query)
+		    Transaction ID: 0x0002
+		    Flags: 0x0100 Standard query
+		        0... .... .... .... = Response: Message is a query
+		        .000 0... .... .... = Opcode: Standard query (0)
+		        .... ..0. .... .... = Truncated: Message is not truncated
+		        .... ...1 .... .... = Recursion desired: Do query recursively
+		        .... .... .0.. .... = Z: reserved (0)
+		        .... .... ...0 .... = Non-authenticated data: Unacceptable
+		    Questions: 1
+		    Answer RRs: 0
+		    Authority RRs: 0
+		    Additional RRs: 0
+		    Queries
+		        hk.phus.lu: type A, class IN
+		            Name: hk.phus.lu
+		            [Name Length: 10]
+		            [Label Count: 3]
+		            Type: A (Host Address) (1)
+		            Class: IN (0x0001)
+	*/
+	cases[1].Raw, _ = hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	cases[1].Message = AcquireMessage()
+	cases[1].Message.Raw = cases[1].Raw
+	cases[1].Message.Domain = []byte("hk.phus.lu")
+	cases[1].Message.Header.ID = 0x0002
+	cases[1].Message.Header.Bits = 0b0000000100000000
+	cases[1].Message.Header.QDCount = 0x01
+	cases[1].Message.Header.ANCount = 0x00
+	cases[1].Message.Header.NSCount = 0x00
+	cases[1].Message.Header.ARCount = 0x00
+	cases[1].Message.Question.Name = []byte("\x02hk\x04phus\x02lu\x00")
+	cases[1].Message.Question.Type = TypeA
+	cases[1].Message.Question.Class = ClassINET
 
 	for _, c := range cases {
 		msg := AcquireMessage()
-		err := ParseMessage(msg, c.Message.Raw, true)
+		err := ParseMessage(msg, c.Raw, true)
 		if err != nil {
 			t.Errorf("ParseMessage(%x) error: %+v", c.Message.Raw, err)
 		}
