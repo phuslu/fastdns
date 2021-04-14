@@ -11,6 +11,8 @@ type Stats interface {
 	AppendOpenMetrics(dst []byte) []byte
 }
 
+var _ Stats = (*CoreStats)(nil)
+
 type CoreStats struct {
 	RequstCountTotal uint64
 
