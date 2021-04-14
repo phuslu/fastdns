@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"net"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -260,7 +261,7 @@ func (s *CoreStats) UpdateStats(addr net.Addr, msg *Message, duration time.Durat
 }
 
 func (s *CoreStats) AppendOpenMetrics(dst []byte) []byte {
-	return template(dst, `
+	return s.template(dst, `
 {prefix}dns_request_count_total{family="{family}",proto="{proto}",server="{server}",zone="{zone}"} {request_count_total}
 {prefix}dns_request_duration_seconds_bucket{server="{server}",zone="{zone}",le="0.00025"} {request_duration_seconds_bucket_0_00025}
 {prefix}dns_request_duration_seconds_bucket{server="{server}",zone="{zone}",le="0.0005"} {request_duration_seconds_bucket_0_0005}
@@ -334,84 +335,182 @@ func (s *CoreStats) AppendOpenMetrics(dst []byte) []byte {
 {prefix}dns_response_size_bytes_bucket{proto="{proto}",server="{server}",zone="{zone}",le="+Inf"} {response_size_bytes_bucket_inf}
 {prefix}dns_response_size_bytes_sum{proto="{proto}",server="{server}",zone="{zone}"} {response_size_bytes_sum}
 {prefix}dns_response_size_bytes_count{proto="{proto}",server="{server}",zone="{zone}"} {response_size_bytes_count}
-`, '{', '}', map[string]interface{}{
-		"prefix":              s.Prefix,
-		"family":              s.Family,
-		"proto":               s.Proto,
-		"server":              s.Server,
-		"zone":                s.Zone,
-		"request_count_total": atomic.LoadUint64(&s.RequstCountTotal),
-		"request_duration_seconds_bucket_0_00025": atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_00025),
-		"request_duration_seconds_bucket_0_0005":  atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_0005),
-		"request_duration_seconds_bucket_0_001":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_001),
-		"request_duration_seconds_bucket_0_002":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_002),
-		"request_duration_seconds_bucket_0_004":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_004),
-		"request_duration_seconds_bucket_0_008":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_008),
-		"request_duration_seconds_bucket_0_016":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_016),
-		"request_duration_seconds_bucket_0_032":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_032),
-		"request_duration_seconds_bucket_0_064":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_064),
-		"request_duration_seconds_bucket_0_128":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_128),
-		"request_duration_seconds_bucket_0_256":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_256),
-		"request_duration_seconds_bucket_0_512":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_512),
-		"request_duration_seconds_bucket_1_024":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_1_024),
-		"request_duration_seconds_bucket_2_048":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_2_048),
-		"request_duration_seconds_bucket_4_096":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_4_096),
-		"request_duration_seconds_bucket_8_192":   atomic.LoadUint64(&s.RequestDurationSecondsBucket_8_192),
-		"request_duration_seconds_bucket_inf":     atomic.LoadUint64(&s.RequestDurationSecondsBucket_Inf),
-		"request_duration_seconds_sum":            float64(atomic.LoadUint64(&s.RequestDurationSecondsSum)) / float64(time.Second),
-		"request_duration_seconds_count":          atomic.LoadUint64(&s.RequestDurationSecondsCount),
-		"request_size_bytes_bucket_0":             atomic.LoadUint64(&s.RequestSizeBytesBucket_0),
-		"request_size_bytes_bucket_100":           atomic.LoadUint64(&s.RequestSizeBytesBucket_100),
-		"request_size_bytes_bucket_200":           atomic.LoadUint64(&s.RequestSizeBytesBucket_200),
-		"request_size_bytes_bucket_300":           atomic.LoadUint64(&s.RequestSizeBytesBucket_300),
-		"request_size_bytes_bucket_400":           atomic.LoadUint64(&s.RequestSizeBytesBucket_400),
-		"request_size_bytes_bucket_511":           atomic.LoadUint64(&s.RequestSizeBytesBucket_511),
-		"request_size_bytes_bucket_1023":          atomic.LoadUint64(&s.RequestSizeBytesBucket_1023),
-		"request_size_bytes_bucket_2047":          atomic.LoadUint64(&s.RequestSizeBytesBucket_2047),
-		"request_size_bytes_bucket_4095":          atomic.LoadUint64(&s.RequestSizeBytesBucket_4095),
-		"request_size_bytes_bucket_8291":          atomic.LoadUint64(&s.RequestSizeBytesBucket_8291),
-		"request_size_bytes_bucket_16000":         atomic.LoadUint64(&s.RequestSizeBytesBucket_16000),
-		"request_size_bytes_bucket_32000":         atomic.LoadUint64(&s.RequestSizeBytesBucket_32000),
-		"request_size_bytes_bucket_48000":         atomic.LoadUint64(&s.RequestSizeBytesBucket_48000),
-		"request_size_bytes_bucket_64000":         atomic.LoadUint64(&s.RequestSizeBytesBucket_64000),
-		"request_size_bytes_bucket_inf":           atomic.LoadUint64(&s.RequestSizeBytesBucket_Inf),
-		"request_size_bytes_sum":                  atomic.LoadUint64(&s.RequestSizeBytesSum),
-		"request_size_bytes_count":                atomic.LoadUint64(&s.RequestSizeBytesCount),
-		"request_type_count_total_a":              atomic.LoadUint64(&s.RequestTypeCountTotal_A),
-		"request_type_count_total_aaaa":           atomic.LoadUint64(&s.RequestTypeCountTotal_AAAA),
-		"request_type_count_total_ns":             atomic.LoadUint64(&s.RequestTypeCountTotal_NS),
-		"request_type_count_total_ptr":            atomic.LoadUint64(&s.RequestTypeCountTotal_PTR),
-		"request_type_count_total_srv":            atomic.LoadUint64(&s.RequestTypeCountTotal_SRV),
-		"request_type_count_total_cname":          atomic.LoadUint64(&s.RequestTypeCountTotal_CNAME),
-		"request_type_count_total_soa":            atomic.LoadUint64(&s.RequestTypeCountTotal_SOA),
-		"request_type_count_total_mx":             atomic.LoadUint64(&s.RequestTypeCountTotal_MX),
-		"request_type_count_total_txt":            atomic.LoadUint64(&s.RequestTypeCountTotal_TXT),
-		"response_rcode_count_total_noerror":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOERROR),
-		"response_rcode_count_total_formerr":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_FORMERR),
-		"response_rcode_count_total_servfail":     atomic.LoadUint64(&s.ResponseRcodeCountTotal_SERVFAIL),
-		"response_rcode_count_total_nxdomain":     atomic.LoadUint64(&s.ResponseRcodeCountTotal_NXDOMAIN),
-		"response_rcode_count_total_notimp":       atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTIMP),
-		"response_rcode_count_total_refused":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_REFUSED),
-		"response_rcode_count_total_yxdomain":     atomic.LoadUint64(&s.ResponseRcodeCountTotal_YXDOMAIN),
-		"response_rcode_count_total_xrrset":       atomic.LoadUint64(&s.ResponseRcodeCountTotal_XRRSET),
-		"response_rcode_count_total_notauth":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTAUTH),
-		"response_rcode_count_total_notzone":      atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTZONE),
-		"response_size_bytes_bucket_0":            atomic.LoadUint64(&s.ResponseSizeBytesBucket_0),
-		"response_size_bytes_bucket_100":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_100),
-		"response_size_bytes_bucket_200":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_200),
-		"response_size_bytes_bucket_300":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_300),
-		"response_size_bytes_bucket_400":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_400),
-		"response_size_bytes_bucket_511":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_511),
-		"response_size_bytes_bucket_1023":         atomic.LoadUint64(&s.ResponseSizeBytesBucket_1023),
-		"response_size_bytes_bucket_2047":         atomic.LoadUint64(&s.ResponseSizeBytesBucket_2047),
-		"response_size_bytes_bucket_4095":         atomic.LoadUint64(&s.ResponseSizeBytesBucket_4095),
-		"response_size_bytes_bucket_8291":         atomic.LoadUint64(&s.ResponseSizeBytesBucket_8291),
-		"response_size_bytes_bucket_16000":        atomic.LoadUint64(&s.ResponseSizeBytesBucket_16000),
-		"response_size_bytes_bucket_32000":        atomic.LoadUint64(&s.ResponseSizeBytesBucket_32000),
-		"response_size_bytes_bucket_48000":        atomic.LoadUint64(&s.ResponseSizeBytesBucket_48000),
-		"response_size_bytes_bucket_64000":        atomic.LoadUint64(&s.ResponseSizeBytesBucket_64000),
-		"response_size_bytes_bucket_inf":          atomic.LoadUint64(&s.ResponseSizeBytesBucket_Inf),
-		"response_size_bytes_sum":                 atomic.LoadUint64(&s.ResponseSizeBytesSum),
-		"response_size_bytes_count":               atomic.LoadUint64(&s.ResponseSizeBytesCount),
-	}, false)
+`, '{', '}')
+}
+
+func (s *CoreStats) template(dst []byte, template string, startTag, endTag byte) []byte {
+	j := 0
+	for i := 0; i < len(template); i++ {
+		switch template[i] {
+		case startTag:
+			dst = append(dst, template[j:i]...)
+			j = i
+		case endTag:
+			offset := 1
+			switch template[j+1 : i] {
+			case "prefix":
+				dst = append(dst, s.Prefix...)
+			case "family":
+				dst = append(dst, s.Family...)
+			case "proto":
+				dst = append(dst, s.Proto...)
+			case "server":
+				dst = append(dst, s.Server...)
+			case "zone":
+				dst = append(dst, s.Zone...)
+			case "request_count_total":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequstCountTotal), 10)
+			case "request_duration_seconds_bucket_0_00025":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_00025), 10)
+			case "request_duration_seconds_bucket_0_0005":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_0005), 10)
+			case "request_duration_seconds_bucket_0_001":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_001), 10)
+			case "request_duration_seconds_bucket_0_002":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_002), 10)
+			case "request_duration_seconds_bucket_0_004":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_004), 10)
+			case "request_duration_seconds_bucket_0_008":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_008), 10)
+			case "request_duration_seconds_bucket_0_016":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_016), 10)
+			case "request_duration_seconds_bucket_0_032":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_032), 10)
+			case "request_duration_seconds_bucket_0_064":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_064), 10)
+			case "request_duration_seconds_bucket_0_128":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_128), 10)
+			case "request_duration_seconds_bucket_0_256":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_256), 10)
+			case "request_duration_seconds_bucket_0_512":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_512), 10)
+			case "request_duration_seconds_bucket_1_024":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_1_024), 10)
+			case "request_duration_seconds_bucket_2_048":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_2_048), 10)
+			case "request_duration_seconds_bucket_4_096":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_4_096), 10)
+			case "request_duration_seconds_bucket_8_192":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_8_192), 10)
+			case "request_duration_seconds_bucket_inf":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_Inf), 10)
+			case "request_duration_seconds_sum":
+				dst = strconv.AppendFloat(dst, float64(atomic.LoadUint64(&s.RequestDurationSecondsSum))/float64(time.Second), 'f', -1, 64)
+			case "request_duration_seconds_count":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsCount), 10)
+			case "request_size_bytes_bucket_0":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_0), 10)
+			case "request_size_bytes_bucket_100":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_100), 10)
+			case "request_size_bytes_bucket_200":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_200), 10)
+			case "request_size_bytes_bucket_300":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_300), 10)
+			case "request_size_bytes_bucket_400":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_400), 10)
+			case "request_size_bytes_bucket_511":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_511), 10)
+			case "request_size_bytes_bucket_1023":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_1023), 10)
+			case "request_size_bytes_bucket_2047":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_2047), 10)
+			case "request_size_bytes_bucket_4095":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_4095), 10)
+			case "request_size_bytes_bucket_8291":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_8291), 10)
+			case "request_size_bytes_bucket_16000":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_16000), 10)
+			case "request_size_bytes_bucket_32000":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_32000), 10)
+			case "request_size_bytes_bucket_48000":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_48000), 10)
+			case "request_size_bytes_bucket_64000":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_64000), 10)
+			case "request_size_bytes_bucket_inf":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesBucket_Inf), 10)
+			case "request_size_bytes_sum":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesSum), 10)
+			case "request_size_bytes_count":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestSizeBytesCount), 10)
+			case "request_type_count_total_a":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_A), 10)
+			case "request_type_count_total_aaaa":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_AAAA), 10)
+			case "request_type_count_total_ns":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_NS), 10)
+			case "request_type_count_total_ptr":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_PTR), 10)
+			case "request_type_count_total_srv":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_SRV), 10)
+			case "request_type_count_total_cname":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_CNAME), 10)
+			case "request_type_count_total_soa":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_SOA), 10)
+			case "request_type_count_total_mx":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_MX), 10)
+			case "request_type_count_total_txt":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestTypeCountTotal_TXT), 10)
+			case "response_rcode_count_total_noerror":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOERROR), 10)
+			case "response_rcode_count_total_formerr":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_FORMERR), 10)
+			case "response_rcode_count_total_servfail":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_SERVFAIL), 10)
+			case "response_rcode_count_total_nxdomain":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_NXDOMAIN), 10)
+			case "response_rcode_count_total_notimp":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTIMP), 10)
+			case "response_rcode_count_total_refused":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_REFUSED), 10)
+			case "response_rcode_count_total_yxdomain":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_YXDOMAIN), 10)
+			case "response_rcode_count_total_xrrset":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_XRRSET), 10)
+			case "response_rcode_count_total_notauth":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTAUTH), 10)
+			case "response_rcode_count_total_notzone":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseRcodeCountTotal_NOTZONE), 10)
+			case "response_size_bytes_bucket_0":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_0), 10)
+			case "response_size_bytes_bucket_100":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_100), 10)
+			case "response_size_bytes_bucket_200":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_200), 10)
+			case "response_size_bytes_bucket_300":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_300), 10)
+			case "response_size_bytes_bucket_400":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_400), 10)
+			case "response_size_bytes_bucket_511":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_511), 10)
+			case "response_size_bytes_bucket_1023":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_1023), 10)
+			case "response_size_bytes_bucket_2047":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_2047), 10)
+			case "response_size_bytes_bucket_4095":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_4095), 10)
+			case "response_size_bytes_bucket_8291":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_8291), 10)
+			case "response_size_bytes_bucket_16000":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_16000), 10)
+			case "response_size_bytes_bucket_32000":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_32000), 10)
+			case "response_size_bytes_bucket_48000":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_48000), 10)
+			case "response_size_bytes_bucket_64000":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_64000), 10)
+			case "response_size_bytes_bucket_inf":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesBucket_Inf), 10)
+			case "response_size_bytes_sum":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesSum), 10)
+			case "response_size_bytes_count":
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.ResponseSizeBytesCount), 10)
+			default:
+				dst = append(dst, template[j:i]...)
+				offset = 0
+			}
+			j = i + offset
+		}
+	}
+	dst = append(dst, template[j:]...)
+	return dst
 }
