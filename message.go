@@ -323,6 +323,11 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 
 	// Raw
 	if rcode != 0 {
+		msg.Header.QDCount = 0
+		msg.Header.ANCount = 0
+		msg.Header.NSCount = 0
+		msg.Header.ARCount = 0
+
 		msg.Raw = msg.Raw[:12]
 
 		// Bits
@@ -345,13 +350,13 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 		msg.Raw[10] = 0
 		msg.Raw[11] = 0
 
-		msg.Header.QDCount = 0
-		msg.Header.ANCount = 0
-		msg.Header.NSCount = 0
-		msg.Header.ARCount = 0
-
 		return
 	}
+
+	msg.Header.QDCount = 1
+	msg.Header.ANCount = ancount
+	msg.Header.NSCount = 0
+	msg.Header.ARCount = 0
 
 	msg.Raw = msg.Raw[:12+len(msg.Question.Name)+4]
 	header := msg.Raw[:12]
@@ -375,11 +380,6 @@ func (msg *Message) SetRcode(rcode Rcode, ancount uint16) {
 	// ARCOUNT
 	header[10] = 0
 	header[11] = 0
-
-	msg.Header.QDCount = 1
-	msg.Header.ANCount = ancount
-	msg.Header.NSCount = 0
-	msg.Header.ARCount = 0
 }
 
 var msgPool = sync.Pool{
