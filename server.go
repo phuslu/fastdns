@@ -120,11 +120,13 @@ func (s *Server) spawn(addr string, maxProcs int) (err error) {
 }
 
 type udpCtx struct {
-	rw  *udpResponseWriter
-	req *Message
+	rw      *udpResponseWriter
+	req     *Message
+	handler Handler
+	stats   Stats
 }
 
-var udpCtxPool = sync.Pool{
+var udpCtxPool = &sync.Pool{
 	New: func() interface{} {
 		ctx := new(udpCtx)
 		ctx.rw = new(udpResponseWriter)
@@ -141,21 +143,7 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, 
 	}
 
 	pool := &workerPool{
-		WorkerFunc: func(ctx *udpCtx) error {
-			start := time.Now()
-			rw, req := ctx.rw, ctx.req
-			err := ParseMessage(req, req.Raw, false)
-			if err != nil {
-				Error(rw, req, RcodeFormErr)
-			} else {
-				handler.ServeDNS(rw, req)
-			}
-			if stats != nil {
-				stats.UpdateStats(rw.RemoteAddr(), req, time.Since(start))
-			}
-			udpCtxPool.Put(ctx)
-			return err
-		},
+		WorkerFunc:            serveCtx,
 		MaxWorkersCount:       concurrency,
 		LogAllErrors:          false,
 		MaxIdleWorkerDuration: 2 * time.Minute,
@@ -165,10 +153,9 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, 
 
 	for {
 		ctx := udpCtxPool.Get().(*udpCtx)
-		rw, req := ctx.rw, ctx.req
 
-		req.Raw = req.Raw[:cap(req.Raw)]
-		n, addr, err := conn.ReadFromUDP(req.Raw)
+		ctx.req.Raw = ctx.req.Raw[:cap(ctx.req.Raw)]
+		n, addr, err := conn.ReadFromUDP(ctx.req.Raw)
 		if err != nil {
 			udpCtxPool.Put(ctx)
 			time.Sleep(10 * time.Millisecond)
@@ -176,10 +163,37 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, 
 			continue
 		}
 
-		req.Raw = req.Raw[:n]
-		rw.Conn = conn
-		rw.Addr = addr
+		ctx.req.Raw = ctx.req.Raw[:n]
+		ctx.rw.Conn = conn
+		ctx.rw.Addr = addr
+
+		ctx.handler = handler
+		ctx.stats = stats
 
 		pool.Serve(ctx)
 	}
+}
+
+func serveCtx(ctx *udpCtx) error {
+	var start time.Time
+	if ctx.stats != nil {
+		start = time.Now()
+	}
+
+	rw, req := ctx.rw, ctx.req
+
+	err := ParseMessage(req, req.Raw, false)
+	if err != nil {
+		Error(rw, req, RcodeFormErr)
+	} else {
+		ctx.handler.ServeDNS(rw, req)
+	}
+
+	if ctx.stats != nil {
+		ctx.stats.UpdateStats(rw.RemoteAddr(), req, time.Since(start))
+	}
+
+	udpCtxPool.Put(ctx)
+
+	return err
 }
