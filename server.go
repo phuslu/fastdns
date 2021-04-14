@@ -183,9 +183,3 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, 
 		pool.Serve(ctx)
 	}
 }
-
-// ListenAndServe serves DNS requests from the given UDP addr
-// using the given handler.
-func ListenAndServe(addr string, handler Handler) error {
-	return (&Server{Handler: handler, ErrorLog: log.Default()}).ListenAndServe(addr)
-}
