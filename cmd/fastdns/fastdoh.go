@@ -13,15 +13,15 @@ type memCtx struct {
 	req *fastdns.Message
 }
 
-var memPool = sync.Pool{
+var memCtxPool = sync.Pool{
 	New: func() interface{} {
-		mem := new(memCtx)
-		mem.rw = new(fastdns.MemResponseWriter)
-		mem.rw.Data = make([]byte, 0, 1024)
-		mem.req = new(fastdns.Message)
-		mem.req.Raw = make([]byte, 0, 1024)
-		mem.req.Domain = make([]byte, 0, 256)
-		return mem
+		ctx := new(memCtx)
+		ctx.rw = new(fastdns.MemResponseWriter)
+		ctx.rw.Data = make([]byte, 0, 1024)
+		ctx.req = new(fastdns.Message)
+		ctx.req.Raw = make([]byte, 0, 1024)
+		ctx.req.Domain = make([]byte, 0, 256)
+		return ctx
 	},
 }
 
@@ -51,9 +51,9 @@ func (h *fasthttpAdapter) HandlerMetrics(ctx *fasthttp.RequestCtx) {
 }
 
 func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
-	mem := memPool.Get().(*memCtx)
+	memCtx := memCtxPool.Get().(*memCtx)
 
-	rw, req := mem.rw, mem.req
+	rw, req := memCtx.rw, memCtx.req
 	rw.Data = rw.Data[:0]
 	rw.Raddr = ctx.RemoteAddr()
 	rw.Laddr = ctx.LocalAddr()
@@ -68,5 +68,5 @@ func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
 	ctx.SetContentType("application/dns-message")
 	_, _ = ctx.Write(rw.Data)
 
-	memPool.Put(mem)
+	memCtxPool.Put(memCtx)
 }
