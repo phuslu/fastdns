@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 
 	"github.com/phuslu/fastdns"
 	"github.com/valyala/bytebufferpool"
@@ -28,6 +29,7 @@ var memCtxPool = sync.Pool{
 type fasthttpAdapter struct {
 	FastdnsHandler fastdns.Handler
 	FastdnsStats   fastdns.Stats
+	FastdohStats   fastdns.Stats
 }
 
 func (h *fasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
@@ -45,12 +47,25 @@ func (h *fasthttpAdapter) HandlerMetrics(ctx *fasthttp.RequestCtx) {
 	b := bytebufferpool.Get()
 	defer bytebufferpool.Put(b)
 
-	b.B = h.FastdnsStats.AppendOpenMetrics(b.B[:0])
+	b.Reset()
+
+	if h.FastdnsStats != nil {
+		b.B = h.FastdnsStats.AppendOpenMetrics(b.B)
+	}
+
+	if h.FastdohStats != nil {
+		b.B = h.FastdohStats.AppendOpenMetrics(b.B)
+	}
 
 	ctx.Success("text/plain; charset=utf-8", b.B)
 }
 
 func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
+	var start time.Time
+	if h.FastdohStats != nil {
+		start = time.Now()
+	}
+
 	memCtx := memCtxPool.Get().(*memCtx)
 
 	rw, req := memCtx.rw, memCtx.req
@@ -63,6 +78,9 @@ func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
 		fastdns.Error(rw, req, fastdns.RcodeFormErr)
 	} else {
 		h.FastdnsHandler.ServeDNS(rw, req)
+		if h.FastdohStats != nil {
+			h.FastdohStats.UpdateStats(rw.Raddr, req, time.Since(start))
+		}
 	}
 
 	ctx.SetContentType("application/dns-message")

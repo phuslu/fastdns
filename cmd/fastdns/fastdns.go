@@ -118,6 +118,13 @@ func main() {
 		adapter := &fasthttpAdapter{
 			FastdnsHandler: handler,
 			FastdnsStats:   stats,
+			FastdohStats: &fastdns.CoreStats{
+				Prefix: "coredns_",
+				Family: "1",
+				Proto:  "http",
+				Server: "doh://" + addr2,
+				Zone:   ".",
+			},
 		}
 		c <- fasthttp.ListenAndServe(addr2, adapter.Handler)
 	}()
