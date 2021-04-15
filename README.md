@@ -10,7 +10,8 @@
 
 * 0 Dependency
 * Similar Interface with net/http
-* Fast DoH Server Co-manufactured with fasthttp
+* Fast DoH Server Co-create with fasthttp
+* Fast DNS Client with rich features
 * Compatible metrics with coredns
 * High Performance
     - 0-allocs dns request parser
@@ -92,6 +93,9 @@ func main() {
 
 ### DoH Server
 see https://github.com/phuslu/fastdns/tree/master/cmd/fastdns
+
+### DNS Client
+see https://github.com/phuslu/fastdns/tree/master/cmd/fastdig
 
 ### Command Tool
 ```bash
