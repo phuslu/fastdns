@@ -9,14 +9,14 @@ import (
 )
 
 type memCtx struct {
-	rw  *fastdns.MemoryResponseWriter
+	rw  *fastdns.MemResponseWriter
 	req *fastdns.Message
 }
 
 var memPool = sync.Pool{
 	New: func() interface{} {
 		mem := new(memCtx)
-		mem.rw = new(fastdns.MemoryResponseWriter)
+		mem.rw = new(fastdns.MemResponseWriter)
 		mem.rw.Data = make([]byte, 0, 1024)
 		mem.req = new(fastdns.Message)
 		mem.req.Raw = make([]byte, 0, 1024)

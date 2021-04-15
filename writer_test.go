@@ -27,7 +27,7 @@ func TestResponseWriterUDP(t *testing.T) {
 }
 
 func TestResponseWriterMem(t *testing.T) {
-	rw := &MemoryResponseWriter{
+	rw := &MemResponseWriter{
 		Laddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
 		Raddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
 	}
