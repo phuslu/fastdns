@@ -92,12 +92,9 @@ func main() {
 ```
 
 ### DoH Server
-see https://github.com/phuslu/fastdns/tree/master/cmd/fastdns
+see https://github.com/phuslu/fastdns/tree/master/fastdoh
 
 ### DNS Client
-see https://github.com/phuslu/fastdns/tree/master/cmd/fastdig
-
-### Command Tool
 ```bash
 $ go get github.com/phuslu/fastdns/cmd/fastdig
 $ fastdig ip.phus.lu @8.8.8.8
