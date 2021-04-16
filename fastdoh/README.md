@@ -1,5 +1,3 @@
-# Fast DoH Server
-
 ## Getting Started
 
 ### A fastdoh server example
@@ -59,17 +57,14 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 func main() {
 	addr := os.Args[1]
 
-	handler := &DNSHandler{
-		DNSClient: &fastdns.Client{
-			ServerAddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
-			MaxConns:   8192,
+	handler := (&fastdoh.DoHHandler{
+		DNSHandler: &DNSHandler{
+			DNSClient: &fastdns.Client{
+				ServerAddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
+				MaxConns:   8192,
+			},
+			Debug: os.Getenv("DEBUG") != "",
 		},
-		Debug: os.Getenv("DEBUG") != "",
-	}
-
-	log.Printf("start fast DoH server on %s", addr)
-	adapter := &fastdoh.Adapter{
-		DNSHandler: handler,
 		DoHStats: &fastdns.CoreStats{
 			Prefix: "coredns_",
 			Family: "1",
@@ -77,9 +72,10 @@ func main() {
 			Server: "doh://" + addr,
 			Zone:   ".",
 		},
-	}
-	err := fasthttp.ListenAndServe(addr, adapter.Handler)
+	}).Handler
 
+	log.Printf("start fast DoH server on %s", addr)
+	err := fasthttp.ListenAndServe(addr, handler)
 	if err != nil {
 		log.Fatalf("listen and serve DNS/DoH error: %+v", err)
 	}

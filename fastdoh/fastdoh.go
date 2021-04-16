@@ -27,18 +27,18 @@ var memCtxPool = sync.Pool{
 	},
 }
 
-type Adapter struct {
+type DoHHandler struct {
 	DNSHandler fastdns.Handler
 	DNSStats   fastdns.Stats
 	DoHStats   fastdns.Stats
 }
 
-func (adapter *Adapter) Handler(ctx *fasthttp.RequestCtx) {
+func (h *DoHHandler) Handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
 	case "/dns-query":
-		adapter.HandlerDoH(ctx)
+		h.HandlerDoH(ctx)
 	case "/metrics":
-		adapter.HandlerMetrics(ctx)
+		h.HandlerMetrics(ctx)
 	case "/debug/pprof/",
 		"/debug/pprof/cmdline",
 		"/debug/pprof/heap",
@@ -57,26 +57,26 @@ func (adapter *Adapter) Handler(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (adapter *Adapter) HandlerMetrics(ctx *fasthttp.RequestCtx) {
+func (h *DoHHandler) HandlerMetrics(ctx *fasthttp.RequestCtx) {
 	b := bytebufferpool.Get()
 	defer bytebufferpool.Put(b)
 
 	b.Reset()
 
-	if adapter.DNSStats != nil {
-		b.B = adapter.DNSStats.AppendOpenMetrics(b.B)
+	if h.DNSStats != nil {
+		b.B = h.DNSStats.AppendOpenMetrics(b.B)
 	}
 
-	if adapter.DoHStats != nil {
-		b.B = adapter.DoHStats.AppendOpenMetrics(b.B)
+	if h.DoHStats != nil {
+		b.B = h.DoHStats.AppendOpenMetrics(b.B)
 	}
 
 	ctx.Success("text/plain; charset=utf-8", b.B)
 }
 
-func (adapter *Adapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
+func (h *DoHHandler) HandlerDoH(ctx *fasthttp.RequestCtx) {
 	var start time.Time
-	if adapter.DoHStats != nil {
+	if h.DoHStats != nil {
 		start = time.Now()
 	}
 
@@ -91,9 +91,9 @@ func (adapter *Adapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		fastdns.Error(rw, req, fastdns.RcodeFormErr)
 	} else {
-		adapter.DNSHandler.ServeDNS(rw, req)
-		if adapter.DoHStats != nil {
-			adapter.DoHStats.UpdateStats(rw.Raddr, req, time.Since(start))
+		h.DNSHandler.ServeDNS(rw, req)
+		if h.DoHStats != nil {
+			h.DoHStats.UpdateStats(rw.Raddr, req, time.Since(start))
 		}
 	}
 
