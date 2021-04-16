@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/phuslu/fastdns"
+	"github.com/phuslu/fastdns/fastdoh"
 	"github.com/valyala/fasthttp"
 )
 
@@ -115,10 +116,10 @@ func main() {
 
 	go func() {
 		log.Printf("start fast DoH server on %s", addr2)
-		adapter := &fasthttpAdapter{
-			FastdnsHandler: handler,
-			FastdnsStats:   stats,
-			FastdohStats: &fastdns.CoreStats{
+		adapter := &fastdoh.Adapter{
+			DNSHandler: handler,
+			DNSStats:   stats,
+			DoHStats: &fastdns.CoreStats{
 				Prefix: "coredns_",
 				Family: "1",
 				Proto:  "http",

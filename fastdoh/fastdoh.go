@@ -1,4 +1,4 @@
-package main
+package fastdoh
 
 import (
 	"sync"
@@ -27,18 +27,18 @@ var memCtxPool = sync.Pool{
 	},
 }
 
-type fasthttpAdapter struct {
-	FastdnsHandler fastdns.Handler
-	FastdnsStats   fastdns.Stats
-	FastdohStats   fastdns.Stats
+type Adapter struct {
+	DNSHandler fastdns.Handler
+	DNSStats   fastdns.Stats
+	DoHStats   fastdns.Stats
 }
 
-func (h *fasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
+func (adapter *Adapter) Handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
 	case "/dns-query":
-		h.HandlerDoH(ctx)
+		adapter.HandlerDoH(ctx)
 	case "/metrics":
-		h.HandlerMetrics(ctx)
+		adapter.HandlerMetrics(ctx)
 	case "/debug/pprof/",
 		"/debug/pprof/cmdline",
 		"/debug/pprof/heap",
@@ -57,26 +57,26 @@ func (h *fasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func (h *fasthttpAdapter) HandlerMetrics(ctx *fasthttp.RequestCtx) {
+func (adapter *Adapter) HandlerMetrics(ctx *fasthttp.RequestCtx) {
 	b := bytebufferpool.Get()
 	defer bytebufferpool.Put(b)
 
 	b.Reset()
 
-	if h.FastdnsStats != nil {
-		b.B = h.FastdnsStats.AppendOpenMetrics(b.B)
+	if adapter.DNSStats != nil {
+		b.B = adapter.DNSStats.AppendOpenMetrics(b.B)
 	}
 
-	if h.FastdohStats != nil {
-		b.B = h.FastdohStats.AppendOpenMetrics(b.B)
+	if adapter.DoHStats != nil {
+		b.B = adapter.DoHStats.AppendOpenMetrics(b.B)
 	}
 
 	ctx.Success("text/plain; charset=utf-8", b.B)
 }
 
-func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
+func (adapter *Adapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
 	var start time.Time
-	if h.FastdohStats != nil {
+	if adapter.DoHStats != nil {
 		start = time.Now()
 	}
 
@@ -91,9 +91,9 @@ func (h *fasthttpAdapter) HandlerDoH(ctx *fasthttp.RequestCtx) {
 	if err != nil {
 		fastdns.Error(rw, req, fastdns.RcodeFormErr)
 	} else {
-		h.FastdnsHandler.ServeDNS(rw, req)
-		if h.FastdohStats != nil {
-			h.FastdohStats.UpdateStats(rw.Raddr, req, time.Since(start))
+		adapter.DNSHandler.ServeDNS(rw, req)
+		if adapter.DoHStats != nil {
+			adapter.DoHStats.UpdateStats(rw.Raddr, req, time.Since(start))
 		}
 	}
 
