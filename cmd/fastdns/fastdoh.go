@@ -7,6 +7,7 @@ import (
 	"github.com/phuslu/fastdns"
 	"github.com/valyala/bytebufferpool"
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/pprofhandler"
 )
 
 type memCtx struct {
@@ -38,6 +39,19 @@ func (h *fasthttpAdapter) Handler(ctx *fasthttp.RequestCtx) {
 		h.HandlerDoH(ctx)
 	case "/metrics":
 		h.HandlerMetrics(ctx)
+	case "/debug/pprof/",
+		"/debug/pprof/cmdline",
+		"/debug/pprof/heap",
+		"/debug/pprof/profile",
+		"/debug/pprof/symbol",
+		"/debug/pprof/trace":
+		/*
+			git clone https://github.com/brendangregg/FlameGraph.git /opt/FlameGraph
+			go get -v -u github.com/uber-archive/go-torch
+			env PATH=/opt/FlameGraph/:$PATH go-torch http://127.0.0.1:9001/debug/pprof/profile -f mem.svg
+			env PATH=/opt/FlameGraph/:$PATH go-torch -alloc_space -cum http://127.0.0.1:9001/debug/pprof/heap --colors mem -f mem.svg
+		*/
+		pprofhandler.PprofHandler(ctx)
 	default:
 		ctx.NotFound()
 	}
