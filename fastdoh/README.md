@@ -58,6 +58,7 @@ func main() {
 	addr := os.Args[1]
 
 	handler := (&fastdoh.DoHHandler{
+		DNSQuery:   "/dns-query",
 		DNSHandler: &DNSHandler{
 			DNSClient: &fastdns.Client{
 				ServerAddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},

@@ -28,6 +28,7 @@ var memCtxPool = sync.Pool{
 }
 
 type DoHHandler struct {
+	DNSQuery   string
 	DNSHandler fastdns.Handler
 	DNSStats   fastdns.Stats
 	DoHStats   fastdns.Stats
@@ -35,7 +36,7 @@ type DoHHandler struct {
 
 func (h *DoHHandler) Handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
-	case "/dns-query":
+	case h.DNSQuery:
 		h.HandlerDoH(ctx)
 	case "/metrics":
 		h.HandlerMetrics(ctx)
