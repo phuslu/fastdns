@@ -80,8 +80,8 @@ func main() {
 			Proto:  "udp",
 			Server: "dns://" + addr,
 			Zone:   ".",
-		}
-		Logger: log.Default(),
+		},
+		ErrorLog: log.Default(),
 	}
 
 	err := server.ListenAndServe(addr)
