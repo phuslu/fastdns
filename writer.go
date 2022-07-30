@@ -2,15 +2,16 @@ package fastdns
 
 import (
 	"net"
+	"net/netip"
 )
 
 // A ResponseWriter interface is used by an DNS handler to construct an DNS response.
 type ResponseWriter interface {
-	// LocalAddr returns the net.Addr of the server
-	LocalAddr() net.Addr
+	// LocalAddr returns the netip.AddrPort of the server
+	LocalAddr() netip.AddrPort
 
-	// RemoteAddr returns the net.Addr of the client that sent the current request.
-	RemoteAddr() net.Addr
+	// RemoteAddr returns the netip.AddrPort of the client that sent the current request.
+	RemoteAddr() netip.AddrPort
 
 	// Write writes a raw buffer back to the client.
 	Write([]byte) (int, error)
@@ -19,17 +20,17 @@ type ResponseWriter interface {
 // MemResponseWriter is an implementation of ResponseWriter that supports write response to memory.
 type MemResponseWriter struct {
 	Data  []byte
-	Raddr net.Addr
-	Laddr net.Addr
+	Raddr netip.AddrPort
+	Laddr netip.AddrPort
 }
 
-// RemoteAddr returns the net.Addr of the client that sent the current request.
-func (rw *MemResponseWriter) RemoteAddr() net.Addr {
+// RemoteAddr returns the netip.AddrPort of the client that sent the current request.
+func (rw *MemResponseWriter) RemoteAddr() netip.AddrPort {
 	return rw.Raddr
 }
 
-// LocalAddr returns the net.Addr of the server
-func (rw *MemResponseWriter) LocalAddr() net.Addr {
+// LocalAddr returns the netip.AddrPort of the server
+func (rw *MemResponseWriter) LocalAddr() netip.AddrPort {
 	return rw.Laddr
 }
 
@@ -41,19 +42,19 @@ func (rw *MemResponseWriter) Write(p []byte) (n int, err error) {
 }
 
 type udpResponseWriter struct {
-	Conn *net.UDPConn
-	Addr *net.UDPAddr
+	Conn     *net.UDPConn
+	AddrPort netip.AddrPort
 }
 
-func (rw *udpResponseWriter) RemoteAddr() net.Addr {
-	return rw.Addr
+func (rw *udpResponseWriter) RemoteAddr() netip.AddrPort {
+	return rw.AddrPort
 }
 
-func (rw *udpResponseWriter) LocalAddr() net.Addr {
-	return rw.Conn.LocalAddr()
+func (rw *udpResponseWriter) LocalAddr() netip.AddrPort {
+	return rw.Conn.LocalAddr().(*net.UDPAddr).AddrPort()
 }
 
 func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
-	n, _, err = rw.Conn.WriteMsgUDP(p, nil, rw.Addr)
+	n, _, err = rw.Conn.WriteMsgUDPAddrPort(p, nil, rw.AddrPort)
 	return
 }

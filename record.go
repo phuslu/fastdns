@@ -2,15 +2,14 @@ package fastdns
 
 import (
 	"net"
+	"net/netip"
 )
 
 // AppendHOSTRecord appends the Host records to dst and returns the resulting dst.
-func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte {
+func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []netip.Addr) []byte {
 	for _, ip := range ips {
-		if ip4 := ip.To4(); ip4 != nil {
-			// hint golang compiler remove ip bounds check
-			_ = ip4[3]
-			// fixed size array for avoid bounds check
+		if ip.Is4() {
+			v4 := ip.As4()
 			answer := [...]byte{
 				// NAME
 				0xc0, 0x0c,
@@ -23,13 +22,11 @@ func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte
 				// RDLENGTH
 				0x00, 0x04,
 				// RDATA
-				ip4[0], ip4[1], ip4[2], ip4[3],
+				v4[0], v4[1], v4[2], v4[3],
 			}
 			dst = append(dst, answer[:]...)
 		} else {
-			// hint golang compiler remove ip bounds check
-			_ = ip[15]
-			// fixed size array for avoid bounds check
+			v6 := ip.As16()
 			answer := [...]byte{
 				// NAME
 				0xc0, 0x0c,
@@ -42,10 +39,10 @@ func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte
 				// RDLENGTH
 				0x00, 0x10,
 				// RDATA
-				ip[0], ip[1], ip[2], ip[3],
-				ip[4], ip[5], ip[6], ip[7],
-				ip[8], ip[9], ip[10], ip[11],
-				ip[12], ip[13], ip[14], ip[15],
+				v6[0], v6[1], v6[2], v6[3],
+				v6[4], v6[5], v6[6], v6[7],
+				v6[8], v6[9], v6[10], v6[11],
+				v6[12], v6[13], v6[14], v6[15],
 			}
 			dst = append(dst, answer[:]...)
 		}
@@ -55,7 +52,7 @@ func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []net.IP) []byte
 }
 
 // AppendCNAMERecord appends the CNAME and Host records to dst and returns the resulting dst.
-func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ips []net.IP) []byte {
+func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ips []netip.Addr) []byte {
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {
@@ -85,10 +82,8 @@ func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ip
 	}
 	// Host Records
 	for _, ip := range ips {
-		if ip4 := ip.To4(); ip4 != nil {
-			// hint golang compiler remove ip bounds check
-			_ = ip4[3]
-			// fixed size array for avoid bounds check
+		if ip.Is4() {
+			v4 := ip.As4()
 			answer := [...]byte{
 				// NAME
 				0xc0 | byte(offset>>8), byte(offset),
@@ -101,13 +96,11 @@ func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ip
 				// RDLENGTH
 				0x00, 0x04,
 				// RDATA
-				ip4[0], ip4[1], ip4[2], ip4[3],
+				v4[0], v4[1], v4[2], v4[3],
 			}
 			dst = append(dst, answer[:]...)
 		} else {
-			// hint golang compiler remove ip bounds check
-			_ = ip[15]
-			// fixed size array for avoid bounds check
+			v6 := ip.As16()
 			answer := [...]byte{
 				// NAME
 				0xc0 | byte(offset>>8), byte(offset),
@@ -120,10 +113,10 @@ func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ip
 				// RDLENGTH
 				0x00, 0x10,
 				// RDATA
-				ip[0], ip[1], ip[2], ip[3],
-				ip[4], ip[5], ip[6], ip[7],
-				ip[8], ip[9], ip[10], ip[11],
-				ip[12], ip[13], ip[14], ip[15],
+				v6[0], v6[1], v6[2], v6[3],
+				v6[4], v6[5], v6[6], v6[7],
+				v6[8], v6[9], v6[10], v6[11],
+				v6[12], v6[13], v6[14], v6[15],
 			}
 			dst = append(dst, answer[:]...)
 		}

@@ -29,6 +29,7 @@ package main
 import (
 	"log"
 	"net"
+	"net/netip"
 	"os"
 
 	"github.com/phuslu/fastdns"
@@ -45,11 +46,11 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 
 	switch req.Question.Type {
 	case fastdns.TypeA:
-		fastdns.HOST(rw, req, 60, []net.IP{{8, 8, 8, 8}})
+		fastdns.HOST(rw, req, 60, []netip.Addr{netip.MustParseAddr("8.8.8.8")})
 	case fastdns.TypeAAAA:
-		fastdns.HOST(rw, req, 60, []net.IP{net.ParseIP("2001:4860:4860::8888")})
+		fastdns.HOST(rw, req, 60, []netip.Addr{netip.MustParseAddr("2001:4860:4860::8888")})
 	case fastdns.TypeCNAME:
-		fastdns.CNAME(rw, req, 60, []string{"dns.google"}, []net.IP{{8, 8, 8, 8}, {8, 8, 4, 4}})
+		fastdns.CNAME(rw, req, 60, []string{"dns.google"}, []netip.Addr{netip.MustParseAddr("8.8.4.4")})
 	case fastdns.TypeSRV:
 		fastdns.SRV(rw, req, 60, []net.SRV{{"www.google.com", 443, 1000, 1000}})
 	case fastdns.TypeNS:
@@ -128,28 +129,28 @@ goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
 
-BenchmarkHOST              	39442191	        30.31 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME             	22563691	        53.23 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV               	20890515	        57.63 ns/op	       0 B/op	       0 allocs/op
-BenchmarkNS                	16634973	        71.98 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSOA               	14635425	        82.16 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR               	27980914	        42.96 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                	24721230	        48.75 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT               	39824239	        30.14 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseMessage      	50639167	        23.86 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetRequestQustion	26985039	        46.08 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetResponseHeader 	175744434	         6.833 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeName        	33319760	        36.07 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendHOSTRecord  	55649703	        21.56 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendCNAMERecord 	29943513	        40.04 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendSRVRecord   	26827544	        45.00 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendNSRecord    	20113075	        59.70 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendSOARecord   	17054136	        69.81 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendPTRRecord   	36748305	        32.60 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendMXRecord    	34203414	        35.04 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendTXTRecord   	65836453	        18.22 ns/op	       0 B/op	       0 allocs/op
-BenchmarkUpdateStats       	14161730	        84.78 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain      	63253357	        19.27 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST                	46537387	        25.77 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME               	26925482	        44.65 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV                 	24188922	        49.45 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNS                  	19585800	        61.42 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSOA                 	16609441	        72.44 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR                 	33774684	        35.57 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX                  	30105150	        39.84 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT                 	51116004	        22.45 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseMessage        	56425442	        21.32 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetQuestion         	32210199	        36.20 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetResponseHeader   	238730137	         5.037 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeName          	36813590	        32.48 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendHOSTRecord    	73487632	        16.07 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendCNAMERecord   	34382904	        35.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSRVRecord     	28153548	        41.41 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendNSRecord      	22970529	        52.26 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSOARecord     	19043780	        62.86 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendPTRRecord     	44801985	        26.81 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendMXRecord      	38313138	        30.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendTXTRecord     	89567190	        13.43 ns/op	       0 B/op	       0 allocs/op
+BenchmarkUpdateStats         	16593826	        72.32 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain        	74937819	        15.95 ns/op	       0 B/op	       0 allocs/op
 
 PASS
 ok  	github.com/phuslu/fastdns	19.026s

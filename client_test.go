@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"net"
+	"net/netip"
 	"testing"
 	"time"
 )
@@ -16,7 +17,7 @@ func TestClientExchange(t *testing.T) {
 	}
 
 	client := &Client{
-		ServerAddr:  &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53},
+		AddrPort:    netip.AddrPortFrom(netip.MustParseAddr("8.8.8.8"), 53),
 		ReadTimeout: 1 * time.Second,
 		MaxConns:    1000,
 	}

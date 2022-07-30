@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
-	"net"
+	"net/netip"
 	"os"
 	"strings"
 	"time"
@@ -15,7 +15,7 @@ func main() {
 	domain, qtype, server, options := parse(os.Args[1:])
 
 	client := &fastdns.Client{
-		ServerAddr:  &net.UDPAddr{IP: net.ParseIP(server), Port: 53},
+		AddrPort:    netip.AddrPortFrom(netip.MustParseAddr(server), 53),
 		ReadTimeout: 2 * time.Second,
 		MaxConns:    1000,
 	}
@@ -90,7 +90,7 @@ func short(resp *fastdns.Message) {
 		var v interface{}
 		switch typ {
 		case fastdns.TypeA, fastdns.TypeAAAA:
-			v = net.IP(data)
+			v, _ = netip.AddrFromSlice(data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
 			v = fmt.Sprintf("%s.", resp.DecodeName(nil, data))
 		case fastdns.TypeMX:
@@ -174,7 +174,7 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		var v interface{}
 		switch typ {
 		case fastdns.TypeA, fastdns.TypeAAAA:
-			v = net.IP(data)
+			v, _ = netip.AddrFromSlice(data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
 			v = fmt.Sprintf("%s.", resp.DecodeName(nil, data))
 		case fastdns.TypeMX:

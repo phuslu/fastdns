@@ -155,7 +155,7 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, 
 		ctx := udpCtxPool.Get().(*udpCtx)
 
 		ctx.req.Raw = ctx.req.Raw[:cap(ctx.req.Raw)]
-		n, addr, err := conn.ReadFromUDP(ctx.req.Raw)
+		n, addrPort, err := conn.ReadFromUDPAddrPort(ctx.req.Raw)
 		if err != nil {
 			udpCtxPool.Put(ctx)
 			time.Sleep(10 * time.Millisecond)
@@ -165,7 +165,7 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, 
 
 		ctx.req.Raw = ctx.req.Raw[:n]
 		ctx.rw.Conn = conn
-		ctx.rw.Addr = addr
+		ctx.rw.AddrPort = addrPort
 
 		ctx.handler = handler
 		ctx.stats = stats

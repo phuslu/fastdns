@@ -2,16 +2,17 @@ package fastdns
 
 import (
 	"net"
+	"net/netip"
 	"testing"
 )
 
 func TestResponseWriterUDP(t *testing.T) {
 	rw := &udpResponseWriter{
-		Addr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
+		AddrPort: netip.AddrPortFrom(netip.MustParseAddr("1.1.1.1"), 53),
 	}
 
 	var err error
-	rw.Conn, err = net.DialUDP("udp", nil, rw.RemoteAddr().(*net.UDPAddr))
+	rw.Conn, err = net.DialUDP("udp", nil, net.UDPAddrFromAddrPort(rw.RemoteAddr()))
 	if err != nil {
 		t.Errorf("response writer dial udp error: %+v", err)
 	}
@@ -28,8 +29,8 @@ func TestResponseWriterUDP(t *testing.T) {
 
 func TestResponseWriterMem(t *testing.T) {
 	rw := &MemResponseWriter{
-		Laddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
-		Raddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
+		Laddr: netip.AddrPortFrom(netip.MustParseAddr("1.1.1.1"), 53),
+		Raddr: netip.AddrPortFrom(netip.MustParseAddr("1.1.1.1"), 53),
 	}
 
 	const data = "testdata"

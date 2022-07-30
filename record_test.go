@@ -3,6 +3,7 @@ package fastdns
 import (
 	"encoding/hex"
 	"net"
+	"net/netip"
 	"strings"
 	"testing"
 )
@@ -10,17 +11,17 @@ import (
 func TestAppendHOSTRecord(t *testing.T) {
 	cases := []struct {
 		Hex string
-		IPs []net.IP
+		IPs []netip.Addr
 		TTL uint32
 	}{
 		{
 			"c00c000100010000012c000401010101c00c000100010000012c000408080808c00c000100010000012c00047b2d064e",
-			[]net.IP{{1, 1, 1, 1}, {8, 8, 8, 8}, {123, 45, 6, 78}},
+			[]netip.Addr{netip.MustParseAddr("1.1.1.1"), netip.MustParseAddr("8.8.8.8"), netip.MustParseAddr("123.45.6.78")},
 			300,
 		},
 		{
 			"c00c001c00010000012c001000000000000000000000000000000001c00c001c00010000012c001020014860486000000000000000008888",
-			[]net.IP{net.ParseIP("::1"), net.ParseIP("2001:4860:4860::8888")},
+			[]netip.Addr{netip.MustParseAddr("::1"), netip.MustParseAddr("2001:4860:4860::8888")},
 			300,
 		},
 	}
@@ -40,7 +41,7 @@ func TestAppendCNAMERecord(t *testing.T) {
 	cases := []struct {
 		Hex    string
 		CNAMEs []string
-		IPs    []net.IP
+		IPs    []netip.Addr
 		TTL    uint32
 	}{
 		{
@@ -52,13 +53,13 @@ func TestAppendCNAMERecord(t *testing.T) {
 		{
 			"c00c000500010000012c00090470687573026c7500c028001c00010000012c001020014860486000000000000000008888",
 			[]string{"phus.lu"},
-			[]net.IP{net.ParseIP("2001:4860:4860::8888")},
+			[]netip.Addr{netip.MustParseAddr("2001:4860:4860::8888")},
 			300,
 		},
 		{
 			"c00c000500010000012c00090470687573026c7500c028000500010000012c000c02686b0470687573026c7500c040000100010000012c000401010101c040000100010000012c000408080808",
 			[]string{"phus.lu", "hk.phus.lu"},
-			[]net.IP{{1, 1, 1, 1}, {8, 8, 8, 8}},
+			[]netip.Addr{netip.MustParseAddr("1.1.1.1"), netip.MustParseAddr("8.8.8.8")},
 			300,
 		},
 	}
@@ -266,7 +267,7 @@ func BenchmarkAppendHOSTRecord(b *testing.B) {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
-	ips := []net.IP{net.ParseIP("8.8.8.8")}
+	ips := []netip.Addr{netip.MustParseAddr("8.8.8.8")}
 	for i := 0; i < b.N; i++ {
 		payload = AppendHOSTRecord(payload[:0], req, 3000, ips)
 	}

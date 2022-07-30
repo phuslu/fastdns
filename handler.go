@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"net"
+	"net/netip"
 )
 
 // Handler is implemented by any value that implements ServeDNS.
@@ -16,14 +17,14 @@ func Error(rw ResponseWriter, req *Message, rcode Rcode) {
 }
 
 // HOST replies to the request with the specified Host records.
-func HOST(rw ResponseWriter, req *Message, ttl uint32, ips []net.IP) {
+func HOST(rw ResponseWriter, req *Message, ttl uint32, ips []netip.Addr) {
 	req.SetResponseHeader(RcodeNoError, uint16(len(ips)))
 	req.Raw = AppendHOSTRecord(req.Raw, req, ttl, ips)
 	_, _ = rw.Write(req.Raw)
 }
 
 // CNAME replies to the request with the specified CName and Host records.
-func CNAME(rw ResponseWriter, req *Message, ttl uint32, cnames []string, ips []net.IP) {
+func CNAME(rw ResponseWriter, req *Message, ttl uint32, cnames []string, ips []netip.Addr) {
 	req.SetResponseHeader(RcodeNoError, uint16(len(cnames)+len(ips)))
 	req.Raw = AppendCNAMERecord(req.Raw, req, ttl, cnames, ips)
 	_, _ = rw.Write(req.Raw)

@@ -3,6 +3,7 @@ package fastdns
 import (
 	"errors"
 	"net"
+	"net/netip"
 	"os"
 	"sync"
 	"time"
@@ -15,7 +16,7 @@ var (
 
 // Client is an UDP client that supports DNS protocol.
 type Client struct {
-	ServerAddr *net.UDPAddr
+	AddrPort netip.AddrPort
 
 	// MaxIdleConns controls the maximum number of idle (keep-alive)
 	// connections. Zero means no limit.
@@ -88,7 +89,7 @@ func (c *Client) exchange(req, resp *Message) error {
 }
 
 func (c *Client) dial() (conn *net.UDPConn, err error) {
-	conn, err = net.DialUDP("udp", nil, c.ServerAddr)
+	conn, err = net.DialUDP("udp", nil, net.UDPAddrFromAddrPort(c.AddrPort))
 	return
 }
 

@@ -222,7 +222,7 @@ func (wp *workerPool) workerFunc(ch *workerChan) {
 
 		if err = wp.WorkerFunc(item.ctx); err != nil {
 			if wp.LogAllErrors || !(err == ErrInvalidHeader || err == ErrInvalidQuestion) {
-				wp.Logger.Printf("error when serving connection %q<->%q: %s", item.ctx.rw.Conn.LocalAddr(), item.ctx.rw.Addr, err)
+				wp.Logger.Printf("error when serving connection %q<->%q: %s", item.ctx.rw.Conn.LocalAddr(), item.ctx.rw.AddrPort, err)
 			}
 		}
 		item.ctx = nil

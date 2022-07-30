@@ -1,14 +1,14 @@
 package fastdns
 
 import (
-	"net"
+	"net/netip"
 	"strconv"
 	"sync/atomic"
 	"time"
 )
 
 type Stats interface {
-	UpdateStats(addr net.Addr, msg *Message, duration time.Duration)
+	UpdateStats(addr netip.AddrPort, msg *Message, duration time.Duration)
 	AppendOpenMetrics(dst []byte) []byte
 }
 
@@ -97,7 +97,7 @@ type CoreStats struct {
 	Prefix, Family, Proto, Server, Zone string
 }
 
-func (s *CoreStats) UpdateStats(addr net.Addr, msg *Message, duration time.Duration) {
+func (s *CoreStats) UpdateStats(addr netip.AddrPort, msg *Message, duration time.Duration) {
 	atomic.AddUint64(&s.RequstCountTotal, 1)
 	// request seconds
 	switch {

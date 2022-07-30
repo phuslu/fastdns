@@ -7,6 +7,7 @@ package main
 import (
 	"log"
 	"net"
+	"net/netip"
 	"os"
 	"time"
 
@@ -44,11 +45,11 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 			case fastdns.TypeCNAME:
 				log.Printf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
 			case fastdns.TypeA, fastdns.TypeAAAA:
-				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, net.IP(data))
+				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.Addr(data))
 			}
 			return true
 		})
-		log.Printf("%s] %s: %s reply %d answers\n", rw.RemoteAddr(), req.Domain, h.DNSClient.ServerAddr, resp.Header.ANCount)
+		log.Printf("%s] %s: %s reply %d answers\n", rw.RemoteAddr(), req.Domain, h.DNSClient.AddrPort, resp.Header.ANCount)
 	}
 
 	_, _ = rw.Write(resp.Raw)
@@ -61,7 +62,7 @@ func main() {
 		DNSQuery:   "/dns-query",
 		DNSHandler: &DNSHandler{
 			DNSClient: &fastdns.Client{
-				ServerAddr: &net.UDPAddr{IP: net.IP{1, 1, 1, 1}, Port: 53},
+				AddrPort:   netip.AddrPortFrom(netip.MustParseAddr("8.8.8.8"), 53),
 				MaxConns:   8192,
 			},
 			Debug: os.Getenv("DEBUG") != "",

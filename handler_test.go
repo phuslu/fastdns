@@ -3,6 +3,7 @@ package fastdns
 import (
 	"encoding/hex"
 	"net"
+	"net/netip"
 	"testing"
 )
 
@@ -32,10 +33,10 @@ func TestHandlerError(t *testing.T) {
 
 	rw, req := &MemResponseWriter{}, mockMessage()
 
-	if rw.RemoteAddr() != nil {
+	if rw.RemoteAddr().IsValid() {
 		t.Errorf("MemResponseWriter shall return empty addr")
 	}
-	if rw.LocalAddr() != nil {
+	if rw.LocalAddr().IsValid() {
 		t.Errorf("MemResponseWriter shall return empty addr")
 	}
 	for _, c := range cases {
@@ -49,19 +50,19 @@ func TestHandlerError(t *testing.T) {
 func TestHandlerHost(t *testing.T) {
 	var cases = []struct {
 		Hex string
-		IP  net.IP
+		IP  netip.Addr
 		TTL uint32
 	}{
 		{
 			"00028180000100010000000002686b0470687573026c750000010001c00c000100010000012c000401020408",
-			net.IP{1, 2, 4, 8},
+			netip.MustParseAddr("1.2.4.8"),
 			300,
 		},
 	}
 
 	rw, req := &MemResponseWriter{}, mockMessage()
 	for _, c := range cases {
-		HOST(rw, req, c.TTL, []net.IP{c.IP})
+		HOST(rw, req, c.TTL, []netip.Addr{c.IP})
 		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
 			t.Errorf("HOST(%v) error got=%#v want=%#v", c.IP, got, want)
 		}
@@ -236,15 +237,15 @@ func TestHandlerTXT(t *testing.T) {
 
 type nilResponseWriter struct{}
 
-func (rw *nilResponseWriter) RemoteAddr() net.Addr { return nil }
+func (rw *nilResponseWriter) RemoteAddr() netip.AddrPort { return netip.AddrPort{} }
 
-func (rw *nilResponseWriter) LocalAddr() net.Addr { return nil }
+func (rw *nilResponseWriter) LocalAddr() netip.AddrPort { return netip.AddrPort{} }
 
 func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p), nil }
 
 func BenchmarkHOST(b *testing.B) {
 	req := mockMessage()
-	ips := []net.IP{net.ParseIP("8.8.8.8")}
+	ips := []netip.Addr{netip.MustParseAddr("8.8.8.8")}
 	for i := 0; i < b.N; i++ {
 		HOST(&nilResponseWriter{}, req, 3000, ips)
 	}
