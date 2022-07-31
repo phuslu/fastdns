@@ -1,6 +1,7 @@
-package fastdoh
+package main
 
 import (
+	"net"
 	"sync"
 	"time"
 
@@ -79,8 +80,12 @@ func (h *DoHHandler) HandlerDoH(ctx *fasthttp.RequestCtx) {
 
 	rw, req := memCtx.rw, memCtx.req
 	rw.Data = rw.Data[:0]
-	rw.Raddr = ctx.RemoteAddr()
-	rw.Laddr = ctx.LocalAddr()
+	if v, _ := ctx.RemoteAddr().(*net.TCPAddr); v != nil {
+		rw.Raddr = v.AddrPort()
+	}
+	if v, _ := ctx.LocalAddr().(*net.TCPAddr); v != nil {
+		rw.Laddr = v.AddrPort()
+	}
 
 	err := fastdns.ParseMessage(req, ctx.PostBody(), true)
 	if err != nil {

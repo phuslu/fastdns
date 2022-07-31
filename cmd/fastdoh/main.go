@@ -1,7 +1,3 @@
-## Getting Started
-
-### A fastdoh server example
-```go
 package main
 
 import (
@@ -12,7 +8,6 @@ import (
 	"time"
 
 	"github.com/phuslu/fastdns"
-	"github.com/phuslu/fastdns/fastdoh"
 	"github.com/valyala/fasthttp"
 )
 
@@ -45,7 +40,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 			case fastdns.TypeCNAME:
 				log.Printf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
 			case fastdns.TypeA, fastdns.TypeAAAA:
-				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.Addr(data))
+				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, net.IP(data))
 			}
 			return true
 		})
@@ -58,12 +53,12 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 func main() {
 	addr := os.Args[1]
 
-	handler := (&fastdoh.DoHHandler{
-		DNSQuery:   "/dns-query",
+	handler := (&DoHHandler{
+		DNSQuery: "/dns-query",
 		DNSHandler: &DNSHandler{
 			DNSClient: &fastdns.Client{
-				AddrPort:   netip.AddrPortFrom(netip.MustParseAddr("8.8.8.8"), 53),
-				MaxConns:   8192,
+				AddrPort: netip.AddrPortFrom(netip.MustParseAddr("8.8.8.8"), 53),
+				MaxConns: 8192,
 			},
 			Debug: os.Getenv("DEBUG") != "",
 		},
@@ -82,4 +77,3 @@ func main() {
 		log.Fatalf("listen and serve DNS/DoH error: %+v", err)
 	}
 }
-```

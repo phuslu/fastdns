@@ -22,7 +22,7 @@
 
 ## Getting Started
 
-### A fastdns server example
+### DNS Server
 ```go
 package main
 
@@ -92,9 +92,6 @@ func main() {
 }
 ```
 
-### DoH Server
-see https://github.com/phuslu/fastdns/tree/master/fastdoh
-
 ### DNS Client
 ```bash
 $ go get github.com/phuslu/fastdns/cmd/fastdig
@@ -117,6 +114,12 @@ phus.lu.        299     IN      A       101.32.116.118
 ;; SERVER: 8.8.8.8#53(8.8.8.8)
 ;; WHEN: Mon Apr 12 22:07:16 +08 2021
 ;; MSG SIZE  rcvd: 58
+```
+
+### DoH Server
+```bash
+$ go get github.com/phuslu/fastdns/cmd/fastdoh
+$ fastdoh :8080
 ```
 
 ## High Performance

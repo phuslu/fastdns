@@ -1,11 +1,11 @@
-module github.com/phuslu/fastdns/fastdoh
+module main
 
-go 1.17
+go 1.18
 
 require (
-	github.com/phuslu/fastdns v0.7.2
+	github.com/phuslu/fastdns v0.8.0
 	github.com/valyala/bytebufferpool v1.0.0
-	github.com/valyala/fasthttp v1.34.0
+	github.com/valyala/fasthttp v1.38.0
 )
 
 require (
