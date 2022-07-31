@@ -16,7 +16,7 @@ func TestAppendHOSTRecord(t *testing.T) {
 	}{
 		{
 			"c00c000100010000012c000401010101c00c000100010000012c000408080808c00c000100010000012c00047b2d064e",
-			[]netip.Addr{netip.MustParseAddr("1.1.1.1"), netip.MustParseAddr("8.8.8.8"), netip.MustParseAddr("123.45.6.78")},
+			[]netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1}), netip.AddrFrom4([4]byte{8, 8, 8, 8}), netip.AddrFrom4([4]byte{123, 45, 6, 78})},
 			300,
 		},
 		{
@@ -59,7 +59,7 @@ func TestAppendCNAMERecord(t *testing.T) {
 		{
 			"c00c000500010000012c00090470687573026c7500c028000500010000012c000c02686b0470687573026c7500c040000100010000012c000401010101c040000100010000012c000408080808",
 			[]string{"phus.lu", "hk.phus.lu"},
-			[]netip.Addr{netip.MustParseAddr("1.1.1.1"), netip.MustParseAddr("8.8.8.8")},
+			[]netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1}), netip.AddrFrom4([4]byte{8, 8, 8, 8})},
 			300,
 		},
 	}
@@ -267,7 +267,7 @@ func BenchmarkAppendHOSTRecord(b *testing.B) {
 		b.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
-	ips := []netip.Addr{netip.MustParseAddr("8.8.8.8")}
+	ips := []netip.Addr{netip.AddrFrom4([4]byte{8, 8, 8, 8})}
 	for i := 0; i < b.N; i++ {
 		payload = AppendHOSTRecord(payload[:0], req, 3000, ips)
 	}

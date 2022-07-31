@@ -55,7 +55,7 @@ func TestHandlerHost(t *testing.T) {
 	}{
 		{
 			"00028180000100010000000002686b0470687573026c750000010001c00c000100010000012c000401020408",
-			netip.MustParseAddr("1.2.4.8"),
+			netip.AddrFrom4([4]byte{1, 2, 4, 8}),
 			300,
 		},
 	}
@@ -245,7 +245,7 @@ func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p),
 
 func BenchmarkHOST(b *testing.B) {
 	req := mockMessage()
-	ips := []netip.Addr{netip.MustParseAddr("8.8.8.8")}
+	ips := []netip.Addr{netip.AddrFrom4([4]byte{8, 8, 8, 8})}
 	for i := 0; i < b.N; i++ {
 		HOST(&nilResponseWriter{}, req, 3000, ips)
 	}

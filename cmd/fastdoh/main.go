@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"net"
 	"net/netip"
 	"os"
 	"time"
@@ -39,8 +38,10 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 			switch typ {
 			case fastdns.TypeCNAME:
 				log.Printf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
-			case fastdns.TypeA, fastdns.TypeAAAA:
-				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, net.IP(data))
+			case fastdns.TypeA:
+				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.AddrFrom4(*(*[4]byte)(data)))
+			case fastdns.TypeAAAA:
+				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.AddrFrom16(*(*[16]byte)(data)))
 			}
 			return true
 		})
@@ -57,7 +58,7 @@ func main() {
 		DNSQuery: "/dns-query",
 		DNSHandler: &DNSHandler{
 			DNSClient: &fastdns.Client{
-				AddrPort: netip.AddrPortFrom(netip.MustParseAddr("8.8.8.8"), 53),
+				AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
 				MaxConns: 8192,
 			},
 			Debug: os.Getenv("DEBUG") != "",

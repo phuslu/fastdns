@@ -8,7 +8,7 @@ import (
 
 func TestResponseWriterUDP(t *testing.T) {
 	rw := &udpResponseWriter{
-		AddrPort: netip.AddrPortFrom(netip.MustParseAddr("1.1.1.1"), 53),
+		AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{1, 1, 1, 1}), 53),
 	}
 
 	var err error
@@ -29,8 +29,8 @@ func TestResponseWriterUDP(t *testing.T) {
 
 func TestResponseWriterMem(t *testing.T) {
 	rw := &MemResponseWriter{
-		Laddr: netip.AddrPortFrom(netip.MustParseAddr("1.1.1.1"), 53),
-		Raddr: netip.AddrPortFrom(netip.MustParseAddr("1.1.1.1"), 53),
+		Laddr: netip.AddrPortFrom(netip.AddrFrom4([4]byte{1, 1, 1, 1}), 53),
+		Raddr: netip.AddrPortFrom(netip.AddrFrom4([4]byte{1, 1, 1, 1}), 53),
 	}
 
 	const data = "testdata"

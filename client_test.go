@@ -1,7 +1,6 @@
 package fastdns
 
 import (
-	"net"
 	"net/netip"
 	"testing"
 	"time"
@@ -17,7 +16,7 @@ func TestClientExchange(t *testing.T) {
 	}
 
 	client := &Client{
-		AddrPort:    netip.AddrPortFrom(netip.MustParseAddr("8.8.8.8"), 53),
+		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
 		ReadTimeout: 1 * time.Second,
 		MaxConns:    1000,
 	}
@@ -34,8 +33,10 @@ func TestClientExchange(t *testing.T) {
 			switch typ {
 			case TypeCNAME:
 				t.Logf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
-			case TypeA, TypeAAAA:
-				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, net.IP(data))
+			case TypeA:
+				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.AddrFrom4(*(*[4]byte)(data)))
+			case TypeAAAA:
+				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.AddrFrom16(*(*[16]byte)(data)))
 			}
 			return true
 		})

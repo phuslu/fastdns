@@ -77,6 +77,7 @@ func (h *DoHHandler) HandlerDoH(ctx *fasthttp.RequestCtx) {
 	}
 
 	memCtx := memCtxPool.Get().(*memCtx)
+	defer memCtxPool.Put(memCtx)
 
 	rw, req := memCtx.rw, memCtx.req
 	rw.Data = rw.Data[:0]
@@ -99,6 +100,4 @@ func (h *DoHHandler) HandlerDoH(ctx *fasthttp.RequestCtx) {
 
 	ctx.SetContentType("application/dns-message")
 	_, _ = ctx.Write(rw.Data)
-
-	memCtxPool.Put(memCtx)
 }

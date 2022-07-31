@@ -46,11 +46,11 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 
 	switch req.Question.Type {
 	case fastdns.TypeA:
-		fastdns.HOST(rw, req, 60, []netip.Addr{netip.MustParseAddr("8.8.8.8")})
+		fastdns.HOST(rw, req, 60, []netip.Addr{netip.AddrFrom4([4]byte{8, 8, 8, 8})})
 	case fastdns.TypeAAAA:
 		fastdns.HOST(rw, req, 60, []netip.Addr{netip.MustParseAddr("2001:4860:4860::8888")})
 	case fastdns.TypeCNAME:
-		fastdns.CNAME(rw, req, 60, []string{"dns.google"}, []netip.Addr{netip.MustParseAddr("8.8.4.4")})
+		fastdns.CNAME(rw, req, 60, []string{"dns.google"}, []netip.Addr{netip.AddrFrom4([4]byte{8, 8, 4, 4})})
 	case fastdns.TypeSRV:
 		fastdns.SRV(rw, req, 60, []net.SRV{{"www.google.com", 443, 1000, 1000}})
 	case fastdns.TypeNS:

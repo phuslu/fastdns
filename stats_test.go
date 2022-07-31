@@ -26,7 +26,7 @@ func BenchmarkUpdateStats(b *testing.B) {
 		Zone:   ".",
 	}
 
-	addr := netip.AddrPortFrom(netip.MustParseAddr("127.0.0.1"), 12345)
+	addr := netip.AddrPortFrom(netip.AddrFrom4([4]byte{127, 0, 0, 1}), 12345)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -53,7 +53,7 @@ func BenchmarkAppendOpenMetrics(b *testing.B) {
 		Zone:   ".",
 	}
 
-	addr := netip.AddrPortFrom(netip.MustParseAddr("127.0.0.1"), 12345)
+	addr := netip.AddrPortFrom(netip.AddrFrom4([4]byte{127, 0, 0, 1}), 12345)
 
 	stats.UpdateStats(addr, resp, time.Millisecond)
 
