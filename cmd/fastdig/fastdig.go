@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/netip"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -66,6 +67,11 @@ func parse(args []string) (domain, qtype, server string, options []string) {
 	}
 	if server == "" {
 		server = "8.8.8.8"
+		if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
+			if m := regexp.MustCompile(`(^|\n)\s*nameserver\s+(\S+)`).FindAllStringSubmatch(string(data), -1); len(m) != 0 {
+				server = m[0][2]
+			}
+		}
 	}
 	if qtype == "" {
 		qtype = "A"

@@ -94,7 +94,7 @@ func main() {
 
 ### DNS Client
 ```bash
-$ go get github.com/phuslu/fastdns/cmd/fastdig
+$ go install github.com/phuslu/fastdns/cmd/fastdig@master
 $ fastdig ip.phus.lu @8.8.8.8
 
 ; <<>> DiG 0.0.1-Fastdns <<>> ip.phus.lu
@@ -118,7 +118,7 @@ phus.lu.        299     IN      A       101.32.116.118
 
 ### DoH Server
 ```bash
-$ go get github.com/phuslu/fastdns/cmd/fastdoh
+$ go install github.com/phuslu/fastdns/cmd/fastdoh@master
 $ fastdoh :8080
 ```
 
