@@ -6,6 +6,7 @@ import (
 	"net/netip"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -156,11 +157,11 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	flags = strings.TrimSpace(flags)
 
 	fmt.Printf("\n")
-	fmt.Printf("; <<>> DiG 0.0.1-Fastdns <<>> %s %s\n", req.Question.Type, req.Domain)
+	fmt.Printf("; <<>> DiG 0.0.1-fastdns-%s <<>> %s\n", runtime.Version(), req.Domain)
 	fmt.Printf(";; global options: +cmd +noedns\n")
 	fmt.Printf(";; Got answer:\n")
 	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
-		resp.Header.Flags.Opcode(), resp.Header.Flags.Rcode(), resp.Header.ID)
+		strings.ToUpper(resp.Header.Flags.Opcode().String()), strings.ToUpper(resp.Header.Flags.Rcode().String()), resp.Header.ID)
 	fmt.Printf(";; flags: %s; QUERY: %d, ANSWER: %d, AUTHORITY: %d, ADDITIONAL: %d\n",
 		flags, resp.Header.QDCount, resp.Header.ANCount, resp.Header.NSCount, resp.Header.ARCount)
 
@@ -222,7 +223,7 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	fmt.Printf("\n")
 	fmt.Printf(";; Query time: %d msec\n", end.Sub(start)/time.Millisecond)
 	fmt.Printf(";; SERVER: %s#53(%s)\n", server, server)
-	fmt.Printf(";; WHEN: %s\n", start.Format(time.UnixDate))
+	fmt.Printf(";; WHEN: %s\n", start.Format("Mon Jan 02 15:04:05 MST 2006"))
 	fmt.Printf(";; MSG SIZE  rcvd: %d\n", len(resp.Raw))
 	fmt.Printf("\n")
 }
