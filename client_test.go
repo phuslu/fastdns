@@ -29,7 +29,7 @@ func TestClientExchange(t *testing.T) {
 			t.Errorf("client=%+v exchange(%v) error: %+v\n", client, c.Domain, err)
 		}
 		t.Logf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
-		_ = resp.VisitResourceRecords(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
+		_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
 			switch typ {
 			case TypeCNAME:
 				t.Logf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))

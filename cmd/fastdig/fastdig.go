@@ -93,7 +93,7 @@ func opt(option string, options []string) bool {
 }
 
 func short(resp *fastdns.Message) {
-	_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+	_ = resp.Walk(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
 		var v interface{}
 		switch typ {
 		case fastdns.TypeA, fastdns.TypeAAAA:
@@ -177,7 +177,7 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	} else {
 		fmt.Printf(";; AUTHORITY SECTION:\n")
 	}
-	_ = resp.VisitResourceRecords(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+	_ = resp.Walk(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
 		var v interface{}
 		switch typ {
 		case fastdns.TypeA, fastdns.TypeAAAA:

@@ -213,8 +213,8 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 	return dst
 }
 
-// VisitResourceRecords calls f for each item in the msg in the original order of the parsed RR.
-func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
+// Walk calls f for each item in the msg in the original order of the parsed RR.
+func (msg *Message) Walk(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
 	n := msg.Header.ANCount + msg.Header.NSCount
 	if n == 0 {
 		return ErrInvalidAnswer
@@ -254,8 +254,8 @@ func (msg *Message) VisitResourceRecords(f func(name []byte, typ Type, class Cla
 	return nil
 }
 
-// VisitAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.
-func (msg *Message) VisitAdditionalRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
+// WalkAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.
+func (msg *Message) WalkAdditionalRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
 	panic("not implemented")
 }
 
