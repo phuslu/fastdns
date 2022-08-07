@@ -16,6 +16,13 @@ func Error(rw ResponseWriter, req *Message, rcode Rcode) {
 	_, _ = rw.Write(req.Raw)
 }
 
+// HOST1 replies to the request with the specified Host record.
+func HOST1(rw ResponseWriter, req *Message, ttl uint32, ip netip.Addr) {
+	req.SetResponseHeader(RcodeNoError, 1)
+	req.Raw = AppendHOST1Record(req.Raw, req, ttl, ip)
+	_, _ = rw.Write(req.Raw)
+}
+
 // HOST replies to the request with the specified Host records.
 func HOST(rw ResponseWriter, req *Message, ttl uint32, ips []netip.Addr) {
 	req.SetResponseHeader(RcodeNoError, uint16(len(ips)))

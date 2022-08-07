@@ -53,6 +53,49 @@ func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []netip.Addr) []
 	return dst
 }
 
+// AppendHOST1Record appends a Host record to dst and returns the resulting dst.
+func AppendHOST1Record(dst []byte, req *Message, ttl uint32, ip netip.Addr) []byte {
+	b := (*[16]byte)(unsafe.Pointer(&ip))
+	if ip.Is4() {
+		answer := [...]byte{
+			// NAME
+			0xc0, 0x0c,
+			// TYPE
+			0x00, byte(TypeA),
+			// CLASS
+			byte(req.Question.Class >> 8), byte(req.Question.Class),
+			// TTL
+			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+			// RDLENGTH
+			0x00, 0x04,
+			// RDATA
+			b[8], b[9], b[10], b[11],
+		}
+		dst = append(dst, answer[:]...)
+	} else {
+		answer := [...]byte{
+			// NAME
+			0xc0, 0x0c,
+			// TYPE
+			0x00, byte(TypeAAAA),
+			// CLASS
+			byte(req.Question.Class >> 8), byte(req.Question.Class),
+			// TTL
+			byte(ttl >> 24), byte(ttl >> 16), byte(ttl >> 8), byte(ttl),
+			// RDLENGTH
+			0x00, 0x10,
+			// RDATA
+			b[8], b[9], b[10], b[11],
+			b[12], b[13], b[14], b[15],
+			b[0], b[1], b[2], b[3],
+			b[4], b[5], b[6], b[7],
+		}
+		dst = append(dst, answer[:]...)
+	}
+
+	return dst
+}
+
 // AppendCNAMERecord appends the CNAME and Host records to dst and returns the resulting dst.
 func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ips []netip.Addr) []byte {
 	offset := 0x0c

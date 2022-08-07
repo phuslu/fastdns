@@ -47,6 +47,28 @@ func TestHandlerError(t *testing.T) {
 	}
 }
 
+func TestHandlerHost1(t *testing.T) {
+	var cases = []struct {
+		Hex string
+		IP  netip.Addr
+		TTL uint32
+	}{
+		{
+			"00028180000100010000000002686b0470687573026c750000010001c00c000100010000012c000401020408",
+			netip.AddrFrom4([4]byte{1, 2, 4, 8}),
+			300,
+		},
+	}
+
+	rw, req := &MemResponseWriter{}, mockMessage()
+	for _, c := range cases {
+		HOST1(rw, req, c.TTL, c.IP)
+		if got, want := hex.EncodeToString(rw.Data), c.Hex; got != want {
+			t.Errorf("HOST1(%v) error got=%#v want=%#v", c.IP, got, want)
+		}
+	}
+}
+
 func TestHandlerHost(t *testing.T) {
 	var cases = []struct {
 		Hex string
@@ -242,6 +264,14 @@ func (rw *nilResponseWriter) RemoteAddr() netip.AddrPort { return netip.AddrPort
 func (rw *nilResponseWriter) LocalAddr() netip.AddrPort { return netip.AddrPort{} }
 
 func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p), nil }
+
+func BenchmarkHOST1(b *testing.B) {
+	req := mockMessage()
+	ip := netip.AddrFrom4([4]byte{8, 8, 8, 8})
+	for i := 0; i < b.N; i++ {
+		HOST1(&nilResponseWriter{}, req, 3000, ip)
+	}
+}
 
 func BenchmarkHOST(b *testing.B) {
 	req := mockMessage()
