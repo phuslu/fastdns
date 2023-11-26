@@ -15,7 +15,7 @@ type Stats interface {
 var _ Stats = (*CoreStats)(nil)
 
 type CoreStats struct {
-	RequstCountTotal uint64
+	RequestCountTotal uint64
 
 	RequestDurationSecondsBucket_0_00025 uint64
 	RequestDurationSecondsBucket_0_0005  uint64
@@ -98,7 +98,7 @@ type CoreStats struct {
 }
 
 func (s *CoreStats) UpdateStats(addr netip.AddrPort, msg *Message, duration time.Duration) {
-	atomic.AddUint64(&s.RequstCountTotal, 1)
+	atomic.AddUint64(&s.RequestCountTotal, 1)
 	// request seconds
 	switch {
 	case duration <= 250*time.Microsecond:
@@ -359,7 +359,7 @@ func (s *CoreStats) template(dst []byte, template string, startTag, endTag byte)
 			case "zone":
 				dst = append(dst, s.Zone...)
 			case "request_count_total":
-				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequstCountTotal), 10)
+				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestCountTotal), 10)
 			case "request_duration_seconds_bucket_0_00025":
 				dst = strconv.AppendUint(dst, atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_00025), 10)
 			case "request_duration_seconds_bucket_0_0005":

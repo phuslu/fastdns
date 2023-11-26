@@ -259,8 +259,8 @@ func (msg *Message) WalkAdditionalRecords(f func(name []byte, typ Type, class Cl
 	panic("not implemented")
 }
 
-// SetRequestQustion set question for DNS request.
-func (msg *Message) SetRequestQustion(domain string, typ Type, class Class) {
+// SetRequestQuestion set question for DNS request.
+func (msg *Message) SetRequestQuestion(domain string, typ Type, class Class) {
 	// random head id
 	msg.Header.ID = uint16(fastrandn(65536))
 
