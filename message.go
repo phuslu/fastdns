@@ -262,7 +262,7 @@ func (msg *Message) WalkAdditionalRecords(f func(name []byte, typ Type, class Cl
 // SetRequestQuestion set question for DNS request.
 func (msg *Message) SetRequestQuestion(domain string, typ Type, class Class) {
 	// random head id
-	msg.Header.ID = uint16(fastrandn(65536))
+	msg.Header.ID = uint16(cheaprandn(65536))
 
 	// QR = 0, RCODE = 0, RD = 1
 	//

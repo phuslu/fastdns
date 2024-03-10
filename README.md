@@ -130,33 +130,35 @@ A Performance result as below, for daily benchmark results see [github actions][
 goos: linux
 goarch: amd64
 pkg: github.com/phuslu/fastdns
-cpu: Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
+cpu: AMD EPYC 7763 64-Core Processor
 
-BenchmarkHOST                	46537387	        25.77 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCNAME               	26925482	        44.65 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSRV                 	24188922	        49.45 ns/op	       0 B/op	       0 allocs/op
-BenchmarkNS                  	19585800	        61.42 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSOA                 	16609441	        72.44 ns/op	       0 B/op	       0 allocs/op
-BenchmarkPTR                 	33774684	        35.57 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMX                  	30105150	        39.84 ns/op	       0 B/op	       0 allocs/op
-BenchmarkTXT                 	51116004	        22.45 ns/op	       0 B/op	       0 allocs/op
-BenchmarkParseMessage        	56425442	        21.32 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetQuestion         	32210199	        36.20 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetResponseHeader   	238730137	         5.037 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeName          	36813590	        32.48 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendHOSTRecord    	73487632	        16.07 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendCNAMERecord   	34382904	        35.39 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendSRVRecord     	28153548	        41.41 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendNSRecord      	22970529	        52.26 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendSOARecord     	19043780	        62.86 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendPTRRecord     	44801985	        26.81 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendMXRecord      	38313138	        30.91 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendTXTRecord     	89567190	        13.43 ns/op	       0 B/op	       0 allocs/op
-BenchmarkUpdateStats         	16593826	        72.32 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain        	74937819	        15.95 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST1-4               	56613120	        21.09 ns/op	       0 B/op	       0 allocs/op
+BenchmarkHOST-4                	57722778	        20.82 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCNAME-4               	40001464	        30.00 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSRV-4                 	26439794	        44.84 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNS-4                  	22967035	        52.28 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSOA-4                 	19650216	        61.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPTR-4                 	50205879	        30.12 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMX-4                  	39453458	        29.81 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTXT-4                 	62278441	        19.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParseMessage-4        	83152729	        14.84 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetQuestion-4         	37922407	        31.28 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSetResponseHeader-4   	336013587	         3.583 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeName-4          	52855680	        22.86 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendHOSTRecord-4    	71025451	        16.81 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendCNAMERecord-4   	52953403	        23.92 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSRVRecord-4     	30775414	        36.37 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendNSRecord-4      	27102512	        43.92 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendSOARecord-4     	21295884	        56.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendPTRRecord-4     	62573373	        24.38 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendMXRecord-4      	43072573	        28.30 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendTXTRecord-4     	100000000	        11.15 ns/op	       0 B/op	       0 allocs/op
+BenchmarkUpdateStats-4         	40084848	        29.85 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAppendOpenMetrics-4   	  110046	     10824 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeDomain-4        	100000000	        11.54 ns/op	       0 B/op	       0 allocs/op
 
 PASS
-ok  	github.com/phuslu/fastdns	19.026s
+ok  	github.com/phuslu/fastdns	30.430s
 ```
 
 Here is the real-world flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches **1.4M QPS** on a single machine with Xeon 4216 and Intel X710.

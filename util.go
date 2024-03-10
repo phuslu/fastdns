@@ -30,8 +30,8 @@ func EncodeDomain(dst []byte, domain string) []byte {
 // nolint
 func b2s(b []byte) string { return *(*string)(unsafe.Pointer(&b)) }
 
-// fastrandn returns a pseudorandom uint32 in [0,n).
+// cheaprandn returns a pseudorandom uint32 in [0,n).
 //
 //go:noescape
-//go:linkname fastrandn runtime.fastrandn
-func fastrandn(x uint32) uint32
+//go:linkname cheaprandn runtime.cheaprandn
+func cheaprandn(x uint32) uint32
