@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net"
 	"net/netip"
-	"os"
 	"sync"
 	"time"
 )
@@ -40,9 +39,9 @@ type Client struct {
 // a Response for the provided Request.
 func (c *Client) Exchange(req, resp *Message) (err error) {
 	err = c.exchange(req, resp)
-	if err != nil && os.IsTimeout(err) {
-		err = c.exchange(req, resp)
-	}
+	// if err != nil && os.IsTimeout(err) {
+	// 	err = c.exchange(req, resp)
+	// }
 	return err
 }
 
