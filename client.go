@@ -1,6 +1,7 @@
 package fastdns
 
 import (
+	"context"
 	"errors"
 	"net"
 	"net/netip"
@@ -32,7 +33,7 @@ type Client struct {
 	ReadTimeout time.Duration
 
 	mu    sync.Mutex
-	conns []*net.UDPConn
+	conns []net.Conn
 }
 
 // Exchange executes a single DNS transaction, returning
@@ -49,7 +50,7 @@ func (c *Client) exchange(req, resp *Message) error {
 	var fresh bool
 	conn, err := c.get()
 	if conn == nil && err == nil {
-		conn, err = c.dial()
+		conn, err = c.dial(context.Background(), "udp", c.AddrPort.String())
 		fresh = true
 	}
 	if err != nil {
@@ -60,7 +61,7 @@ func (c *Client) exchange(req, resp *Message) error {
 	if err != nil && !fresh {
 		// if error is a pooled conn, let's close it & retry again
 		conn.Close()
-		if conn, err = c.dial(); err != nil {
+		if conn, err = c.dial(context.Background(), "udp", c.AddrPort.String()); err != nil {
 			return err
 		}
 		if _, err = conn.Write(req.Raw); err != nil {
@@ -87,12 +88,11 @@ func (c *Client) exchange(req, resp *Message) error {
 	return err
 }
 
-func (c *Client) dial() (conn *net.UDPConn, err error) {
-	conn, err = net.DialUDP("udp", nil, net.UDPAddrFromAddrPort(c.AddrPort))
-	return
+func (c *Client) dial(ctx context.Context, network, addr string) (net.Conn, error) {
+	return (&net.Dialer{Timeout: c.ReadTimeout}).DialContext(ctx, network, addr)
 }
 
-func (c *Client) get() (conn *net.UDPConn, err error) {
+func (c *Client) get() (conn net.Conn, err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -110,7 +110,7 @@ func (c *Client) get() (conn *net.UDPConn, err error) {
 	return
 }
 
-func (c *Client) put(conn *net.UDPConn) {
+func (c *Client) put(conn net.Conn) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
