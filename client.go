@@ -32,6 +32,9 @@ type Client struct {
 	// ReadTimeout is the maximum duration for reading the dns server response.
 	ReadTimeout time.Duration
 
+	// DialContext specifies the dial function for creating TCP/UDP connections.
+	DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
+
 	mu    sync.Mutex
 	conns []net.Conn
 }
@@ -89,6 +92,9 @@ func (c *Client) exchange(req, resp *Message) error {
 }
 
 func (c *Client) dial(ctx context.Context, network, addr string) (net.Conn, error) {
+	if c.DialContext != nil {
+		return c.DialContext(ctx, network, addr)
+	}
 	return (&net.Dialer{Timeout: c.ReadTimeout}).DialContext(ctx, network, addr)
 }
 
