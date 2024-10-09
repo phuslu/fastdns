@@ -1,6 +1,7 @@
 package fastdns
 
 import (
+	"context"
 	"net/netip"
 	"testing"
 	"time"
@@ -41,4 +42,18 @@ func TestClientExchange(t *testing.T) {
 			return true
 		})
 	}
+}
+
+func TestLookupNetIP(t *testing.T) {
+	host := "ip.phus.lu"
+
+	client := &Client{
+		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		ReadTimeout: 1 * time.Second,
+		MaxConns:    1000,
+	}
+
+	ips, err := client.LookupNetIP(context.Background(), "ip", host)
+
+	t.Logf("client.LookupNetIP(%+v) return ips=%s err=%+v\n", host, ips, err)
 }
