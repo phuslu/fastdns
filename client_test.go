@@ -45,12 +45,16 @@ func TestClientExchange(t *testing.T) {
 }
 
 func TestLookupNetIP(t *testing.T) {
-	host := "ip.phus.lu"
+	host := "cloud.phus.lu"
 
 	client := &Client{
 		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
 		ReadTimeout: 1 * time.Second,
 		MaxConns:    1000,
+		DialContext: (&HTTPDialer{
+			Endpoint:  "https://1.1.1.1/dns-query",
+			UserAgent: "fastdns/0.9",
+		}).DialContext,
 	}
 
 	ips, err := client.LookupNetIP(context.Background(), "ip", host)
