@@ -69,7 +69,7 @@ func (c *httpConn) Write(b []byte) (n int, err error) {
 
 	resp, err := tr.RoundTrip(req)
 	if err != nil {
-		return 0, fmt.Errorf("fastdnshttpdailer: roundtrip %s error: %w", c.dialer.Endpoint, err)
+		return 0, fmt.Errorf("fastdns: roundtrip %s error: %w", c.dialer.Endpoint, err)
 	}
 	defer resp.Body.Close()
 
@@ -78,10 +78,11 @@ func (c *httpConn) Write(b []byte) (n int, err error) {
 
 	_, err = io.Copy(c.buffer, resp.Body)
 	if err != nil {
-		return 0, fmt.Errorf("fastdnshttpdailer: read from %s error: %w", c.dialer.Endpoint, err)
+		return 0, fmt.Errorf("fastdns: read from %s error: %w", c.dialer.Endpoint, err)
 	}
 	if resp.StatusCode != http.StatusOK || resp.ContentLength <= 0 {
-		return 0, fmt.Errorf("fastdnshttpdailer: read from %s error: %s: %s", c.dialer.Endpoint, resp.Status, c.buffer.B)
+		defer bufferpool.Put(c.buffer)
+		return 0, fmt.Errorf("fastdns: read from %s error: %s: %s", c.dialer.Endpoint, resp.Status, c.buffer.B)
 	}
 
 	c.data = c.buffer.B
