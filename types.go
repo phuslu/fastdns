@@ -1,5 +1,9 @@
 package fastdns
 
+import (
+	"net/netip"
+)
+
 // Rcode denotes a 4bit field that specifies the response
 // code for a query.
 type Rcode byte
@@ -102,7 +106,8 @@ func (c Opcode) String() string {
 
 // Flags is an arbitrary 16bit represents QR, Opcode, AA, TC, RD, RA, Z and RCODE.
 //
-//   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+//	0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+//
 // +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 // |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
 // +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -615,4 +620,11 @@ func ParseType(s string) (t Type) {
 		t = TypeReserved
 	}
 	return
+}
+
+type NetHTTPS struct {
+	ALPN     []string
+	IPv4Hint []netip.Addr
+	IPv6Hint []netip.Addr
+	ECH      []byte
 }

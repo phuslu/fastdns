@@ -61,3 +61,17 @@ func TestLookupNetIP(t *testing.T) {
 
 	t.Logf("client.LookupNetIP(%+v) return ips=%s err=%+v\n", host, ips, err)
 }
+
+func TestLookupHTTPS(t *testing.T) {
+	host := "cloud.phus.lu"
+
+	client := &Client{
+		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		ReadTimeout: 1 * time.Second,
+		MaxConns:    1000,
+	}
+
+	https, err := client.LookupHTTPS(context.Background(), "ip", host)
+
+	t.Logf("client.LookupHTTPS(%+v) return https=%+v err=%+v\n", host, https, err)
+}
