@@ -99,6 +99,10 @@ func (c *Client) dial(ctx context.Context, network, addr string) (net.Conn, erro
 }
 
 func (c *Client) get() (conn net.Conn, err error) {
+	if c.MaxConns == 0 {
+		return nil, nil
+	}
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -117,6 +121,10 @@ func (c *Client) get() (conn net.Conn, err error) {
 }
 
 func (c *Client) put(conn net.Conn) {
+	if _, ok := conn.(*net.UDPConn); !ok {
+		return
+	}
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

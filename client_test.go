@@ -50,7 +50,6 @@ func TestLookupNetIP(t *testing.T) {
 	client := &Client{
 		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
 		ReadTimeout: 1 * time.Second,
-		MaxConns:    1000,
 		DialContext: (&HTTPDialer{
 			Endpoint:  "https://1.1.1.1/dns-query",
 			UserAgent: "fastdns/0.9",
