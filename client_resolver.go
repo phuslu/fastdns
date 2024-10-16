@@ -69,8 +69,11 @@ func (c *Client) LookupHTTPS(ctx context.Context, network, host string) (https [
 		switch typ {
 		case TypeHTTPS:
 			var h NetHTTPS
+			if len(data) < 7 {
+				return true
+			}
 			data = data[3:]
-			for len(data) != 0 {
+			for len(data) >= 4 {
 				key := int(data[0])<<8 | int(data[1])
 				length := int(data[2])<<8 | int(data[3])
 				value := data[4 : 4+length]
@@ -83,12 +86,21 @@ func (c *Client) LookupHTTPS(ctx context.Context, network, host string) (https [
 						value = value[1+length:]
 					}
 				case 4: // ipv4hint
+					if len(value) != length {
+						continue
+					}
 					for i := 0; i < length; i += 4 {
 						h.IPv4Hint = append(h.IPv4Hint, netip.AddrFrom4(*(*[4]byte)(value[i : i+4])))
 					}
 				case 5: // ech
+					if len(value) < 2 {
+						continue
+					}
 					h.ECH = append(h.ECH[:0], value[2:]...)
 				case 6: // ipv6hint
+					if len(value) != length {
+						continue
+					}
 					for i := 0; i < length; i += 16 {
 						h.IPv6Hint = append(h.IPv6Hint, netip.AddrFrom16(*(*[16]byte)(value[i : i+16])))
 					}
