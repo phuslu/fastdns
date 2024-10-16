@@ -44,6 +44,40 @@ func TestClientExchange(t *testing.T) {
 	}
 }
 
+func TestLookupCNAME(t *testing.T) {
+	host := "abc.phus.lu"
+
+	client := &Client{
+		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		ReadTimeout: 1 * time.Second,
+		DialContext: (&HTTPDialer{
+			Endpoint:  "https://1.1.1.1/dns-query",
+			UserAgent: "fastdns/0.9",
+		}).DialContext,
+	}
+
+	cname, err := client.LookupCNAME(context.Background(), host)
+
+	t.Logf("client.LookupCNAME(%+v) return cname=%s err=%+v\n", host, cname, err)
+}
+
+func TestLookupTXT(t *testing.T) {
+	host := "phus.lu"
+
+	client := &Client{
+		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		ReadTimeout: 1 * time.Second,
+		DialContext: (&HTTPDialer{
+			Endpoint:  "https://1.1.1.1/dns-query",
+			UserAgent: "fastdns/0.9",
+		}).DialContext,
+	}
+
+	txt, err := client.LookupTXT(context.Background(), host)
+
+	t.Logf("client.LookupTXT(%+v) return txt=%+v err=%+v\n", host, txt, err)
+}
+
 func TestLookupNetIP(t *testing.T) {
 	host := "cloud.phus.lu"
 

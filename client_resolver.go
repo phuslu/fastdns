@@ -6,6 +6,63 @@ import (
 	"net/netip"
 )
 
+// LookupCNAME returns the canonical name for the given host.
+func (c *Client) LookupCNAME(ctx context.Context, host string) (cname string, err error) {
+	req, resp := AcquireMessage(), AcquireMessage()
+	defer ReleaseMessage(resp)
+	defer ReleaseMessage(req)
+
+	req.SetRequestQuestion(host, TypeCNAME, ClassINET)
+
+	err = c.Exchange(req, resp)
+	if err != nil {
+		return
+	}
+
+	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
+		switch typ {
+		case TypeCNAME:
+			cname = string(resp.DecodeName(nil, data))
+			return false
+		default:
+			err = ErrInvalidAnswer
+		}
+		return true
+	})
+
+	return
+}
+
+// LookupTXT returns the DNS TXT records for the given domain name.
+func (c *Client) LookupTXT(ctx context.Context, host string) (txt []string, err error) {
+	req, resp := AcquireMessage(), AcquireMessage()
+	defer ReleaseMessage(resp)
+	defer ReleaseMessage(req)
+
+	req.SetRequestQuestion(host, TypeTXT, ClassINET)
+
+	err = c.Exchange(req, resp)
+	if err != nil {
+		return
+	}
+
+	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
+		switch typ {
+		case TypeTXT:
+			if len(data) > 1 && int(data[0])+1 == len(data) {
+				txt = append(txt, string(data[1:]))
+			} else {
+				err = ErrInvalidAnswer
+			}
+		default:
+			err = ErrInvalidAnswer
+		}
+		return true
+	})
+
+	return
+}
+
 // LookupNetIP looks up host using the local resolver. It returns a slice of that host's IP addresses of the type specified by network. The network must be one of "ip", "ip4" or "ip6".
 func (c *Client) LookupNetIP(ctx context.Context, network, host string) (ips []netip.Addr, err error) {
 	req, resp := AcquireMessage(), AcquireMessage()
