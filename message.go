@@ -150,7 +150,7 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 	// Domain
 	i = int(dst.Question.Name[0])
 	payload = append(dst.Domain[:0], dst.Question.Name[1:]...)
-	for payload[i] != 0 {
+	for i < len(payload) && payload[i] != 0 {
 		j := int(payload[i])
 		payload[i] = '.'
 		i += j + 1
