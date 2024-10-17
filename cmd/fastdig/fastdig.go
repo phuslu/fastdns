@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
@@ -22,8 +23,13 @@ func main() {
 		Addr:    net.JoinHostPort(server, "53"),
 	}
 	if strings.HasPrefix(server, "https://") {
+		endpoint, err := url.Parse(server)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "client=%+v parse server(\"%s\") error: %+v\n", client, server, err)
+			os.Exit(1)
+		}
 		client.DialContext = (&fastdns.HTTPDialer{
-			Endpoint:  server,
+			Endpoint:  endpoint,
 			UserAgent: "fastdig/0.9",
 		}).DialContext
 	}

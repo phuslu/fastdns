@@ -3,6 +3,7 @@ package fastdns
 import (
 	"context"
 	"net/netip"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -44,6 +45,8 @@ func TestClientExchange(t *testing.T) {
 	}
 }
 
+var cloudflare, _ = url.Parse("https://1.1.1.1/dns-query")
+
 func TestLookupCNAME(t *testing.T) {
 	host := "abc.phus.lu"
 
@@ -52,7 +55,7 @@ func TestLookupCNAME(t *testing.T) {
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
 		DialContext: (&HTTPDialer{
-			Endpoint:  "https://1.1.1.1/dns-query",
+			Endpoint:  cloudflare,
 			UserAgent: "fastdns/0.9",
 		}).DialContext,
 	}
@@ -70,7 +73,7 @@ func TestLookupTXT(t *testing.T) {
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
 		DialContext: (&HTTPDialer{
-			Endpoint:  "https://1.1.1.1/dns-query",
+			Endpoint:  cloudflare,
 			UserAgent: "fastdns/0.9",
 		}).DialContext,
 	}
@@ -88,7 +91,7 @@ func TestLookupNetIP(t *testing.T) {
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
 		DialContext: (&HTTPDialer{
-			Endpoint:  "https://1.1.1.1/dns-query",
+			Endpoint:  cloudflare,
 			UserAgent: "fastdns/0.9",
 		}).DialContext,
 	}

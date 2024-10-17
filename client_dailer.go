@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 )
@@ -29,7 +30,7 @@ func (d *NetDialer) DialContext(ctx context.Context, network, addr string) (net.
 }
 
 type HTTPDialer struct {
-	Endpoint  string
+	Endpoint  *url.URL
 	UserAgent string
 	Transport http.RoundTripper
 }
@@ -39,11 +40,10 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 }
 
 type httpConn struct {
-	deadline time.Time
-	ctx      context.Context
-	dialer   *HTTPDialer
-	buffer   *buffer
-	data     []byte
+	ctx    context.Context
+	dialer *HTTPDialer
+	buffer *buffer
+	data   []byte
 }
 
 func (c *httpConn) Read(b []byte) (n int, err error) {
@@ -64,20 +64,16 @@ func (c *httpConn) Read(b []byte) (n int, err error) {
 }
 
 func (c *httpConn) Write(b []byte) (n int, err error) {
-	req, err := http.NewRequestWithContext(c.ctx, http.MethodPost, c.dialer.Endpoint, bytes.NewReader(b))
-	if err != nil {
-		return 0, err
-	}
-
-	req.Header.Set("content-type", "application/dns-message")
-	if c.dialer.UserAgent != "" {
-		req.Header.Set("user-agent", c.dialer.UserAgent)
-	}
-
-	if !c.deadline.IsZero() {
-		ctx, cancel := context.WithDeadline(req.Context(), c.deadline)
-		defer cancel()
-		req = req.WithContext(ctx)
+	req := &http.Request{
+		Method: http.MethodPost,
+		URL:    c.dialer.Endpoint,
+		Header: http.Header{
+			"content-type": []string{"application/dns-message"},
+			"user-agent":   []string{c.dialer.UserAgent},
+		},
+		Body:          io.NopCloser(bytes.NewReader(b)),
+		Host:          c.dialer.Endpoint.Host,
+		ContentLength: int64(len(b)),
 	}
 
 	var tr = c.dialer.Transport
@@ -85,7 +81,7 @@ func (c *httpConn) Write(b []byte) (n int, err error) {
 		tr = http.DefaultTransport
 	}
 
-	resp, err := tr.RoundTrip(req)
+	resp, err := tr.RoundTrip(req.WithContext(c.ctx))
 	if err != nil {
 		return 0, fmt.Errorf("fastdns: roundtrip %s error: %w", c.dialer.Endpoint, err)
 	}
@@ -120,17 +116,14 @@ func (c *httpConn) RemoteAddr() net.Addr {
 }
 
 func (c *httpConn) SetDeadline(t time.Time) error {
-	c.deadline = t
 	return nil
 }
 
 func (c *httpConn) SetReadDeadline(t time.Time) error {
-	c.deadline = t
 	return nil
 }
 
 func (c *httpConn) SetWriteDeadline(t time.Time) error {
-	c.deadline = t
 	return nil
 }
 
