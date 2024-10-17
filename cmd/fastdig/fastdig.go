@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/netip"
 	"os"
-	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -15,11 +14,20 @@ import (
 
 func main() {
 	domain, qtype, server, options := parse(os.Args[1:])
-
-	client := &fastdns.Client{
-		AddrPort:    netip.AddrPortFrom(netip.MustParseAddr(server), 53),
-		ReadTimeout: 2 * time.Second,
-		MaxConns:    1000,
+	var client *fastdns.Client
+	if strings.HasPrefix(server, "https://") {
+		client = &fastdns.Client{
+			DialContext: (&fastdns.HTTPDialer{
+				Endpoint:  server,
+				UserAgent: "fastdig/0.9",
+			}).DialContext,
+		}
+	} else {
+		client = &fastdns.Client{
+			AddrPort:    netip.AddrPortFrom(netip.MustParseAddr(server), 53),
+			ReadTimeout: 2 * time.Second,
+			MaxConns:    1000,
+		}
 	}
 
 	req, resp := fastdns.AcquireMessage(), fastdns.AcquireMessage()
@@ -67,12 +75,7 @@ func parse(args []string) (domain, qtype, server string, options []string) {
 		}
 	}
 	if server == "" {
-		server = "8.8.8.8"
-		if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
-			if m := regexp.MustCompile(`(^|\n)\s*nameserver\s+(\S+)`).FindAllStringSubmatch(string(data), -1); len(m) != 0 {
-				server = m[0][2]
-			}
-		}
+		server = "https://1.1.1.1/dns-query"
 	}
 	if qtype == "" {
 		qtype = "A"
