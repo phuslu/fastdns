@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"net"
 	"net/netip"
 	"os"
 	"runtime"
@@ -15,20 +16,16 @@ import (
 
 func main() {
 	domain, qtype, server, options := parse(os.Args[1:])
-	var client *fastdns.Client
+
+	client := &fastdns.Client{
+		Network: "udp",
+		Addr:    net.JoinHostPort(server, "53"),
+	}
 	if strings.HasPrefix(server, "https://") {
-		client = &fastdns.Client{
-			DialContext: (&fastdns.HTTPDialer{
-				Endpoint:  server,
-				UserAgent: "fastdig/0.9",
-			}).DialContext,
-		}
-	} else {
-		client = &fastdns.Client{
-			AddrPort: netip.AddrPortFrom(netip.MustParseAddr(server), 53),
-			Timeout:  2 * time.Second,
-			MaxConns: 1000,
-		}
+		client.DialContext = (&fastdns.HTTPDialer{
+			Endpoint:  server,
+			UserAgent: "fastdig/0.9",
+		}).DialContext
 	}
 
 	req, resp := fastdns.AcquireMessage(), fastdns.AcquireMessage()

@@ -48,7 +48,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 			}
 			return true
 		})
-		slog.Info("serve dns answers", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "remote_addr", h.DNSClient.AddrPort, "answer_count", resp.Header.ANCount)
+		slog.Info("serve dns answers", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "remote_addr", h.DNSClient.Addr, "answer_count", resp.Header.ANCount)
 	}
 
 	_, _ = rw.Write(resp.Raw)
@@ -61,8 +61,9 @@ func main() {
 		DNSQuery: "/dns-query",
 		DNSHandler: &DNSHandler{
 			DNSClient: &fastdns.Client{
-				AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
-				MaxConns: 8192,
+				Network: "udp",
+				Addr:    "1.1.1.1:53",
+				Timeout: 3 * time.Second,
 			},
 			Debug: os.Getenv("DEBUG") != "",
 		},

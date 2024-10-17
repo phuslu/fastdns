@@ -11,6 +11,23 @@ import (
 	"time"
 )
 
+var defaultDialer = &NetDialer{
+	Dialer: &net.Dialer{
+		Timeout: 5 * time.Second,
+	},
+}
+
+type NetDialer struct {
+	// MaxIdleConns int
+	// MaxConns     int
+	// Timeout      time.Duration
+	Dialer *net.Dialer
+}
+
+func (d *NetDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
+	return d.Dialer.DialContext(ctx, network, addr)
+}
+
 type HTTPDialer struct {
 	Endpoint  string
 	UserAgent string
