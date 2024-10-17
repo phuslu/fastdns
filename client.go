@@ -2,15 +2,13 @@ package fastdns
 
 import (
 	"context"
-	"errors"
 	"net"
 	"time"
 )
 
-var (
-	// ErrMaxConns is returned when dns client reaches the max connections limitation.
-	ErrMaxConns = errors.New("dns client reaches the max connections limitation")
-)
+type Dialer interface {
+	DialContext(ctx context.Context, network, addr string) (net.Conn, error)
+}
 
 // Client is an UDP client that supports DNS protocol.
 type Client struct {
@@ -23,9 +21,9 @@ type Client struct {
 	// Timeout
 	Timeout time.Duration
 
-	// DialContext specifies the dial function for creating TCP/UDP connections.
+	// Dialer specifies the dialer for creating TCP/UDP connections.
 	// If it is set, Network, AddrPort and Timeout will be ignored.
-	DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
+	Dialer Dialer
 }
 
 // Exchange executes a single DNS transaction, returning
@@ -39,12 +37,12 @@ func (c *Client) Exchange(ctx context.Context, req, resp *Message) (err error) {
 }
 
 func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
-	dial := c.DialContext
-	if dial == nil {
-		dial = defaultDialer.DialContext
+	dialer := c.Dialer
+	if dialer == nil {
+		dialer = &net.Dialer{Timeout: c.Timeout}
 	}
 
-	conn, err := dial(ctx, c.Network, c.Addr)
+	conn, err := dialer.DialContext(ctx, c.Network, c.Addr)
 	if err != nil {
 		return err
 	}

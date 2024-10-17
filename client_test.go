@@ -54,10 +54,10 @@ func TestLookupCNAME(t *testing.T) {
 		Network: "udp",
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
-		DialContext: (&HTTPDialer{
+		Dialer: &HTTPDialer{
 			Endpoint:  cloudflare,
 			UserAgent: "fastdns/0.9",
-		}).DialContext,
+		},
 	}
 
 	cname, err := client.LookupCNAME(context.Background(), host)
@@ -72,10 +72,10 @@ func TestLookupTXT(t *testing.T) {
 		Network: "udp",
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
-		DialContext: (&HTTPDialer{
+		Dialer: &HTTPDialer{
 			Endpoint:  cloudflare,
 			UserAgent: "fastdns/0.9",
-		}).DialContext,
+		},
 	}
 
 	txt, err := client.LookupTXT(context.Background(), host)
@@ -90,10 +90,10 @@ func TestLookupNetIP(t *testing.T) {
 		Network: "udp",
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
-		DialContext: (&HTTPDialer{
+		Dialer: &HTTPDialer{
 			Endpoint:  cloudflare,
 			UserAgent: "fastdns/0.9",
-		}).DialContext,
+		},
 	}
 
 	ips, err := client.LookupNetIP(context.Background(), "ip", host)

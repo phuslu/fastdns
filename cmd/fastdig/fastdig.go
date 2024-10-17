@@ -28,10 +28,10 @@ func main() {
 			fmt.Fprintf(os.Stderr, "client=%+v parse server(\"%s\") error: %+v\n", client, server, err)
 			os.Exit(1)
 		}
-		client.DialContext = (&fastdns.HTTPDialer{
+		client.Dialer = &fastdns.HTTPDialer{
 			Endpoint:  endpoint,
 			UserAgent: "fastdig/0.9",
-		}).DialContext
+		}
 	}
 
 	req, resp := fastdns.AcquireMessage(), fastdns.AcquireMessage()

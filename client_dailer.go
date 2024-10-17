@@ -12,12 +12,6 @@ import (
 	"time"
 )
 
-var defaultDialer = &NetDialer{
-	Dialer: &net.Dialer{
-		Timeout: 5 * time.Second,
-	},
-}
-
 type NetDialer struct {
 	// MaxIdleConns int
 	// MaxConns     int
