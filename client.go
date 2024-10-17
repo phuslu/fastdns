@@ -41,19 +41,19 @@ type Client struct {
 
 // Exchange executes a single DNS transaction, returning
 // a Response for the provided Request.
-func (c *Client) Exchange(req, resp *Message) (err error) {
-	err = c.exchange(req, resp)
+func (c *Client) Exchange(ctx context.Context, req, resp *Message) (err error) {
+	err = c.exchange(ctx, req, resp)
 	// if err != nil && os.IsTimeout(err) {
 	// 	err = c.exchange(req, resp)
 	// }
 	return err
 }
 
-func (c *Client) exchange(req, resp *Message) error {
+func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 	var fresh bool
 	conn, err := c.get()
 	if conn == nil && err == nil {
-		conn, err = c.dial(context.Background(), "udp", c.AddrPort.String())
+		conn, err = c.dial(ctx, "udp", c.AddrPort.String())
 		fresh = true
 	}
 	if err != nil {
@@ -64,7 +64,7 @@ func (c *Client) exchange(req, resp *Message) error {
 	if err != nil && !fresh {
 		// if error is a pooled conn, let's close it & retry again
 		conn.Close()
-		if conn, err = c.dial(context.Background(), "udp", c.AddrPort.String()); err != nil {
+		if conn, err = c.dial(ctx, "udp", c.AddrPort.String()); err != nil {
 			return err
 		}
 		if _, err = conn.Write(req.Raw); err != nil {

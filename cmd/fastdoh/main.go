@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/netip"
 	"os"
@@ -24,10 +25,12 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	resp := fastdns.AcquireMessage()
 	defer fastdns.ReleaseMessage(resp)
 
-	err := h.DNSClient.Exchange(req, resp)
+	ctx := context.Background()
+
+	err := h.DNSClient.Exchange(ctx, req, resp)
 	if err == fastdns.ErrMaxConns {
 		time.Sleep(10 * time.Millisecond)
-		err = h.DNSClient.Exchange(req, resp)
+		err = h.DNSClient.Exchange(ctx, req, resp)
 	}
 	if err != nil {
 		fastdns.Error(rw, req, fastdns.RcodeServFail)

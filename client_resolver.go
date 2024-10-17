@@ -14,7 +14,7 @@ func (c *Client) LookupCNAME(ctx context.Context, host string) (cname string, er
 
 	req.SetRequestQuestion(host, TypeCNAME, ClassINET)
 
-	err = c.Exchange(req, resp)
+	err = c.Exchange(ctx, req, resp)
 	if err != nil {
 		return
 	}
@@ -41,7 +41,7 @@ func (c *Client) LookupTXT(ctx context.Context, host string) (txt []string, err 
 
 	req.SetRequestQuestion(host, TypeTXT, ClassINET)
 
-	err = c.Exchange(req, resp)
+	err = c.Exchange(ctx, req, resp)
 	if err != nil {
 		return
 	}
@@ -84,7 +84,7 @@ func (c *Client) LookupNetIP(ctx context.Context, network, host string) (ips []n
 
 	req.SetRequestQuestion(host, typ, ClassINET)
 
-	err = c.Exchange(req, resp)
+	err = c.Exchange(ctx, req, resp)
 	if err != nil {
 		return
 	}
@@ -117,7 +117,7 @@ func (c *Client) LookupHTTPS(ctx context.Context, network, host string) (https [
 
 	req.SetRequestQuestion(host, TypeHTTPS, ClassINET)
 
-	err = c.Exchange(req, resp)
+	err = c.Exchange(ctx, req, resp)
 	if err != nil {
 		return
 	}

@@ -18,11 +18,12 @@ type HTTPDialer struct {
 }
 
 func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
-	return &httpConn{dialer: d}, nil
+	return &httpConn{ctx: ctx, dialer: d}, nil
 }
 
 type httpConn struct {
 	deadline time.Time
+	ctx      context.Context
 	dialer   *HTTPDialer
 	buffer   *buffer
 	data     []byte
@@ -46,7 +47,7 @@ func (c *httpConn) Read(b []byte) (n int, err error) {
 }
 
 func (c *httpConn) Write(b []byte) (n int, err error) {
-	req, err := http.NewRequest(http.MethodPost, c.dialer.Endpoint, bytes.NewReader(b))
+	req, err := http.NewRequestWithContext(c.ctx, http.MethodPost, c.dialer.Endpoint, bytes.NewReader(b))
 	if err != nil {
 		return 0, err
 	}

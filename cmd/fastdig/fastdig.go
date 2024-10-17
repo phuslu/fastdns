@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"net/netip"
@@ -36,8 +37,11 @@ func main() {
 
 	req.SetRequestQuestion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	start := time.Now()
-	err := client.Exchange(req, resp)
+	err := client.Exchange(ctx, req, resp)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "client=%+v exchange(\"%s\") error: %+v\n", client, domain, err)
 		os.Exit(1)

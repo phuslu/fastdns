@@ -25,7 +25,7 @@ func TestClientExchange(t *testing.T) {
 	for _, c := range cases {
 		req, resp := AcquireMessage(), AcquireMessage()
 		req.SetRequestQuestion(c.Domain, c.Type, c.Class)
-		err := client.Exchange(req, resp)
+		err := client.Exchange(context.Background(), req, resp)
 		if err != nil {
 			t.Errorf("client=%+v exchange(%v) error: %+v\n", client, c.Domain, err)
 		}
