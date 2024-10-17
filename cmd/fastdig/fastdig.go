@@ -25,9 +25,9 @@ func main() {
 		}
 	} else {
 		client = &fastdns.Client{
-			AddrPort:    netip.AddrPortFrom(netip.MustParseAddr(server), 53),
-			ReadTimeout: 2 * time.Second,
-			MaxConns:    1000,
+			AddrPort: netip.AddrPortFrom(netip.MustParseAddr(server), 53),
+			Timeout:  2 * time.Second,
+			MaxConns: 1000,
 		}
 	}
 

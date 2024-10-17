@@ -17,9 +17,9 @@ func TestClientExchange(t *testing.T) {
 	}
 
 	client := &Client{
-		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
-		ReadTimeout: 1 * time.Second,
-		MaxConns:    1000,
+		AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		Timeout:  1 * time.Second,
+		MaxConns: 1000,
 	}
 
 	for _, c := range cases {
@@ -48,8 +48,8 @@ func TestLookupCNAME(t *testing.T) {
 	host := "abc.phus.lu"
 
 	client := &Client{
-		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
-		ReadTimeout: 1 * time.Second,
+		AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		Timeout:  1 * time.Second,
 		DialContext: (&HTTPDialer{
 			Endpoint:  "https://1.1.1.1/dns-query",
 			UserAgent: "fastdns/0.9",
@@ -65,8 +65,8 @@ func TestLookupTXT(t *testing.T) {
 	host := "phus.lu"
 
 	client := &Client{
-		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
-		ReadTimeout: 1 * time.Second,
+		AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		Timeout:  1 * time.Second,
 		DialContext: (&HTTPDialer{
 			Endpoint:  "https://1.1.1.1/dns-query",
 			UserAgent: "fastdns/0.9",
@@ -82,8 +82,8 @@ func TestLookupNetIP(t *testing.T) {
 	host := "cloud.phus.lu"
 
 	client := &Client{
-		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
-		ReadTimeout: 1 * time.Second,
+		AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		Timeout:  1 * time.Second,
 		DialContext: (&HTTPDialer{
 			Endpoint:  "https://1.1.1.1/dns-query",
 			UserAgent: "fastdns/0.9",
@@ -99,9 +99,9 @@ func TestLookupHTTPS(t *testing.T) {
 	host := "cloud.phus.lu"
 
 	client := &Client{
-		AddrPort:    netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
-		ReadTimeout: 1 * time.Second,
-		MaxConns:    1000,
+		AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{8, 8, 8, 8}), 53),
+		Timeout:  1 * time.Second,
+		MaxConns: 1000,
 	}
 
 	https, err := client.LookupHTTPS(context.Background(), "ip", host)

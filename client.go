@@ -29,10 +29,11 @@ type Client struct {
 	// Zero means no limit.
 	MaxConns int
 
-	// ReadTimeout is the maximum duration for reading the dns server response.
-	ReadTimeout time.Duration
+	// Timeout is the maximum duration for contecting/reading the dns server.
+	Timeout time.Duration
 
 	// DialContext specifies the dial function for creating TCP/UDP connections.
+	// If it is set, MaxIdleConns, MaxConns and Timeout will be ignored.
 	DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 
 	mu    sync.Mutex
@@ -72,8 +73,8 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		}
 	}
 
-	if c.ReadTimeout > 0 {
-		err = conn.SetReadDeadline(time.Now().Add(c.ReadTimeout))
+	if c.Timeout > 0 {
+		err = conn.SetDeadline(time.Now().Add(c.Timeout))
 		if err != nil {
 			return err
 		}
@@ -95,11 +96,11 @@ func (c *Client) dial(ctx context.Context, network, addr string) (net.Conn, erro
 	if c.DialContext != nil {
 		return c.DialContext(ctx, network, addr)
 	}
-	return (&net.Dialer{Timeout: c.ReadTimeout}).DialContext(ctx, network, addr)
+	return (&net.Dialer{Timeout: c.Timeout}).DialContext(ctx, network, addr)
 }
 
 func (c *Client) get() (conn net.Conn, err error) {
-	if c.MaxConns == 0 {
+	if c.DialContext != nil {
 		return nil, nil
 	}
 
@@ -121,7 +122,7 @@ func (c *Client) get() (conn net.Conn, err error) {
 }
 
 func (c *Client) put(conn net.Conn) {
-	if _, ok := conn.(*net.UDPConn); !ok {
+	if c.DialContext != nil {
 		return
 	}
 
