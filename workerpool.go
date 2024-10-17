@@ -1,7 +1,7 @@
 package fastdns
 
 import (
-	"log"
+	"log/slog"
 	"runtime"
 	"sync"
 	"time"
@@ -22,7 +22,7 @@ type workerPool struct {
 
 	MaxIdleWorkerDuration time.Duration
 
-	Logger *log.Logger
+	Logger *slog.Logger
 
 	lock         sync.Mutex
 	workersCount int
@@ -222,7 +222,9 @@ func (wp *workerPool) workerFunc(ch *workerChan) {
 
 		if err = wp.WorkerFunc(item.ctx); err != nil {
 			if wp.LogAllErrors || !(err == ErrInvalidHeader || err == ErrInvalidQuestion) {
-				wp.Logger.Printf("error when serving connection %q<->%q: %s", item.ctx.rw.Conn.LocalAddr(), item.ctx.rw.AddrPort, err)
+				if wp.Logger != nil {
+					wp.Logger.Error("error when serving connection", "error", err, "local_addr", item.ctx.rw.Conn.LocalAddr(), "remote_addr", item.ctx.rw.AddrPort)
+				}
 			}
 		}
 		item.ctx = nil

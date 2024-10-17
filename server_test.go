@@ -3,7 +3,7 @@ package fastdns
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"net/netip"
 	"os"
@@ -27,7 +27,7 @@ func allocAddr() string {
 type mockServerHandler struct{}
 
 func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Message) {
-	log.Printf("%s] %s: TYPE %s", rw.RemoteAddr(), req.Domain, req.Question.Type)
+	slog.Info("serve dns request", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
 	HOST(rw, req, 300, []netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1})})
 }
 
@@ -39,7 +39,7 @@ func TestServerHost(t *testing.T) {
 
 	s := &Server{
 		Handler:  &mockServerHandler{},
-		ErrorLog: log.Default(),
+		ErrorLog: slog.Default(),
 		MaxProcs: 1,
 	}
 
@@ -76,7 +76,7 @@ func TestServerHost(t *testing.T) {
 func TestServerListenError(t *testing.T) {
 	s := &Server{
 		Handler:  &mockServerHandler{},
-		ErrorLog: log.Default(),
+		ErrorLog: slog.Default(),
 		MaxProcs: 1,
 		index:    1,
 	}
@@ -97,7 +97,7 @@ func TestServerParseMessageError(t *testing.T) {
 
 	s := &Server{
 		Handler:  &mockServerHandler{},
-		ErrorLog: log.Default(),
+		ErrorLog: slog.Default(),
 		MaxProcs: 1,
 	}
 
@@ -133,7 +133,7 @@ func TestServerForkHost(t *testing.T) {
 
 	s := &ForkServer{
 		Handler:  &mockServerHandler{},
-		ErrorLog: log.Default(),
+		ErrorLog: slog.Default(),
 		MaxProcs: 1,
 	}
 
@@ -177,7 +177,7 @@ func TestServerForkParseMessageError(t *testing.T) {
 
 	s := &ForkServer{
 		Handler:  &mockServerHandler{},
-		ErrorLog: log.Default(),
+		ErrorLog: slog.Default(),
 		MaxProcs: 1,
 	}
 

@@ -1,14 +1,16 @@
 module main
 
-go 1.18
+go 1.22
 
 require (
-	github.com/phuslu/fastdns v0.8.0
+	github.com/phuslu/fastdns v1.0.0
 	github.com/valyala/bytebufferpool v1.0.0
-	github.com/valyala/fasthttp v1.38.0
+	github.com/valyala/fasthttp v1.56.0
 )
 
 require (
-	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/klauspost/compress v1.15.0 // indirect
+	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 )
+
+replace github.com/phuslu/fastdns => ../..

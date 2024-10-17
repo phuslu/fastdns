@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/netip"
 	"os"
 	"time"
@@ -18,7 +18,7 @@ type DNSHandler struct {
 // ServeDNS implements fastdns.Handler
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	if h.Debug {
-		log.Printf("%s] %s: CLASS %s TYPE %s\n", rw.RemoteAddr(), req.Domain, req.Question.Class, req.Question.Type)
+		slog.Info("serve dns request", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
 	}
 
 	resp := fastdns.AcquireMessage()
@@ -37,15 +37,15 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		_ = resp.Walk(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
 			switch typ {
 			case fastdns.TypeCNAME:
-				log.Printf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
+				slog.Info("dns request CNAME", "name", resp.DecodeName(nil, name), "ttl", ttl, "class", class, "type", typ, "CNAME", resp.DecodeName(nil, data))
 			case fastdns.TypeA:
-				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.AddrFrom4(*(*[4]byte)(data)))
+				slog.Info("dns request A", "name", resp.DecodeName(nil, name), "ttl", ttl, "class", class, "type", typ, "A", netip.AddrFrom4(*(*[4]byte)(data)))
 			case fastdns.TypeAAAA:
-				log.Printf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.AddrFrom16(*(*[16]byte)(data)))
+				slog.Info("dns request AAAA", "name", resp.DecodeName(nil, name), "ttl", ttl, "class", class, "type", typ, "AAAA", netip.AddrFrom16(*(*[16]byte)(data)))
 			}
 			return true
 		})
-		log.Printf("%s] %s: %s reply %d answers\n", rw.RemoteAddr(), req.Domain, h.DNSClient.AddrPort, resp.Header.ANCount)
+		slog.Info("serve dns answers", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "remote_addr", h.DNSClient.AddrPort, "answer_count", resp.Header.ANCount)
 	}
 
 	_, _ = rw.Write(resp.Raw)
@@ -72,9 +72,10 @@ func main() {
 		},
 	}).Handler
 
-	log.Printf("start fast DoH server on %s", addr)
+	slog.Info("start fast DoH server", "addr", addr)
 	err := fasthttp.ListenAndServe(addr, handler)
 	if err != nil {
-		log.Fatalf("listen and serve DNS/DoH error: %+v", err)
+		slog.Error("listen and serve DNS/DoH failed", "error", err)
+		os.Exit(-1)
 	}
 }

@@ -2,7 +2,7 @@ package fastdns
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"runtime"
@@ -20,8 +20,8 @@ type ForkServer struct {
 	// ErrorLog specifies an optional logger for errors accepting
 	// connections, unexpected behavior from handlers, and
 	// underlying FileSystem errors.
-	// If nil, logging is done via the log package's standard logger.
-	ErrorLog *log.Logger
+	// If nil, logging is disabled.
+	ErrorLog *slog.Logger
 
 	// The maximum number of procs the server may spawn. use runtime.NumCPU() if empty
 	MaxProcs int
@@ -39,22 +39,22 @@ func (s *ForkServer) ListenAndServe(addr string) error {
 		return s.fork(addr, s.MaxProcs)
 	}
 
-	if s.ErrorLog == nil {
-		s.ErrorLog = log.Default()
-	}
-
 	if s.SetAffinity {
 		// set cpu affinity for performance
 		err := taskset((s.Index() - 1) % runtime.NumCPU())
 		if err != nil {
-			s.ErrorLog.Printf("forkserver-%d set cpu_affinity=%d failed: %+v", s.Index(), s.Index()-1, err)
+			if s.ErrorLog != nil {
+				s.ErrorLog.Error("forkserver set cpu_affinity failed", "error", err, "index", s.Index(), "cpu_affinity", s.Index()-1)
+			}
 		}
 	}
 
 	// so_reuseport listen for performance
 	conn, err := listen("udp", addr)
 	if err != nil {
-		s.ErrorLog.Printf("forkserver-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
+		if s.ErrorLog != nil {
+			s.ErrorLog.Error("forkserver set listen on addr failed", "error", err, "index", s.Index(), "addr", addr)
+		}
 		return err
 	}
 
@@ -104,7 +104,9 @@ func (s *ForkServer) fork(addr string, maxProcs int) (err error) {
 	for i := 1; i <= maxProcs; i++ {
 		var cmd *exec.Cmd
 		if cmd, err = fork(i); err != nil {
-			s.ErrorLog.Printf("forkserver failed to start a child process, error: %v\n", err)
+			if s.ErrorLog != nil {
+				s.ErrorLog.Error("forkserver failed to start a child process", "error", err)
+			}
 			return
 		}
 
@@ -118,10 +120,14 @@ func (s *ForkServer) fork(addr string, maxProcs int) (err error) {
 	for sig := range ch {
 		delete(childs, sig.pid)
 
-		s.ErrorLog.Printf("forkserver one of the child processes exited with error: %v", sig.err)
+		if s.ErrorLog != nil {
+			s.ErrorLog.Error("forkserver one of the child processes exited", "error", err)
+		}
 
 		if exited++; exited > 200 {
-			s.ErrorLog.Printf("forkserver child workers exit too many times(%d)", exited)
+			if s.ErrorLog != nil {
+				s.ErrorLog.Error("forkserver child workers exit too many times", "count", exited)
+			}
 			err = errors.New("forkserver child workers exit too many times")
 			break
 		}

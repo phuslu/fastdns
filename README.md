@@ -27,7 +27,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net"
 	"net/netip"
 	"os"
@@ -41,7 +41,7 @@ type DNSHandler struct {
 
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	if h.Debug {
-		log.Printf("%s: CLASS %s TYPE %s\n", req.Domain, req.Question.Class, req.Question.Type)
+		slog.Info("serve dns request", "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
 	}
 
 	switch req.Question.Type {
@@ -82,12 +82,12 @@ func main() {
 			Server: "dns://" + addr,
 			Zone:   ".",
 		},
-		ErrorLog: log.Default(),
+		ErrorLog: slog.Default(),
 	}
 
 	err := server.ListenAndServe(addr)
 	if err != nil {
-		log.Fatalf("dnsserver error: %+v", err)
+		slog.Error("dnsserver serve failed", "error", err)
 	}
 }
 ```

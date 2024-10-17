@@ -2,7 +2,7 @@ package fastdns
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net"
 	"runtime"
 	"sync"
@@ -20,8 +20,8 @@ type Server struct {
 	// ErrorLog specifies an optional logger for errors accepting
 	// connections, unexpected behavior from handlers, and
 	// underlying FileSystem errors.
-	// If nil, logging is done via the log package's standard logger.
-	ErrorLog *log.Logger
+	// If nil, logging is disabled.
+	ErrorLog *slog.Logger
 
 	// The maximum number of procs the server may spawn. use runtime.NumCPU() if empty
 	MaxProcs int
@@ -40,13 +40,11 @@ func (s *Server) ListenAndServe(addr string) error {
 		return s.spawn(addr, s.MaxProcs)
 	}
 
-	if s.ErrorLog == nil {
-		s.ErrorLog = log.Default()
-	}
-
 	conn, err := listen("udp", addr)
 	if err != nil {
-		s.ErrorLog.Printf("server-%d listen on addr=%s failed: %+v", s.Index(), addr, err)
+		if s.ErrorLog != nil {
+			s.ErrorLog.Error("server listen failed", "error", err, "index", s.Index(), "addr", addr)
+		}
 		return err
 	}
 
@@ -94,10 +92,14 @@ func (s *Server) spawn(addr string, maxProcs int) (err error) {
 
 	var exited int
 	for sig := range ch {
-		s.ErrorLog.Printf("server one of the child workers exited with error: %v", sig.err)
+		if s.ErrorLog != nil {
+			s.ErrorLog.Error("server one of the child workers exited", "error", sig.err)
+		}
 
 		if exited++; exited > 200 {
-			s.ErrorLog.Printf("server child workers exit too many times(%d)", exited)
+			if s.ErrorLog != nil {
+				s.ErrorLog.Error("server child workers exit too many times", "count", exited)
+			}
 			err = errors.New("server child workers exit too many times")
 			break
 		}
@@ -137,7 +139,7 @@ var udpCtxPool = &sync.Pool{
 	},
 }
 
-func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *log.Logger, concurrency int) error {
+func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *slog.Logger, concurrency int) error {
 	if concurrency == 0 {
 		concurrency = 256 * 1024
 	}
