@@ -23,6 +23,10 @@ func (d *NetDialer) DialContext(ctx context.Context, network, addr string) (net.
 	return d.Dialer.DialContext(ctx, network, addr)
 }
 
+func (d *NetDialer) Put(c net.Conn) {
+	return
+}
+
 type HTTPDialer struct {
 	Endpoint  *url.URL
 	UserAgent string
@@ -119,6 +123,12 @@ func (c *httpConn) SetReadDeadline(t time.Time) error {
 
 func (c *httpConn) SetWriteDeadline(t time.Time) error {
 	return nil
+}
+
+var httpconnpool = sync.Pool{
+	New: func() any {
+		return new(httpConn)
+	},
 }
 
 type buffer struct {
