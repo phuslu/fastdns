@@ -7,8 +7,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"sync"
 	"time"
+	"unsafe"
 )
 
 type NetDialer struct {
@@ -85,7 +87,10 @@ func (c *httpConn) Write(b []byte) (n int, err error) {
 	c.req.Body = c.reader
 	c.req.ContentLength = int64(len(b))
 
-	resp, err := tr.RoundTrip(c.req.WithContext(c.ctx))
+	// c.req.ctx = c.ctx
+	*(*context.Context)(unsafe.Pointer(uintptr(unsafe.Pointer(c.req)) + httpctxoffset)) = c.ctx
+
+	resp, err := tr.RoundTrip(c.req)
 	if err != nil {
 		return 0, fmt.Errorf("fastdns: roundtrip %s error: %w", c.dialer.Endpoint, err)
 	}
@@ -126,6 +131,18 @@ func (c *httpConn) SetReadDeadline(t time.Time) error {
 func (c *httpConn) SetWriteDeadline(t time.Time) error {
 	return nil
 }
+
+var httpctxoffset = func() uintptr {
+	var req http.Request
+	v := reflect.TypeOf(req)
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if field.Name == "ctx" {
+			return field.Offset
+		}
+	}
+	panic("unsupported go version, please upgrade fastdns")
+}()
 
 var httpconnpool = sync.Pool{
 	New: func() any {
