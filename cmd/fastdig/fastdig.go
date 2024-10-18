@@ -19,8 +19,7 @@ func main() {
 	domain, qtype, server, options := parse(os.Args[1:])
 
 	client := &fastdns.Client{
-		Network: "udp",
-		Addr:    net.JoinHostPort(server, "53"),
+		Addr: net.JoinHostPort(server, "53"),
 	}
 	if strings.HasPrefix(server, "https://") {
 		endpoint, err := url.Parse(server)

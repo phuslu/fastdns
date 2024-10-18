@@ -12,9 +12,6 @@ type Dialer interface {
 
 // Client is an UDP client that supports DNS protocol.
 type Client struct {
-	// AddrPort specifies the network of dns connection.
-	Network string
-
 	// Address specifies the address of dns server.
 	Addr string
 
@@ -22,7 +19,7 @@ type Client struct {
 	Timeout time.Duration
 
 	// Dialer specifies the dialer for creating TCP/UDP connections.
-	// If it is set, Network, AddrPort and Timeout will be ignored.
+	// If it is set, Addr and Timeout will be ignored.
 	Dialer Dialer
 }
 
@@ -42,7 +39,7 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		dialer = &net.Dialer{Timeout: c.Timeout}
 	}
 
-	conn, err := dialer.DialContext(ctx, c.Network, c.Addr)
+	conn, err := dialer.DialContext(ctx, "udp", c.Addr)
 	if err != nil {
 		return err
 	}

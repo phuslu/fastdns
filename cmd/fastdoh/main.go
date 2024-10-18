@@ -61,7 +61,6 @@ func main() {
 		DNSQuery: "/dns-query",
 		DNSHandler: &DNSHandler{
 			DNSClient: &fastdns.Client{
-				Network: "udp",
 				Addr:    "1.1.1.1:53",
 				Timeout: 3 * time.Second,
 			},

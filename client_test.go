@@ -18,7 +18,6 @@ func TestClientExchange(t *testing.T) {
 	}
 
 	client := &Client{
-		Network: "udp",
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
 	}
@@ -51,7 +50,6 @@ func TestLookupCNAME(t *testing.T) {
 	host := "abc.phus.lu"
 
 	client := &Client{
-		Network: "udp",
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
 		Dialer: &HTTPDialer{
@@ -69,7 +67,6 @@ func TestLookupTXT(t *testing.T) {
 	host := "phus.lu"
 
 	client := &Client{
-		Network: "udp",
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
 		Dialer: &HTTPDialer{
@@ -87,7 +84,6 @@ func TestLookupNetIP(t *testing.T) {
 	host := "cloud.phus.lu"
 
 	client := &Client{
-		Network: "udp",
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
 		Dialer: &HTTPDialer{
@@ -105,7 +101,6 @@ func TestLookupHTTPS(t *testing.T) {
 	host := "cloud.phus.lu"
 
 	client := &Client{
-		Network: "udp",
 		Addr:    "1.1.1.1:53",
 		Timeout: 1 * time.Second,
 	}
