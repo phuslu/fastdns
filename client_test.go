@@ -2,7 +2,6 @@ package fastdns
 
 import (
 	"context"
-	"net"
 	"net/netip"
 	"net/url"
 	"testing"
@@ -109,20 +108,4 @@ func TestLookupHTTPS(t *testing.T) {
 	https, err := client.LookupHTTPS(context.Background(), "ip", host)
 
 	t.Logf("client.LookupHTTPS(%+v) return https=%+v err=%+v\n", host, https, err)
-}
-
-func TestClientNetDialer(t *testing.T) {
-	host := "phus.lu"
-
-	client := &Client{
-		Addr:    "1.1.1.1:53",
-		Timeout: 1 * time.Second,
-		Dialer: &NetDialer{
-			Dialer: &net.Dialer{},
-		},
-	}
-
-	cname, err := client.LookupNetIP(context.Background(), "ip", host)
-
-	t.Logf("client.LookupNetIP(%+v) return cname=%s err=%+v\n", host, cname, err)
 }

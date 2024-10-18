@@ -1,7 +1,6 @@
 package fastdns
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -24,7 +23,6 @@ func (d *NetDialer) DialContext(ctx context.Context, network, addr string) (net.
 }
 
 func (d *NetDialer) Put(c net.Conn) {
-	return
 }
 
 type HTTPDialer struct {
@@ -34,70 +32,74 @@ type HTTPDialer struct {
 }
 
 func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
-	return &httpConn{ctx: ctx, dialer: d}, nil
+	c := httpconnpool.Get().(*httpConn)
+	c.dialer = d
+	c.ctx = ctx
+	c.req.Body = nil
+	c.req.URL = d.Endpoint
+	c.req.Host = d.Endpoint.Host
+	c.reader.B = nil
+	c.writer.B = c.writer.B[:0]
+	c.resp = nil
+	return c, nil
+}
+
+func (d *HTTPDialer) Put(conn net.Conn) {
+	if c, _ := conn.(*httpConn); c != nil {
+		httpconnpool.Put(c)
+	}
 }
 
 type httpConn struct {
-	ctx    context.Context
 	dialer *HTTPDialer
-	buffer *buffer
-	data   []byte
+	ctx    context.Context
+	req    *http.Request
+	reader *bufferreader
+	writer *bufferwriter
+	resp   []byte
 }
 
 func (c *httpConn) Read(b []byte) (n int, err error) {
-	if c.data == nil {
+	if c.resp == nil {
 		err = io.EOF
 		return
 	}
 
-	n = copy(b, c.data)
-	if n < len(c.data) {
-		c.data = c.data[n:]
+	n = copy(b, c.resp)
+	if n < len(c.resp) {
+		c.resp = c.resp[n:]
 	} else {
-		c.data = nil
-		bufferpool.Put(c.buffer)
+		c.resp = nil
 	}
 
 	return n, nil
 }
 
 func (c *httpConn) Write(b []byte) (n int, err error) {
-	req := &http.Request{
-		Method: http.MethodPost,
-		URL:    c.dialer.Endpoint,
-		Header: http.Header{
-			"content-type": []string{"application/dns-message"},
-			"user-agent":   []string{c.dialer.UserAgent},
-		},
-		Body:          io.NopCloser(bytes.NewReader(b)),
-		Host:          c.dialer.Endpoint.Host,
-		ContentLength: int64(len(b)),
-	}
-
 	var tr = c.dialer.Transport
 	if tr == nil {
 		tr = http.DefaultTransport
 	}
 
-	resp, err := tr.RoundTrip(req.WithContext(c.ctx))
+	c.reader.B = b
+	c.req.Body = c.reader
+	c.req.ContentLength = int64(len(b))
+
+	resp, err := tr.RoundTrip(c.req.WithContext(c.ctx))
 	if err != nil {
 		return 0, fmt.Errorf("fastdns: roundtrip %s error: %w", c.dialer.Endpoint, err)
 	}
 	defer resp.Body.Close()
 
-	c.buffer = bufferpool.Get().(*buffer)
-	c.buffer.B = c.buffer.B[:0]
-
-	_, err = io.Copy(c.buffer, resp.Body)
+	_, err = io.Copy(c.writer, resp.Body)
 	if err != nil {
 		return 0, fmt.Errorf("fastdns: read from %s error: %w", c.dialer.Endpoint, err)
 	}
 	if resp.StatusCode != http.StatusOK || resp.ContentLength <= 0 {
-		defer bufferpool.Put(c.buffer)
-		return 0, fmt.Errorf("fastdns: read from %s error: %s: %s", c.dialer.Endpoint, resp.Status, c.buffer.B)
+		return 0, fmt.Errorf("fastdns: read from %s error: %s: %s", c.dialer.Endpoint, resp.Status, c.writer.B)
 	}
 
-	c.data = c.buffer.B
+	c.resp = c.writer.B
 	return len(b), nil
 }
 
@@ -127,21 +129,58 @@ func (c *httpConn) SetWriteDeadline(t time.Time) error {
 
 var httpconnpool = sync.Pool{
 	New: func() any {
-		return new(httpConn)
+		return &httpConn{
+			req: &http.Request{
+				Method: http.MethodPost,
+				Header: http.Header{
+					"content-type": []string{"application/dns-message"},
+					"user-agent":   []string{"fastdns/1.0"},
+				},
+			},
+			reader: new(bufferreader),
+			writer: new(bufferwriter),
+		}
 	},
 }
 
-type buffer struct {
+type bufferwriter struct {
 	B []byte
 }
 
-func (b *buffer) Write(p []byte) (int, error) {
+func (b *bufferwriter) Write(p []byte) (int, error) {
 	b.B = append(b.B, p...)
 	return len(p), nil
 }
 
-var bufferpool = sync.Pool{
-	New: func() any {
-		return new(buffer)
-	},
+type bufferreader struct {
+	B []byte
 }
+
+func (r *bufferreader) Read(b []byte) (int, error) {
+	if r.B == nil {
+		return 0, io.EOF
+	}
+
+	n := copy(b, r.B)
+	if n < len(r.B) {
+		r.B = r.B[n:]
+	} else {
+		r.B = nil
+	}
+
+	return n, nil
+}
+
+func (r *bufferreader) Close() error {
+	r.B = nil
+	return nil
+}
+
+func (r *bufferreader) WriteTo(w io.Writer) (int64, error) {
+	n, err := w.Write(r.B)
+	return int64(n), err
+}
+
+var _ io.Writer = (*bufferwriter)(nil)
+var _ io.ReadCloser = (*bufferreader)(nil)
+var _ io.WriterTo = (*bufferreader)(nil)
