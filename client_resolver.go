@@ -153,7 +153,7 @@ func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS
 					if len(value) < 2 {
 						continue
 					}
-					h.ECH = append(h.ECH[:0], value[2:]...)
+					h.ECH = append(h.ECH[:0], value...)
 				case 6: // ipv6hint
 					if len(value) != length {
 						continue

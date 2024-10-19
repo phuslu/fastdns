@@ -254,7 +254,7 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 					if len(value) < 2 {
 						continue
 					}
-					h.ECH = append(h.ECH[:0], value[2:]...)
+					h.ECH = append(h.ECH[:0], value...)
 				case 6: // ipv6hint
 					if len(value) != length {
 						continue
