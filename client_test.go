@@ -2,11 +2,28 @@ package fastdns
 
 import (
 	"context"
+	"net/http"
 	"net/netip"
 	"net/url"
 	"testing"
 	"time"
+	"unsafe"
 )
+
+func TestClientContext(t *testing.T) {
+	key, value := struct{ key string }{key: "a"}, "b"
+
+	ctx := context.WithValue(context.Background(), key, value)
+	req, _ := http.NewRequest(http.MethodGet, "https://1.1.1.1/dns-query", nil)
+
+	*(*context.Context)(unsafe.Pointer(uintptr(unsafe.Pointer(req)) + httpctxoffset)) = ctx
+
+	got, _ := req.Context().Value(key).(string)
+	want := value
+	if got != want {
+		t.Errorf("set http request context inplace failed, got=%s, want=%s", got, want)
+	}
+}
 
 func TestClientExchange(t *testing.T) {
 	var cases = []struct {
@@ -44,68 +61,52 @@ func TestClientExchange(t *testing.T) {
 	}
 }
 
-var cloudflare, _ = url.Parse("https://1.1.1.1/dns-query")
-
-func TestLookupCNAME(t *testing.T) {
-	host := "abc.phus.lu"
+func TestClientLookup(t *testing.T) {
+	var cases = []struct {
+		Host string
+		Type Type
+	}{
+		{"cloud.phus.lu", TypeA},
+		{"cloud.phus.lu", TypeAAAA},
+		{"cloud.phus.lu", TypeANY},
+		{"cloud.phus.lu", TypeHTTPS},
+		{"abcde.phus.lu", TypeCNAME},
+		{"phus.lu", TypeTXT},
+	}
 
 	client := &Client{
-		Addr:    "1.1.1.1:53",
-		Timeout: 1 * time.Second,
+		Addr: "1.1.1.1:53",
 		Dialer: &HTTPDialer{
-			Endpoint:  cloudflare,
+			Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
 			UserAgent: "fastdns/0.9",
 		},
 	}
 
-	cname, err := client.LookupCNAME(context.Background(), host)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	t.Logf("client.LookupCNAME(%+v) return cname=%s err=%+v\n", host, cname, err)
-}
-
-func TestLookupTXT(t *testing.T) {
-	host := "phus.lu"
-
-	client := &Client{
-		Addr:    "1.1.1.1:53",
-		Timeout: 1 * time.Second,
-		Dialer: &HTTPDialer{
-			Endpoint:  cloudflare,
-			UserAgent: "fastdns/0.9",
-		},
+	for _, c := range cases {
+		var result any
+		var err error
+		switch c.Type {
+		case TypeA:
+			result, err = client.LookupNetIP(ctx, "ip4", c.Host)
+		case TypeAAAA:
+			result, err = client.LookupNetIP(ctx, "ip6", c.Host)
+		case TypeANY:
+			result, err = client.LookupNetIP(ctx, "ip", c.Host)
+		case TypeCNAME:
+			result, err = client.LookupCNAME(ctx, c.Host)
+		case TypeHTTPS:
+			result, err = client.LookupHTTPS(ctx, "ip", c.Host)
+		case TypeTXT:
+			result, err = client.LookupTXT(ctx, c.Host)
+		default:
+			t.Errorf("fastdns client lookup is unsupported type(%s)", c.Type)
+		}
+		if err != nil {
+			t.Errorf("fastdns client lookup %s %s error: %+v", c.Type, c.Host, err)
+		}
+		t.Logf("Lookup %s %s result=%+v", c.Type, c.Host, result)
 	}
-
-	txt, err := client.LookupTXT(context.Background(), host)
-
-	t.Logf("client.LookupTXT(%+v) return txt=%+v err=%+v\n", host, txt, err)
-}
-
-func TestLookupNetIP(t *testing.T) {
-	host := "cloud.phus.lu"
-
-	client := &Client{
-		Addr:    "1.1.1.1:53",
-		Timeout: 1 * time.Second,
-		Dialer: &HTTPDialer{
-			Endpoint:  cloudflare,
-			UserAgent: "fastdns/0.9",
-		},
-	}
-
-	ips, err := client.LookupNetIP(context.Background(), "ip", host)
-
-	t.Logf("client.LookupNetIP(%+v) return ips=%s err=%+v\n", host, ips, err)
-}
-
-func TestLookupHTTPS(t *testing.T) {
-	host := "cloud.phus.lu"
-
-	client := &Client{
-		Addr:    "1.1.1.1:53",
-		Timeout: 1 * time.Second,
-	}
-
-	https, err := client.LookupHTTPS(context.Background(), "ip", host)
-
-	t.Logf("client.LookupHTTPS(%+v) return https=%+v err=%+v\n", host, https, err)
 }
