@@ -110,7 +110,7 @@ func (c *Client) LookupNetIP(ctx context.Context, network, host string) (ips []n
 	return
 }
 
-func (c *Client) LookupHTTPS(ctx context.Context, network, host string) (https []NetHTTPS, err error) {
+func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS, err error) {
 	req, resp := AcquireMessage(), AcquireMessage()
 	defer ReleaseMessage(resp)
 	defer ReleaseMessage(req)

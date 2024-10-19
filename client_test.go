@@ -98,7 +98,7 @@ func TestClientLookup(t *testing.T) {
 		case TypeCNAME:
 			result, err = client.LookupCNAME(ctx, c.Host)
 		case TypeHTTPS:
-			result, err = client.LookupHTTPS(ctx, "ip", c.Host)
+			result, err = client.LookupHTTPS(ctx, c.Host)
 		case TypeTXT:
 			result, err = client.LookupTXT(ctx, c.Host)
 		default:
