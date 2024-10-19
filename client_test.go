@@ -73,6 +73,8 @@ func TestClientUDPLookup(t *testing.T) {
 		{"cloud.phus.lu", TypeHTTPS},
 		{"abcde.phus.lu", TypeCNAME},
 		{"phus.lu", TypeTXT},
+		{"phus.lu", TypeNS},
+		{"phus.lu", TypeMX},
 	}
 
 	client := &Client{
@@ -102,6 +104,10 @@ func TestClientUDPLookup(t *testing.T) {
 			result, err = client.LookupHTTPS(ctx, c.Host)
 		case TypeTXT:
 			result, err = client.LookupTXT(ctx, c.Host)
+		case TypeNS:
+			result, err = client.LookupNS(ctx, c.Host)
+		case TypeMX:
+			result, err = client.LookupMX(ctx, c.Host)
 		default:
 			t.Errorf("fastdns client lookup is unsupported type(%s)", c.Type)
 		}
@@ -123,6 +129,8 @@ func TestClientHTTPLookup(t *testing.T) {
 		{"cloud.phus.lu", TypeHTTPS},
 		{"abcde.phus.lu", TypeCNAME},
 		{"phus.lu", TypeTXT},
+		{"phus.lu", TypeNS},
+		{"phus.lu", TypeMX},
 	}
 
 	client := &Client{
@@ -152,6 +160,10 @@ func TestClientHTTPLookup(t *testing.T) {
 			result, err = client.LookupHTTPS(ctx, c.Host)
 		case TypeTXT:
 			result, err = client.LookupTXT(ctx, c.Host)
+		case TypeNS:
+			result, err = client.LookupNS(ctx, c.Host)
+		case TypeMX:
+			result, err = client.LookupMX(ctx, c.Host)
 		default:
 			t.Errorf("fastdns client lookup is unsupported type(%s)", c.Type)
 		}

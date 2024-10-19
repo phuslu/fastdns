@@ -2,7 +2,9 @@ package fastdns
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
+	"net"
 	"net/netip"
 )
 
@@ -24,6 +26,34 @@ func (c *Client) LookupCNAME(ctx context.Context, host string) (cname string, er
 		case TypeCNAME:
 			cname = string(resp.DecodeName(nil, data))
 			return false
+		default:
+			err = ErrInvalidAnswer
+		}
+		return true
+	})
+
+	return
+}
+
+// LookupNS returns the DNS NS records for the given domain name.
+func (c *Client) LookupNS(ctx context.Context, name string) (ns []*net.NS, err error) {
+	req, resp := AcquireMessage(), AcquireMessage()
+	defer ReleaseMessage(resp)
+	defer ReleaseMessage(req)
+
+	req.SetRequestQuestion(name, TypeNS, ClassINET)
+
+	err = c.Exchange(ctx, req, resp)
+	if err != nil {
+		return
+	}
+
+	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
+		switch typ {
+		case TypeNS:
+			ns = append(ns, &net.NS{
+				Host: string(resp.DecodeName(nil, data)),
+			})
 		default:
 			err = ErrInvalidAnswer
 		}
@@ -110,6 +140,34 @@ func (c *Client) LookupNetIP(ctx context.Context, network, host string) (ips []n
 	return
 }
 
+// LookupMX returns the DNS MX records for the given domain name sorted by preference.
+func (c *Client) LookupMX(ctx context.Context, host string) (mx []*net.MX, err error) {
+	req, resp := AcquireMessage(), AcquireMessage()
+	defer ReleaseMessage(resp)
+	defer ReleaseMessage(req)
+
+	req.SetRequestQuestion(host, TypeMX, ClassINET)
+
+	err = c.Exchange(ctx, req, resp)
+	if err != nil {
+		return
+	}
+
+	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
+		switch typ {
+		case TypeMX:
+			mx = append(mx, &net.MX{
+				Host: string(resp.DecodeName(nil, data[2:])),
+				Pref: binary.BigEndian.Uint16(data),
+			})
+		}
+		return true
+	})
+
+	return
+}
+
+// LookupHTTPS returns the DNS HTTPS records for the given domain name.
 func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS, err error) {
 	req, resp := AcquireMessage(), AcquireMessage()
 	defer ReleaseMessage(resp)
