@@ -79,14 +79,14 @@ func TestClientLookup(t *testing.T) {
 	}
 
 	clients := []*Client{
-		&Client{
+		{
 			Addr: "1.1.1.1:53",
 			Dialer: &UDPDialer{
 				Addr:     func() (u *net.UDPAddr) { u, _ = net.ResolveUDPAddr("udp", "1.1.1.1:53"); return }(),
 				MaxConns: 1000,
 			},
 		},
-		&Client{
+		{
 			Addr: "https://1.1.1.1/dns-query",
 			Dialer: &HTTPDialer{
 				Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
