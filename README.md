@@ -3,7 +3,6 @@
 [![godoc][godoc-img]][godoc]
 [![release][release-img]][release]
 [![goreport][goreport-img]][goreport]
-[![coverage][coverage-img]][coverage]
 
 
 ## Features
@@ -92,10 +91,91 @@ func main() {
 }
 ```
 
-### DNS Client
+### DoH Client
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"net/url"
+	"time"
+
+	"github.com/phuslu/fastdns"
+)
+
+func main() {
+	doh := "https://1.1.1.1/dns-query"
+
+	client := &fastdns.Client{
+		Addr: doh,
+		Dialer: &fastdns.HTTPDialer{
+			Endpoint:  func() (u *url.URL) { u, _ = url.Parse(doh); return }(),
+			UserAgent: "fastdns/0.9",
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	fmt.Println(client.LookupHTTPS(ctx, "cloud.phus.lu"))
+}
+```
+
+### DoQ Client
+```go
+package main
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"net/url"
+	"time"
+
+	"github.com/apernet/quic-go"
+	"github.com/apernet/quic-go/http3"
+	"github.com/phuslu/fastdns"
+)
+
+func main() {
+	doq := "https://1.1.1.1/dns-query"
+
+	client := &fastdns.Client{
+		Addr: doq,
+		Dialer: &fastdns.HTTPDialer{
+			Endpoint:  func() (u *url.URL) { u, _ = url.Parse(doq); return }(),
+			UserAgent: "fastdns/0.9",
+			Transport: &http3.RoundTripper{
+				DisableCompression: false,
+				EnableDatagrams:    true,
+				TLSClientConfig: &tls.Config{
+					NextProtos:         []string{"h3"},
+					InsecureSkipVerify: true,
+					ServerName:         "1.1.1.1",
+					ClientSessionCache: tls.NewLRUClientSessionCache(128),
+				},
+				QUICConfig: &quic.Config{
+					DisablePathMTUDiscovery: false,
+					EnableDatagrams:         true,
+					MaxIncomingUniStreams:   200,
+					MaxIncomingStreams:      200,
+				},
+			},
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	fmt.Println(client.LookupHTTPS(ctx, "cloud.phus.lu"))
+}
+```
+
+### DNS Client Tool
 ```bash
 $ go install github.com/phuslu/fastdns/cmd/fastdig@master
-$ fastdig ip.phus.lu @8.8.8.8
+$ fastdig ip.phus.lu @https://1.1.1.1/dns-query
 
 ; <<>> DiG 0.0.1-Fastdns <<>> ip.phus.lu
 ;; global options: +cmd +noedns
@@ -116,7 +196,7 @@ phus.lu.        299     IN      A       101.32.116.118
 ;; MSG SIZE  rcvd: 58
 ```
 
-### DoH Server
+### DoH Server Example
 ```bash
 $ go install github.com/phuslu/fastdns/cmd/fastdoh@master
 $ fastdoh :8080
@@ -161,7 +241,7 @@ PASS
 ok  	github.com/phuslu/fastdns	30.430s
 ```
 
-Here is the real-world flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns reaches **1.4M QPS** on a single machine with Xeon 4216 and Intel X710.
+Here is the real-world flamegraph [![flamegraph][flamegraph]][flamegraph] when fastdns server reaches **1.4M QPS** on a single machine with Xeon 4216 and Intel X710.
 
 ## Acknowledgment
 This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg/dns][miekg/dns].
@@ -172,8 +252,6 @@ This dns server is inspired by [fasthttp][fasthttp], [rawdns][rawdns] and [miekg
 [release]: https://github.com/phuslu/fastdns/releases
 [goreport-img]: https://goreportcard.com/badge/github.com/phuslu/fastdns
 [goreport]: https://goreportcard.com/report/github.com/phuslu/fastdns
-[coverage-img]: http://gocover.io/_badge/github.com/phuslu/fastdns
-[coverage]: https://gocover.io/github.com/phuslu/fastdns
 [benchmark]: https://github.com/phuslu/fastdns/actions?query=workflow%3Abenchmark
 [flamegraph]: https://cdn.jsdelivr.net/gh/phuslu/fastdns/torch.svg
 [fasthttp]: https://github.com/valyala/fasthttp
