@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"net"
@@ -186,7 +187,9 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	} else {
 		fmt.Printf(";; AUTHORITY SECTION:\n")
 	}
+	var index int
 	_ = resp.Walk(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+		index++
 		var v interface{}
 		switch typ {
 		case fastdns.TypeA, fastdns.TypeAAAA:
@@ -222,6 +225,72 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 			expire := binary.BigEndian.Uint32(data[len(data)-8:])
 			minimum := binary.BigEndian.Uint32(data[len(data)-4:])
 			v = fmt.Sprintf("%s. %s. %d %d %d %d %d", mname, nname, serial, refresh, retry, expire, minimum)
+		case fastdns.TypeHTTPS:
+			var h fastdns.NetHTTPS
+			if len(data) < 7 {
+				return true
+			}
+			data = data[3:]
+			for len(data) >= 4 {
+				key := int(data[0])<<8 | int(data[1])
+				length := int(data[2])<<8 | int(data[3])
+				value := data[4 : 4+length]
+				data = data[4+length:]
+				switch key {
+				case 1: // alpn
+					for len(value) != 0 {
+						length := int(value[0])
+						h.ALPN = append(h.ALPN, string(value[1:1+length]))
+						value = value[1+length:]
+					}
+				case 4: // ipv4hint
+					if len(value) != length {
+						continue
+					}
+					for i := 0; i < length; i += 4 {
+						h.IPv4Hint = append(h.IPv4Hint, netip.AddrFrom4(*(*[4]byte)(value[i : i+4])))
+					}
+				case 5: // ech
+					if len(value) < 2 {
+						continue
+					}
+					h.ECH = append(h.ECH[:0], value[2:]...)
+				case 6: // ipv6hint
+					if len(value) != length {
+						continue
+					}
+					for i := 0; i < length; i += 16 {
+						h.IPv6Hint = append(h.IPv6Hint, netip.AddrFrom16(*(*[16]byte)(value[i : i+16])))
+					}
+				}
+			}
+			var sb strings.Builder
+			if len(h.ALPN) > 0 {
+				fmt.Fprintf(&sb, "alpn=\"%s\" ", strings.Join(h.ALPN, ","))
+			}
+			if len(h.IPv4Hint) > 0 {
+				fmt.Fprintf(&sb, "ipv4hint=")
+				for i, ip := range h.IPv4Hint {
+					if i > 0 {
+						fmt.Fprintf(&sb, ",")
+					}
+					fmt.Fprintf(&sb, "%s", ip)
+				}
+				fmt.Fprintf(&sb, " ")
+			}
+			if len(h.ECH) > 0 {
+				fmt.Fprintf(&sb, "ech=%s ", base64.StdEncoding.EncodeToString(h.ECH))
+			}
+			if len(h.IPv6Hint) > 0 {
+				fmt.Fprintf(&sb, "ipv6hint=")
+				for i, ip := range h.IPv6Hint {
+					if i > 0 {
+						fmt.Fprintf(&sb, ",")
+					}
+					fmt.Fprintf(&sb, "%s", ip)
+				}
+			}
+			v = fmt.Sprintf("%d . %s", index, strings.TrimSpace(sb.String()))
 		default:
 			v = fmt.Sprintf("%x", data)
 		}
