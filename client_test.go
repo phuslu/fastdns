@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"net/netip"
 	"net/url"
@@ -61,7 +62,57 @@ func TestClientExchange(t *testing.T) {
 	}
 }
 
-func TestClientLookup(t *testing.T) {
+func TestClientUDPLookup(t *testing.T) {
+	var cases = []struct {
+		Host string
+		Type Type
+	}{
+		{"cloud.phus.lu", TypeA},
+		{"cloud.phus.lu", TypeAAAA},
+		{"cloud.phus.lu", TypeANY},
+		{"cloud.phus.lu", TypeHTTPS},
+		{"abcde.phus.lu", TypeCNAME},
+		{"phus.lu", TypeTXT},
+	}
+
+	client := &Client{
+		Addr: "1.1.1.1:53",
+		Dialer: &UDPDialer{
+			Addr:     func() (u *net.UDPAddr) { u, _ = net.ResolveUDPAddr("udp", "1.1.1.1:53"); return }(),
+			MaxConns: 1000,
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	for _, c := range cases {
+		var result any
+		var err error
+		switch c.Type {
+		case TypeA:
+			result, err = client.LookupNetIP(ctx, "ip4", c.Host)
+		case TypeAAAA:
+			result, err = client.LookupNetIP(ctx, "ip6", c.Host)
+		case TypeANY:
+			result, err = client.LookupNetIP(ctx, "ip", c.Host)
+		case TypeCNAME:
+			result, err = client.LookupCNAME(ctx, c.Host)
+		case TypeHTTPS:
+			result, err = client.LookupHTTPS(ctx, c.Host)
+		case TypeTXT:
+			result, err = client.LookupTXT(ctx, c.Host)
+		default:
+			t.Errorf("fastdns client lookup is unsupported type(%s)", c.Type)
+		}
+		if err != nil {
+			t.Errorf("fastdns client lookup %s %s error: %+v", c.Type, c.Host, err)
+		}
+		t.Logf("Lookup %s %s result=%+v", c.Type, c.Host, result)
+	}
+}
+
+func TestClientHTTPLookup(t *testing.T) {
 	var cases = []struct {
 		Host string
 		Type Type

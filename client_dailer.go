@@ -13,18 +13,56 @@ import (
 	"unsafe"
 )
 
-type NetDialer struct {
-	// MaxIdleConns int
-	// MaxConns     int
-	// Timeout      time.Duration
-	Dialer *net.Dialer
+type UDPDialer struct {
+	Addr         *net.UDPAddr
+	Timeout      time.Duration
+	MaxIdleConns int
+	MaxConns     int
+
+	mu    sync.Mutex
+	conns []net.Conn
 }
 
-func (d *NetDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
-	return d.Dialer.DialContext(ctx, network, addr)
+func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+	conn, err = d.get()
+	if conn == nil && err == nil {
+		conn, err = net.DialUDP("udp", nil, d.Addr)
+	}
+	return
 }
 
-func (d *NetDialer) Put(c net.Conn) {
+func (d *UDPDialer) get() (conn net.Conn, err error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	count := len(d.conns)
+	if d.MaxConns != 0 && count > d.MaxConns {
+		err = ErrMaxConns
+
+		return
+	}
+	if count > 0 {
+		conn = d.conns[len(d.conns)-1]
+		d.conns = d.conns[:len(d.conns)-1]
+	}
+
+	return
+}
+
+func (d *UDPDialer) Put(conn net.Conn) {
+	if _, ok := conn.(*net.UDPConn); !ok {
+		return
+	}
+
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	if (d.MaxIdleConns != 0 && len(d.conns) > d.MaxIdleConns) || (d.MaxConns != 0 && len(d.conns) > d.MaxConns) {
+		conn.Close()
+		return
+	}
+
+	d.conns = append(d.conns, conn)
 }
 
 type HTTPDialer struct {
