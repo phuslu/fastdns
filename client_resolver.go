@@ -3,10 +3,67 @@ package fastdns
 import (
 	"context"
 	"encoding/binary"
-	"errors"
 	"net"
 	"net/netip"
 )
+
+// AppendLookupNetIP looks up host and appends result to dst using the local resolver.
+func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, network, host string) (_ []netip.Addr, err error) {
+	req, resp := AcquireMessage(), AcquireMessage()
+	defer ReleaseMessage(resp)
+	defer ReleaseMessage(req)
+
+	var typ Type
+
+	switch network {
+	case "ip4":
+		typ = TypeA
+	case "ip6":
+		typ = TypeAAAA
+	default:
+		dst, err = c.AppendLookupNetIP(dst, ctx, "ip4", host)
+		if err != nil {
+			return
+		}
+		dst, err = c.AppendLookupNetIP(dst, ctx, "ip6", host)
+		if err != nil {
+			return
+		}
+		return dst, nil
+	}
+
+	req.SetRequestQuestion(host, typ, ClassINET)
+
+	err = c.Exchange(ctx, req, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var cname []byte
+
+	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
+		switch typ {
+		case TypeCNAME:
+			cname = resp.DecodeName(nil, data)
+		case TypeA:
+			dst = append(dst, netip.AddrFrom4(*(*[4]byte)(data)))
+		case TypeAAAA:
+			dst = append(dst, netip.AddrFrom16(*(*[16]byte)(data)))
+		}
+		return true
+	})
+
+	if cname != nil && len(dst) == 0 {
+		dst, err = c.AppendLookupNetIP(dst, ctx, network, b2s(cname))
+	}
+
+	return dst, err
+}
+
+// LookupNetIP looks up host using the local resolver. It returns a slice of that host's IP addresses of the type specified by network. The network must be one of "ip", "ip4" or "ip6".
+func (c *Client) LookupNetIP(ctx context.Context, network, host string) (ips []netip.Addr, err error) {
+	return c.AppendLookupNetIP(ips, ctx, network, host)
+}
 
 // LookupCNAME returns the canonical name for the given host.
 func (c *Client) LookupCNAME(ctx context.Context, host string) (cname string, err error) {
@@ -89,53 +146,6 @@ func (c *Client) LookupTXT(ctx context.Context, host string) (txt []string, err 
 		}
 		return true
 	})
-
-	return
-}
-
-// LookupNetIP looks up host using the local resolver. It returns a slice of that host's IP addresses of the type specified by network. The network must be one of "ip", "ip4" or "ip6".
-func (c *Client) LookupNetIP(ctx context.Context, network, host string) (ips []netip.Addr, err error) {
-	req, resp := AcquireMessage(), AcquireMessage()
-	defer ReleaseMessage(resp)
-	defer ReleaseMessage(req)
-
-	var typ Type
-
-	switch network {
-	case "ip4":
-		typ = TypeA
-	case "ip6":
-		typ = TypeAAAA
-	default:
-		ips1, err1 := c.LookupNetIP(ctx, "ip4", host)
-		ips2, err2 := c.LookupNetIP(ctx, "ip6", host)
-		return append(ips1, ips2...), errors.Join(err1, err2)
-	}
-
-	req.SetRequestQuestion(host, typ, ClassINET)
-
-	err = c.Exchange(ctx, req, resp)
-	if err != nil {
-		return
-	}
-
-	var cname []byte
-
-	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
-		switch typ {
-		case TypeCNAME:
-			cname = resp.DecodeName(nil, data)
-		case TypeA:
-			ips = append(ips, netip.AddrFrom4(*(*[4]byte)(data)))
-		case TypeAAAA:
-			ips = append(ips, netip.AddrFrom16(*(*[16]byte)(data)))
-		}
-		return true
-	})
-
-	if cname != nil {
-		return c.LookupNetIP(ctx, network, b2s(cname))
-	}
 
 	return
 }
