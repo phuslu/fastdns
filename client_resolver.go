@@ -194,25 +194,29 @@ func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS
 				value := data[4 : 4+length]
 				data = data[4+length:]
 				switch key {
-				case 1: // alpn
+				case 1: // ALPN
 					for len(value) != 0 {
 						length := int(value[0])
 						h.ALPN = append(h.ALPN, string(value[1:1+length]))
 						value = value[1+length:]
 					}
-				case 4: // ipv4hint
+				case 2: // NoDefaultALPN
+					h.NoDefaultALPN = true
+				case 3: // Port
+					h.Port = uint32(value[0])<<8 | uint32(value[1])
+				case 4: // IPV4Hint
 					if len(value) != length {
 						continue
 					}
 					for i := 0; i < length; i += 4 {
 						h.IPv4Hint = append(h.IPv4Hint, netip.AddrFrom4(*(*[4]byte)(value[i : i+4])))
 					}
-				case 5: // ech
+				case 5: // ECH
 					if len(value) < 2 {
 						continue
 					}
 					h.ECH = append(h.ECH[:0], value...)
-				case 6: // ipv6hint
+				case 6: // IPV6Hint
 					if len(value) != length {
 						continue
 					}

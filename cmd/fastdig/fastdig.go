@@ -237,25 +237,29 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 				value := data[4 : 4+length]
 				data = data[4+length:]
 				switch key {
-				case 1: // alpn
+				case 1: // ALPN
 					for len(value) != 0 {
 						length := int(value[0])
 						h.ALPN = append(h.ALPN, string(value[1:1+length]))
 						value = value[1+length:]
 					}
-				case 4: // ipv4hint
+				case 2: // NoDefaultALPN
+					h.NoDefaultALPN = true
+				case 3: // Port
+					h.Port = uint32(value[0])<<8 | uint32(value[1])
+				case 4: // IPV4Hint
 					if len(value) != length {
 						continue
 					}
 					for i := 0; i < length; i += 4 {
 						h.IPv4Hint = append(h.IPv4Hint, netip.AddrFrom4(*(*[4]byte)(value[i : i+4])))
 					}
-				case 5: // ech
+				case 5: // ECH
 					if len(value) < 2 {
 						continue
 					}
 					h.ECH = append(h.ECH[:0], value...)
-				case 6: // ipv6hint
+				case 6: // IPV6Hint
 					if len(value) != length {
 						continue
 					}
@@ -267,6 +271,12 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 			var sb strings.Builder
 			if len(h.ALPN) > 0 {
 				fmt.Fprintf(&sb, "alpn=\"%s\" ", strings.Join(h.ALPN, ","))
+			}
+			if h.Port > 0 {
+				fmt.Fprintf(&sb, "port=%d ", h.Port)
+			}
+			if h.NoDefaultALPN {
+				fmt.Fprintf(&sb, "no-default-alpn=%v ", h.NoDefaultALPN)
 			}
 			if len(h.IPv4Hint) > 0 {
 				fmt.Fprintf(&sb, "ipv4hint=")

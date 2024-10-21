@@ -623,8 +623,10 @@ func ParseType(s string) (t Type) {
 }
 
 type NetHTTPS struct {
-	ALPN     []string
-	IPv4Hint []netip.Addr
-	IPv6Hint []netip.Addr
-	ECH      []byte
+	ALPN          []string
+	NoDefaultALPN bool
+	Port          uint32
+	IPv4Hint      []netip.Addr
+	IPv6Hint      []netip.Addr
+	ECH           []byte
 }
