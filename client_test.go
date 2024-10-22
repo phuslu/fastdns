@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"net/netip"
 	"net/url"
+	"os"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 	"unsafe"
@@ -146,4 +148,57 @@ func TestClientLookup(t *testing.T) {
 			t.Logf("%s Lookup %s %s result=%+v", client.Addr, c.Type, c.Host, deref(result))
 		}
 	}
+}
+
+func BenchmarkResolverPureGo(b *testing.B) {
+	resolver := net.Resolver{PreferGo: true}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(b *testing.PB) {
+		for b.Next() {
+			_, _ = resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
+		}
+	})
+}
+
+func BenchmarkResolverCGO(b *testing.B) {
+	resolver := net.Resolver{PreferGo: false}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(b *testing.PB) {
+		for b.Next() {
+			_, _ = resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
+		}
+	})
+}
+
+func BenchmarkResolverFastdns(b *testing.B) {
+	server := "8.8.8.8:53"
+	if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
+		if m := regexp.MustCompile(`(^|\n)\s*nameserver\s+(\S+)`).FindAllStringSubmatch(string(data), -1); len(m) != 0 {
+			server = m[0][2] + ":53"
+		}
+	}
+	b.Logf("fastdns use dns server: %s", server)
+
+	resolver := &Client{
+		Addr: server,
+		Dialer: &UDPDialer{
+			Addr:     func() (u *net.UDPAddr) { u, _ = net.ResolveUDPAddr("udp", server); return }(),
+			MaxConns: 1024,
+		},
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			ips, err := resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
+			if len(ips) == 0 || err != nil {
+				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
+			}
+		}
+	})
 }
