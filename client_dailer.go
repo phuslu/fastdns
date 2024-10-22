@@ -14,55 +14,42 @@ import (
 )
 
 type UDPDialer struct {
-	Addr         *net.UDPAddr
-	Timeout      time.Duration
-	MaxIdleConns int
-	MaxConns     int
+	Addr     *net.UDPAddr
+	Timeout  time.Duration
+	MaxConns uint16
 
-	mu    sync.Mutex
-	conns []net.Conn
+	once  sync.Once
+	conns []*udpConn
 }
 
 func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
-	conn, err = d.get()
-	if conn == nil && err == nil {
-		conn, err = net.DialUDP("udp", nil, d.Addr)
-	}
-	return
+	return d.get()
 }
 
-func (d *UDPDialer) get() (conn net.Conn, err error) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
+func (d *UDPDialer) get() (net.Conn, error) {
+	d.once.Do(func() {
+		d.conns = make([]*udpConn, d.MaxConns)
+		for i := range d.MaxConns {
+			d.conns[i] = new(udpConn)
+			d.conns[i].UDPConn, _ = net.DialUDP("udp", nil, d.Addr)
+		}
+	})
 
-	count := len(d.conns)
-	if d.MaxConns != 0 && count > d.MaxConns {
-		err = ErrMaxConns
+	c := d.conns[cheaprandn(uint32(d.MaxConns))]
+	c.mu.Lock()
 
-		return
-	}
-	if count > 0 {
-		conn = d.conns[len(d.conns)-1]
-		d.conns = d.conns[:len(d.conns)-1]
-	}
-
-	return
+	return c, nil
 }
 
 func (d *UDPDialer) Put(conn net.Conn) {
-	if _, ok := conn.(*net.UDPConn); !ok {
-		return
+	if c, _ := conn.(*udpConn); c != nil {
+		c.mu.Unlock()
 	}
+}
 
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	if (d.MaxIdleConns != 0 && len(d.conns) > d.MaxIdleConns) || (d.MaxConns != 0 && len(d.conns) > d.MaxConns) {
-		conn.Close()
-		return
-	}
-
-	d.conns = append(d.conns, conn)
+type udpConn struct {
+	*net.UDPConn
+	mu sync.Mutex
 }
 
 type HTTPDialer struct {
