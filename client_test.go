@@ -174,7 +174,32 @@ func BenchmarkResolverCGO(b *testing.B) {
 	})
 }
 
-func BenchmarkResolverFastdns(b *testing.B) {
+func BenchmarkResolverFastdnsDefault(b *testing.B) {
+	server := "8.8.8.8:53"
+	if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
+		if m := regexp.MustCompile(`(^|\n)\s*nameserver\s+(\S+)`).FindAllStringSubmatch(string(data), -1); len(m) != 0 {
+			server = m[0][2] + ":53"
+		}
+	}
+	// b.Logf("fastdns use dns server: %s", server)
+
+	resolver := &Client{
+		Addr: server,
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			ips, err := resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
+			if len(ips) == 0 || err != nil {
+				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
+			}
+		}
+	})
+}
+
+func BenchmarkResolverFastdnsUDP(b *testing.B) {
 	server := "8.8.8.8:53"
 	if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
 		if m := regexp.MustCompile(`(^|\n)\s*nameserver\s+(\S+)`).FindAllStringSubmatch(string(data), -1); len(m) != 0 {
@@ -203,7 +228,7 @@ func BenchmarkResolverFastdns(b *testing.B) {
 	})
 }
 
-func BenchmarkResolverFastdnsAppend(b *testing.B) {
+func BenchmarkResolverFastdnsUDPAppend(b *testing.B) {
 	server := "8.8.8.8:53"
 	if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
 		if m := regexp.MustCompile(`(^|\n)\s*nameserver\s+(\S+)`).FindAllStringSubmatch(string(data), -1); len(m) != 0 {
@@ -227,6 +252,30 @@ func BenchmarkResolverFastdnsAppend(b *testing.B) {
 		var err error
 		for pb.Next() {
 			ips, err = resolver.AppendLookupNetIP(ips[:0], context.Background(), "ip4", "www.google.com")
+			if len(ips) == 0 || err != nil {
+				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
+			}
+		}
+	})
+}
+
+func BenchmarkResolverFastdnsHTTP(b *testing.B) {
+	server := "8.8.8.8:53"
+
+	resolver := &Client{
+		Addr: server,
+		Dialer: &HTTPDialer{
+			Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
+			UserAgent: "fastdns/0.9",
+			Transport: http.DefaultTransport,
+		},
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			ips, err := resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
 			if len(ips) == 0 || err != nil {
 				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
 			}
