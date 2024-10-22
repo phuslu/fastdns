@@ -181,7 +181,7 @@ func BenchmarkResolverFastdns(b *testing.B) {
 			server = m[0][2] + ":53"
 		}
 	}
-	b.Logf("fastdns use dns server: %s", server)
+	// b.Logf("fastdns use dns server: %s", server)
 
 	resolver := &Client{
 		Addr: server,
@@ -196,6 +196,37 @@ func BenchmarkResolverFastdns(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			ips, err := resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
+			if len(ips) == 0 || err != nil {
+				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
+			}
+		}
+	})
+}
+
+func BenchmarkResolverFastdnsAppend(b *testing.B) {
+	server := "8.8.8.8:53"
+	if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
+		if m := regexp.MustCompile(`(^|\n)\s*nameserver\s+(\S+)`).FindAllStringSubmatch(string(data), -1); len(m) != 0 {
+			server = m[0][2] + ":53"
+		}
+	}
+	// b.Logf("fastdns use dns server: %s", server)
+
+	resolver := &Client{
+		Addr: server,
+		Dialer: &UDPDialer{
+			Addr:     func() (u *net.UDPAddr) { u, _ = net.ResolveUDPAddr("udp", server); return }(),
+			MaxConns: 1024,
+		},
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		var ips []netip.Addr
+		var err error
+		for pb.Next() {
+			ips, err = resolver.AppendLookupNetIP(ips[:0], context.Background(), "ip4", "www.google.com")
 			if len(ips) == 0 || err != nil {
 				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
 			}
