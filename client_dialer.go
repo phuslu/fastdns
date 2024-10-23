@@ -13,9 +13,15 @@ import (
 	"unsafe"
 )
 
+// UDPDialer is a custom dialer for creating UDP connections.
+// It manages a pool of connections to optimize performance in scenarios
+// where multiple UDP connections to the same server are required.
 type UDPDialer struct {
-	Addr     *net.UDPAddr
-	Timeout  time.Duration
+	// Addr specifies the remote UDP address that the dialer will connect to.
+	Addr *net.UDPAddr
+
+	// MaxConns limits the maximum number of UDP connections that can be created
+	// and reused. Once this limit is reached, no new connections will be made.
 	MaxConns uint16
 
 	once  sync.Once
@@ -52,9 +58,19 @@ type udpConn struct {
 	mu sync.Mutex
 }
 
+// HTTPDialer is a custom dialer for creating HTTP connections.
+// It allows sending HTTP requests with a specified endpoint, user agent, and transport configuration.
 type HTTPDialer struct {
-	Endpoint  *url.URL
+	// Endpoint specifies the HTTP server's URL that the dialer will connect to.
+	// This is the base address used for sending HTTP requests.
+	Endpoint *url.URL
+
+	// UserAgent defines the User-Agent header that will be included in the HTTP requests
+	// sent by this dialer. It can be customized for specific needs.
 	UserAgent string
+
+	// Transport allows for customizing the underlying transport mechanism used
+	// for making HTTP requests. If set, it overrides the default RoundTripper behavior.
 	Transport http.RoundTripper
 }
 

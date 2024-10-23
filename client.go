@@ -10,16 +10,20 @@ type Dialer interface {
 	DialContext(ctx context.Context, network, addr string) (net.Conn, error)
 }
 
-// Client is an UDP client that supports DNS protocol.
+// Client represents a DNS client that communicates over UDP.
+// It supports sending DNS queries to a specified server.
 type Client struct {
-	// Address specifies the address of dns server.
+	// Addr defines the DNS server's address to which the client will send queries.
+	// This field is used if no custom Dialer is provided.
 	Addr string
 
-	// Timeout
+	// Timeout specifies the maximum duration for a query to complete.
+	// If a query exceeds this duration, it will result in a timeout error.
 	Timeout time.Duration
 
-	// Dialer specifies the dialer for creating TCP/UDP connections.
-	// If it is set, Addr and Timeout will be ignored.
+	// Dialer allows for customizing the way connections are established.
+	// If set, it overrides the Addr field and uses the provided dialer to
+	// create connections for DNS queries.
 	Dialer Dialer
 }
 
