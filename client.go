@@ -22,8 +22,7 @@ type Client struct {
 	Timeout time.Duration
 
 	// Dialer allows for customizing the way connections are established.
-	// If set, it overrides the Addr field and uses the provided dialer to
-	// create connections for DNS queries.
+	// If set, Addr and Timeout will be ignore.
 	Dialer Dialer
 }
 
@@ -48,16 +47,16 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		return err
 	}
 
-	_, err = conn.Write(req.Raw)
-	if err != nil {
-		return nil
-	}
-
-	if c.Timeout > 0 {
+	if c.Timeout > 0 && c.Dialer == nil {
 		err = conn.SetDeadline(time.Now().Add(c.Timeout))
 		if err != nil {
 			return err
 		}
+	}
+
+	_, err = conn.Write(req.Raw)
+	if err != nil {
+		return nil
 	}
 
 	resp.Raw = resp.Raw[:cap(resp.Raw)]

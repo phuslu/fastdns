@@ -20,8 +20,13 @@ type UDPDialer struct {
 	// Addr specifies the remote UDP address that the dialer will connect to.
 	Addr *net.UDPAddr
 
+	// Timeout specifies the maximum duration for a query to complete.
+	// If a query exceeds this duration, it will result in a timeout error.
+	Timeout time.Duration
+
 	// MaxConns limits the maximum number of UDP connections that can be created
 	// and reused. Once this limit is reached, no new connections will be made.
+	// If not set, use 64 as default.
 	MaxConns uint16
 
 	once  sync.Once
@@ -34,6 +39,9 @@ func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (conn
 
 func (d *UDPDialer) get() (net.Conn, error) {
 	d.once.Do(func() {
+		if d.MaxConns == 0 {
+			d.MaxConns = 64
+		}
 		d.conns = make([]*udpConn, d.MaxConns)
 		for i := range d.MaxConns {
 			d.conns[i] = new(udpConn)
@@ -42,7 +50,14 @@ func (d *UDPDialer) get() (net.Conn, error) {
 	})
 
 	c := d.conns[cheaprandn(uint32(d.MaxConns))]
-	c.mu.Lock()
+	if !c.mu.TryLock() {
+		c = d.conns[cheaprandn(uint32(d.MaxConns))]
+		c.mu.Lock()
+	}
+
+	if d.Timeout > 0 {
+		_ = c.SetDeadline(time.Now().Add(d.Timeout))
+	}
 
 	return c, nil
 }
