@@ -74,6 +74,7 @@ func TestClientLookup(t *testing.T) {
 		{"cloud.phus.lu", TypeAAAA},
 		{"cloud.phus.lu", TypeANY},
 		{"cloud.phus.lu", TypeHTTPS},
+		{"cloud.phus.lu", TypeNS},
 		{"abcde.phus.lu", TypeCNAME},
 		{"phus.lu", TypeHTTPS},
 		{"phus.lu", TypeTXT},

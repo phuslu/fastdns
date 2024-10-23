@@ -53,7 +53,7 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 		return true
 	})
 
-	if cname != nil && len(dst) == 0 {
+	if len(cname) != 0 && len(dst) == 0 {
 		dst, err = c.AppendLookupNetIP(dst, ctx, network, b2s(cname))
 	}
 
@@ -105,17 +105,23 @@ func (c *Client) LookupNS(ctx context.Context, name string) (ns []*net.NS, err e
 		return
 	}
 
+	soa := make([]byte, 0, 64)
+
 	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
 		switch typ {
+		case TypeSOA:
+			soa = resp.DecodeName(soa[:0], name)
 		case TypeNS:
-			ns = append(ns, &net.NS{
-				Host: string(resp.DecodeName(nil, data)),
-			})
+			ns = append(ns, &net.NS{Host: string(resp.DecodeName(nil, data))})
 		default:
 			err = ErrInvalidAnswer
 		}
 		return true
 	})
+
+	if len(soa) != 0 {
+		ns, err = c.LookupNS(ctx, b2s(soa))
+	}
 
 	return
 }
