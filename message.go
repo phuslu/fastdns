@@ -215,7 +215,7 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 	return dst
 }
 
-type AnswerRecord struct {
+type MessageRecord struct {
 	Name  []byte
 	Type  Type
 	Class Class
@@ -224,7 +224,7 @@ type AnswerRecord struct {
 }
 
 // Walk calls f for each item in the msg in the original order of the parsed RR.
-func (msg *Message) Records(f func(AnswerRecord) bool) {
+func (msg *Message) Records(f func(MessageRecord) bool) {
 	n := msg.Header.ANCount + msg.Header.NSCount
 	if n == 0 {
 		return
@@ -255,7 +255,7 @@ func (msg *Message) Records(f func(AnswerRecord) bool) {
 		length := uint16(payload[8])<<8 | uint16(payload[9])
 		data := payload[10 : 10+length]
 		payload = payload[10+length:]
-		ok := f(AnswerRecord{Name: name, Type: typ, Class: class, TTL: ttl, Data: data})
+		ok := f(MessageRecord{Name: name, Type: typ, Class: class, TTL: ttl, Data: data})
 		if !ok {
 			break
 		}
@@ -263,7 +263,7 @@ func (msg *Message) Records(f func(AnswerRecord) bool) {
 }
 
 // WalkAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.
-func (msg *Message) AdditionalRecords(f func(AnswerRecord) bool) {
+func (msg *Message) AdditionalRecords(f func(MessageRecord) bool) {
 	panic("not implemented")
 }
 
