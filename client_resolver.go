@@ -39,12 +39,12 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 		return nil, err
 	}
 
-	var cname []byte
+	cname := make([]byte, 0, 64)
 
 	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
 		switch typ {
 		case TypeCNAME:
-			cname = resp.DecodeName(nil, data)
+			cname = resp.DecodeName(cname[:0], data)
 		case TypeA:
 			dst = append(dst, netip.AddrFrom4(*(*[4]byte)(data)))
 		case TypeAAAA:
