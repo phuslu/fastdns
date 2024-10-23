@@ -1,6 +1,6 @@
 module main
 
-go 1.22
+go 1.23
 
 require (
 	github.com/phuslu/fastdns v1.0.0

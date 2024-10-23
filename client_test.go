@@ -51,17 +51,16 @@ func TestClientExchange(t *testing.T) {
 			t.Errorf("client=%+v exchange(%v) error: %+v\n", client, c.Domain, err)
 		}
 		t.Logf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
-		_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
-			switch typ {
+		for r := range resp.Records {
+			switch r.Type {
 			case TypeCNAME:
-				t.Logf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, name), ttl, class, typ, resp.DecodeName(nil, data))
+				t.Logf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, resp.DecodeName(nil, r.Data))
 			case TypeA:
-				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.AddrFrom4(*(*[4]byte)(data)))
+				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, netip.AddrFrom4(*(*[4]byte)(r.Data)))
 			case TypeAAAA:
-				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, name), ttl, class, typ, netip.AddrFrom16(*(*[16]byte)(data)))
+				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, netip.AddrFrom16(*(*[16]byte)(r.Data)))
 			}
-			return true
-		})
+		}
 	}
 }
 

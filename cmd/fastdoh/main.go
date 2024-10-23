@@ -37,17 +37,16 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	}
 
 	if h.Debug {
-		_ = resp.Walk(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
-			switch typ {
+		for r := range resp.Records {
+			switch r.Type {
 			case fastdns.TypeCNAME:
-				slog.Info("dns request CNAME", "name", resp.DecodeName(nil, name), "ttl", ttl, "class", class, "type", typ, "CNAME", resp.DecodeName(nil, data))
+				slog.Info("dns request CNAME", "name", resp.DecodeName(nil, r.Name), "ttl", r.TTL, "class", r.Class, "type", r.Type, "CNAME", resp.DecodeName(nil, r.Data))
 			case fastdns.TypeA:
-				slog.Info("dns request A", "name", resp.DecodeName(nil, name), "ttl", ttl, "class", class, "type", typ, "A", netip.AddrFrom4(*(*[4]byte)(data)))
+				slog.Info("dns request A", "name", resp.DecodeName(nil, r.Name), "ttl", r.TTL, "class", r.Class, "type", r.Type, "A", netip.AddrFrom4(*(*[4]byte)(r.Data)))
 			case fastdns.TypeAAAA:
-				slog.Info("dns request AAAA", "name", resp.DecodeName(nil, name), "ttl", ttl, "class", class, "type", typ, "AAAA", netip.AddrFrom16(*(*[16]byte)(data)))
+				slog.Info("dns request AAAA", "name", resp.DecodeName(nil, r.Name), "ttl", r.TTL, "class", r.Class, "type", r.Type, "AAAA", netip.AddrFrom16(*(*[16]byte)(r.Data)))
 			}
-			return true
-		})
+		}
 		slog.Info("serve dns answers", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "remote_addr", h.DNSClient.Addr, "answer_count", resp.Header.ANCount)
 	}
 

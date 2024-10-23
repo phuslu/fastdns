@@ -103,48 +103,47 @@ func opt(option string, options []string) bool {
 }
 
 func short(resp *fastdns.Message) {
-	_ = resp.Walk(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+	for r := range resp.Records {
 		var v interface{}
-		switch typ {
+		switch r.Type {
 		case fastdns.TypeA, fastdns.TypeAAAA:
-			v, _ = netip.AddrFromSlice(data)
+			v, _ = netip.AddrFromSlice(r.Data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
-			v = fmt.Sprintf("%s.", resp.DecodeName(nil, data))
+			v = fmt.Sprintf("%s.", resp.DecodeName(nil, r.Data))
 		case fastdns.TypeMX:
-			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(data), resp.DecodeName(nil, data[2:]))
+			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(r.Data), resp.DecodeName(nil, r.Data[2:]))
 		case fastdns.TypeTXT:
-			v = fmt.Sprintf("\"%s\"", data[1:])
+			v = fmt.Sprintf("\"%s\"", r.Data[1:])
 		case fastdns.TypeSRV:
-			priority := binary.BigEndian.Uint16(data)
-			weight := binary.BigEndian.Uint16(data[2:])
-			port := binary.BigEndian.Uint16(data[4:])
-			target := resp.DecodeName(nil, data[6:])
+			priority := binary.BigEndian.Uint16(r.Data)
+			weight := binary.BigEndian.Uint16(r.Data[2:])
+			port := binary.BigEndian.Uint16(r.Data[4:])
+			target := resp.DecodeName(nil, r.Data[6:])
 			v = fmt.Sprintf("%d %d %d %s.", priority, weight, port, target)
 		case fastdns.TypeSOA:
 			var mname []byte
-			for i, b := range data {
+			for i, b := range r.Data {
 				if b == 0 {
-					mname = data[:i+1]
+					mname = r.Data[:i+1]
 					break
 				} else if b&0b11000000 == 0b11000000 {
-					mname = data[:i+2]
+					mname = r.Data[:i+2]
 					break
 				}
 			}
-			nname := resp.DecodeName(nil, data[len(mname):len(data)-20])
+			nname := resp.DecodeName(nil, r.Data[len(mname):len(r.Data)-20])
 			mname = resp.DecodeName(nil, mname)
-			serial := binary.BigEndian.Uint32(data[len(data)-20:])
-			refresh := binary.BigEndian.Uint32(data[len(data)-16:])
-			retry := binary.BigEndian.Uint32(data[len(data)-12:])
-			expire := binary.BigEndian.Uint32(data[len(data)-8:])
-			minimum := binary.BigEndian.Uint32(data[len(data)-4:])
+			serial := binary.BigEndian.Uint32(r.Data[len(r.Data)-20:])
+			refresh := binary.BigEndian.Uint32(r.Data[len(r.Data)-16:])
+			retry := binary.BigEndian.Uint32(r.Data[len(r.Data)-12:])
+			expire := binary.BigEndian.Uint32(r.Data[len(r.Data)-8:])
+			minimum := binary.BigEndian.Uint32(r.Data[len(r.Data)-4:])
 			v = fmt.Sprintf("%s. %s. %d %d %d %d %d", mname, nname, serial, refresh, retry, expire, minimum)
 		default:
-			v = fmt.Sprintf("%x", data)
+			v = fmt.Sprintf("%x", r.Data)
 		}
 		fmt.Printf("%s\n", v)
-		return true
-	})
+	}
 }
 
 func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
@@ -187,11 +186,12 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	} else {
 		fmt.Printf(";; AUTHORITY SECTION:\n")
 	}
-	var index int
-	_ = resp.Walk(func(name []byte, typ fastdns.Type, class fastdns.Class, ttl uint32, data []byte) bool {
+	index := 0
+	for r := range resp.Records {
 		index++
+		data := r.Data
 		var v interface{}
-		switch typ {
+		switch r.Type {
 		case fastdns.TypeA, fastdns.TypeAAAA:
 			v, _ = netip.AddrFromSlice(data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
@@ -228,7 +228,7 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		case fastdns.TypeHTTPS:
 			var h fastdns.NetHTTPS
 			if len(data) < 7 {
-				return true
+				return
 			}
 			data = data[3:]
 			for len(data) >= 4 {
@@ -304,9 +304,8 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		default:
 			v = fmt.Sprintf("%x", data)
 		}
-		fmt.Printf("%s.	%d	%s	%s	%s\n", resp.DecodeName(nil, name), ttl, class, typ, v)
-		return true
-	})
+		fmt.Printf("%s.	%d	%s	%s	%s\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, v)
+	}
 
 	fmt.Printf("\n")
 	fmt.Printf(";; Query time: %d msec\n", end.Sub(start)/time.Millisecond)

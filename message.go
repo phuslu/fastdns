@@ -215,11 +215,19 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 	return dst
 }
 
+type AnswerRecord struct {
+	Name  []byte
+	Type  Type
+	Class Class
+	TTL   uint32
+	Data  []byte
+}
+
 // Walk calls f for each item in the msg in the original order of the parsed RR.
-func (msg *Message) Walk(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
+func (msg *Message) Records(f func(AnswerRecord) bool) {
 	n := msg.Header.ANCount + msg.Header.NSCount
 	if n == 0 {
-		return ErrInvalidAnswer
+		return
 	}
 
 	payload := msg.Raw[16+len(msg.Question.Name):]
@@ -238,7 +246,7 @@ func (msg *Message) Walk(f func(name []byte, typ Type, class Class, ttl uint32, 
 			}
 		}
 		if name == nil {
-			return ErrInvalidAnswer
+			return
 		}
 		_ = payload[9] // hint compiler to remove bounds check
 		typ := Type(payload[0])<<8 | Type(payload[1])
@@ -247,17 +255,15 @@ func (msg *Message) Walk(f func(name []byte, typ Type, class Class, ttl uint32, 
 		length := uint16(payload[8])<<8 | uint16(payload[9])
 		data := payload[10 : 10+length]
 		payload = payload[10+length:]
-		ok := f(name, typ, class, ttl, data)
+		ok := f(AnswerRecord{Name: name, Type: typ, Class: class, TTL: ttl, Data: data})
 		if !ok {
 			break
 		}
 	}
-
-	return nil
 }
 
 // WalkAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.
-func (msg *Message) WalkAdditionalRecords(f func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool) error {
+func (msg *Message) AdditionalRecords(f func(AnswerRecord) bool) {
 	panic("not implemented")
 }
 

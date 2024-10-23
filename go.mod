@@ -1,3 +1,3 @@
 module github.com/phuslu/fastdns
 
-go 1.22
+go 1.23

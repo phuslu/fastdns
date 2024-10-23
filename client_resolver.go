@@ -40,18 +40,16 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 	}
 
 	cname := make([]byte, 0, 64)
-
-	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
-		switch typ {
+	for r := range resp.Records {
+		switch r.Type {
 		case TypeCNAME:
-			cname = resp.DecodeName(cname[:0], data)
+			cname = resp.DecodeName(cname[:0], r.Data)
 		case TypeA:
-			dst = append(dst, netip.AddrFrom4(*(*[4]byte)(data)))
+			dst = append(dst, netip.AddrFrom4(*(*[4]byte)(r.Data)))
 		case TypeAAAA:
-			dst = append(dst, netip.AddrFrom16(*(*[16]byte)(data)))
+			dst = append(dst, netip.AddrFrom16(*(*[16]byte)(r.Data)))
 		}
-		return true
-	})
+	}
 
 	if len(cname) != 0 && len(dst) == 0 {
 		dst, err = c.AppendLookupNetIP(dst, ctx, network, b2s(cname))
@@ -78,16 +76,14 @@ func (c *Client) LookupCNAME(ctx context.Context, host string) (cname string, er
 		return
 	}
 
-	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
-		switch typ {
+	for r := range resp.Records {
+		switch r.Type {
 		case TypeCNAME:
-			cname = string(resp.DecodeName(nil, data))
-			return false
+			cname = string(resp.DecodeName(nil, r.Data))
 		default:
 			err = ErrInvalidAnswer
 		}
-		return true
-	})
+	}
 
 	return
 }
@@ -107,17 +103,16 @@ func (c *Client) LookupNS(ctx context.Context, name string) (ns []*net.NS, err e
 
 	soa := make([]byte, 0, 64)
 
-	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
-		switch typ {
+	for r := range resp.Records {
+		switch r.Type {
 		case TypeSOA:
-			soa = resp.DecodeName(soa[:0], name)
+			soa = resp.DecodeName(soa[:0], r.Name)
 		case TypeNS:
-			ns = append(ns, &net.NS{Host: string(resp.DecodeName(nil, data))})
+			ns = append(ns, &net.NS{Host: string(resp.DecodeName(nil, r.Data))})
 		default:
 			err = ErrInvalidAnswer
 		}
-		return true
-	})
+	}
 
 	if len(soa) != 0 {
 		ns, err = c.LookupNS(ctx, b2s(soa))
@@ -139,19 +134,18 @@ func (c *Client) LookupTXT(ctx context.Context, host string) (txt []string, err 
 		return
 	}
 
-	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
-		switch typ {
+	for r := range resp.Records {
+		switch r.Type {
 		case TypeTXT:
-			if len(data) > 1 && int(data[0])+1 == len(data) {
-				txt = append(txt, string(data[1:]))
+			if len(r.Data) > 1 && int(r.Data[0])+1 == len(r.Data) {
+				txt = append(txt, string(r.Data[1:]))
 			} else {
 				err = ErrInvalidAnswer
 			}
 		default:
 			err = ErrInvalidAnswer
 		}
-		return true
-	})
+	}
 
 	return
 }
@@ -169,16 +163,14 @@ func (c *Client) LookupMX(ctx context.Context, host string) (mx []*net.MX, err e
 		return
 	}
 
-	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
-		switch typ {
-		case TypeMX:
+	for r := range resp.Records {
+		if r.Type == TypeMX {
 			mx = append(mx, &net.MX{
-				Host: string(resp.DecodeName(nil, data[2:])),
-				Pref: binary.BigEndian.Uint16(data),
+				Host: string(resp.DecodeName(nil, r.Data[2:])),
+				Pref: binary.BigEndian.Uint16(r.Data),
 			})
 		}
-		return true
-	})
+	}
 
 	return
 }
@@ -196,12 +188,12 @@ func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS
 		return
 	}
 
-	_ = resp.Walk(func(name []byte, typ Type, class Class, ttl uint32, data []byte) bool {
-		switch typ {
-		case TypeHTTPS:
+	for r := range resp.Records {
+		if r.Type == TypeHTTPS {
 			var h NetHTTPS
+			data := r.Data
 			if len(data) < 7 {
-				return true
+				return nil, ErrInvalidAnswer
 			}
 			data = data[3:]
 			for len(data) >= 4 {
@@ -243,8 +235,7 @@ func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS
 			}
 			https = append(https, h)
 		}
-		return true
-	})
+	}
 
 	return
 }
