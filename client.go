@@ -72,9 +72,9 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 	}
 
 	if d, _ := c.Dialer.(interface {
-		Put(c net.Conn)
+		put(c net.Conn)
 	}); d != nil {
-		d.Put(conn)
+		d.put(conn)
 	}
 
 	return nil

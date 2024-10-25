@@ -62,7 +62,7 @@ func (d *UDPDialer) get() (net.Conn, error) {
 	return c, nil
 }
 
-func (d *UDPDialer) Put(conn net.Conn) {
+func (d *UDPDialer) put(conn net.Conn) {
 	if c, _ := conn.(*udpConn); c != nil {
 		c.mu.Unlock()
 	}
@@ -102,7 +102,7 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 	return c, nil
 }
 
-func (d *HTTPDialer) Put(conn net.Conn) {
+func (d *HTTPDialer) put(conn net.Conn) {
 	if c, _ := conn.(*httpConn); c != nil {
 		httpconnpool.Put(c)
 	}
