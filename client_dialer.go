@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -64,6 +65,92 @@ func (d *UDPDialer) get() (_ net.Conn, err error) {
 
 func (d *UDPDialer) put(conn net.Conn) {
 	d.conns <- conn
+}
+
+// TLSDialer is a custom dialer for creating TLS connections.
+// It manages a pool of connections to optimize performance in scenarios
+// where multiple TLS connections to the same server are required.
+type TLSDialer struct {
+	// Addr specifies the remote TLS address that the dialer will connect to.
+	Addr *net.TCPAddr
+
+	TLSConfig *tls.Config
+
+	// Timeout specifies the maximum duration for a query to complete.
+	// If a query exceeds this duration, it will result in a timeout error.
+	Timeout time.Duration
+
+	// MaxConns limits the maximum number of TLS connections that can be created
+	// and reused. Once this limit is reached, no new connections will be made.
+	// If not set, use 8 as default.
+	MaxConns uint16
+
+	once  sync.Once
+	conns chan net.Conn
+}
+
+func (d *TLSDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+	return d.get()
+}
+
+func (d *TLSDialer) get() (_ net.Conn, err error) {
+	d.once.Do(func() {
+		if d.MaxConns == 0 {
+			d.MaxConns = 8
+		}
+		d.conns = make(chan net.Conn, d.MaxConns)
+		for range d.MaxConns {
+			d.conns <- &tlsConn{nil, d, make([]byte, 0, 1024)}
+		}
+	})
+
+	if err != nil {
+		return
+	}
+
+	c := <-d.conns
+
+	return c, nil
+}
+
+func (d *TLSDialer) put(conn net.Conn) {
+	d.conns <- conn
+}
+
+type tlsConn struct {
+	*tls.Conn
+	dialer *TLSDialer
+	buffer []byte
+}
+
+func (c *tlsConn) Write(b []byte) (int, error) {
+	if c.Conn == nil {
+		conn, err := tls.DialWithDialer(&net.Dialer{Timeout: c.dialer.Timeout}, "tcp", c.dialer.Addr.String(), c.dialer.TLSConfig)
+		if err != nil {
+			return 0, err
+		}
+		c.Conn = conn
+	}
+
+	n := len(b)
+	c.buffer = append(c.buffer[:0], byte(n>>8), byte(n&0xFF))
+	c.buffer = append(c.buffer, b...)
+	_, err := c.Conn.Write(c.buffer)
+	return n, err
+}
+
+func (c *tlsConn) Read(b []byte) (n int, err error) {
+	c.buffer = c.buffer[:cap(c.buffer)]
+	n, err = c.Conn.Read(c.buffer)
+	if err != nil {
+		return
+	}
+	m := int(c.buffer[0])<<8 | int(c.buffer[1])
+	if m+2 != n {
+		return 0, ErrInvalidAnswer
+	}
+	copy(b, c.buffer[2:n])
+	return n - 2, nil
 }
 
 // HTTPDialer is a custom dialer for creating HTTP connections.

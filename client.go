@@ -56,13 +56,13 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 
 	_, err = conn.Write(req.Raw)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	resp.Raw = resp.Raw[:cap(resp.Raw)]
 	n, err := conn.Read(resp.Raw)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	resp.Raw = resp.Raw[:n]

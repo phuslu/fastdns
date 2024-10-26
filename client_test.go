@@ -87,7 +87,14 @@ func TestClientLookup(t *testing.T) {
 			Addr: "1.1.1.1:53",
 			Dialer: &UDPDialer{
 				Addr:     func() (u *net.UDPAddr) { u, _ = net.ResolveUDPAddr("udp", "1.1.1.1:53"); return }(),
-				MaxConns: 1000,
+				MaxConns: 16,
+			},
+		},
+		{
+			Addr: "1.1.1.1:853",
+			Dialer: &TLSDialer{
+				Addr:     func() (u *net.TCPAddr) { u, _ = net.ResolveTCPAddr("tcp", "1.1.1.1:853"); return }(),
+				MaxConns: 16,
 			},
 		},
 		{
@@ -153,18 +160,6 @@ func TestClientLookup(t *testing.T) {
 
 func BenchmarkResolverPureGo(b *testing.B) {
 	resolver := net.Resolver{PreferGo: true}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	b.RunParallel(func(b *testing.PB) {
-		for b.Next() {
-			_, _ = resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
-		}
-	})
-}
-
-func BenchmarkResolverCGO(b *testing.B) {
-	resolver := net.Resolver{PreferGo: false}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -253,6 +248,34 @@ func BenchmarkResolverFastdnsUDPAppend(b *testing.B) {
 		var err error
 		for pb.Next() {
 			ips, err = resolver.AppendLookupNetIP(ips[:0], context.Background(), "ip4", "www.google.com")
+			if len(ips) == 0 || err != nil {
+				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
+			}
+		}
+	})
+}
+
+func BenchmarkResolverFastdnsTLS(b *testing.B) {
+	server := "1.1.1.1:853"
+
+	resolver := &Client{
+		Addr: server,
+		Dialer: &TLSDialer{
+			Addr:     func() (u *net.TCPAddr) { u, _ = net.ResolveTCPAddr("tcp", server); return }(),
+			MaxConns: 8,
+			TLSConfig: &tls.Config{
+				InsecureSkipVerify: true,
+				ServerName:         server,
+				ClientSessionCache: tls.NewLRUClientSessionCache(1024),
+			},
+		},
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			ips, err := resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
 			if len(ips) == 0 || err != nil {
 				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
 			}
