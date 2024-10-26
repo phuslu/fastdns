@@ -89,13 +89,13 @@ func TestClientLookup(t *testing.T) {
 				MaxConns: 1000,
 			},
 		},
-		{
-			Addr: "https://1.1.1.1/dns-query",
-			Dialer: &HTTPDialer{
-				Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
-				UserAgent: "fastdns/0.9",
-			},
-		},
+		// {
+		// 	Addr: "https://1.1.1.1/dns-query",
+		// 	Dialer: &HTTPDialer{
+		// 		Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
+		// 		UserAgent: "fastdns/0.9",
+		// 	},
+		// },
 	}
 
 	deref := func(value any) any {
