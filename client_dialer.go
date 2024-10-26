@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
-	"runtime"
 	"sync"
 	"time"
 	"unsafe"
@@ -31,7 +30,7 @@ type UDPDialer struct {
 	MaxConns uint16
 
 	once  sync.Once
-	conns sync.Pool
+	conns []*udpConn
 }
 
 func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
@@ -43,16 +42,18 @@ func (d *UDPDialer) get() (net.Conn, error) {
 		if d.MaxConns == 0 {
 			d.MaxConns = 64
 		}
-		d.conns = sync.Pool{
-			New: func() any {
-				conn, _ := net.DialUDP("udp", nil, d.Addr)
-				runtime.SetFinalizer(conn, udpConnFinalizer)
-				return conn
-			},
+		d.conns = make([]*udpConn, d.MaxConns)
+		for i := range d.MaxConns {
+			d.conns[i] = new(udpConn)
+			d.conns[i].UDPConn, _ = net.DialUDP("udp", nil, d.Addr)
 		}
 	})
 
-	c := d.conns.Get().(net.Conn)
+	c := d.conns[cheaprandn(uint32(d.MaxConns))]
+	if !c.mu.TryLock() {
+		c = d.conns[cheaprandn(uint32(d.MaxConns))]
+		c.mu.Lock()
+	}
 
 	if d.Timeout > 0 {
 		_ = c.SetDeadline(time.Now().Add(d.Timeout))
@@ -61,12 +62,10 @@ func (d *UDPDialer) get() (net.Conn, error) {
 	return c, nil
 }
 
-func udpConnFinalizer(conn net.Conn) {
-	_ = conn.Close()
-}
-
 func (d *UDPDialer) put(conn net.Conn) {
-	d.conns.Put(conn)
+	if c, _ := conn.(*udpConn); c != nil {
+		c.mu.Unlock()
+	}
 }
 
 type udpConn struct {
