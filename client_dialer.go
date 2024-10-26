@@ -30,47 +30,40 @@ type UDPDialer struct {
 	MaxConns uint16
 
 	once  sync.Once
-	conns []*udpConn
+	conns chan net.Conn
 }
 
 func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 	return d.get()
 }
 
-func (d *UDPDialer) get() (net.Conn, error) {
+func (d *UDPDialer) get() (_ net.Conn, err error) {
 	d.once.Do(func() {
 		if d.MaxConns == 0 {
 			d.MaxConns = 64
 		}
-		d.conns = make([]*udpConn, d.MaxConns)
-		for i := range d.MaxConns {
-			d.conns[i] = new(udpConn)
-			d.conns[i].UDPConn, _ = net.DialUDP("udp", nil, d.Addr)
+		d.conns = make(chan net.Conn, d.MaxConns)
+		for range d.MaxConns {
+			var c *net.UDPConn
+			c, err = net.DialUDP("udp", nil, d.Addr)
+			if err != nil {
+				break
+			}
+			d.conns <- c
 		}
 	})
 
-	c := d.conns[cheaprandn(uint32(d.MaxConns))]
-	if !c.mu.TryLock() {
-		c = d.conns[cheaprandn(uint32(d.MaxConns))]
-		c.mu.Lock()
+	if err != nil {
+		return
 	}
 
-	if d.Timeout > 0 {
-		_ = c.SetDeadline(time.Now().Add(d.Timeout))
-	}
+	c := <-d.conns
 
 	return c, nil
 }
 
 func (d *UDPDialer) put(conn net.Conn) {
-	if c, _ := conn.(*udpConn); c != nil {
-		c.mu.Unlock()
-	}
-}
-
-type udpConn struct {
-	*net.UDPConn
-	mu sync.Mutex
+	d.conns <- conn
 }
 
 // HTTPDialer is a custom dialer for creating HTTP connections.
