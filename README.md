@@ -97,7 +97,9 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"net/url"
 	"time"
 
@@ -105,14 +107,26 @@ import (
 )
 
 func main() {
-	doh := "https://1.1.1.1/dns-query"
+	endpoint, _ := url.Parse("https://1.1.1.1/dns-query")
 
 	client := &fastdns.Client{
-		Addr: doh,
+		Addr: endpoint.String(),
 		Dialer: &fastdns.HTTPDialer{
-			Endpoint:  func() (u *url.URL) { u, _ = url.Parse(doh); return }(),
+			Endpoint:  endpoint,
 			UserAgent: "fastdns/0.9",
-			Transport: http.DefaultTransport,
+			Transport: &http.Transport{
+				ForceAttemptHTTP2:   true,
+				MaxIdleConns:        100,
+				IdleConnTimeout:     90 * time.Second,
+				TLSHandshakeTimeout: 10 * time.Second,
+				TLSClientConfig: &tls.Config{
+					NextProtos:         []string{"h2"},
+					InsecureSkipVerify: false,
+					ServerName:         endpoint.Hostname(),
+					ClientSessionCache: tls.NewLRUClientSessionCache(1024),
+				},
+				ExpectContinueTimeout: 1 * time.Second,
+			},
 		},
 	}
 

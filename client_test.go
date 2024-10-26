@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 	"net/netip"
@@ -260,14 +261,26 @@ func BenchmarkResolverFastdnsUDPAppend(b *testing.B) {
 }
 
 func BenchmarkResolverFastdnsHTTP(b *testing.B) {
-	server := "8.8.8.8:53"
+	server := "1.1.1.1"
 
 	resolver := &Client{
 		Addr: server,
 		Dialer: &HTTPDialer{
-			Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
+			Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://" + server + "/dns-query"); return }(),
 			UserAgent: "fastdns/0.9",
-			Transport: http.DefaultTransport,
+			Transport: &http.Transport{
+				ForceAttemptHTTP2:   true,
+				MaxIdleConns:        100,
+				IdleConnTimeout:     90 * time.Second,
+				TLSHandshakeTimeout: 10 * time.Second,
+				TLSClientConfig: &tls.Config{
+					NextProtos:         []string{"h2"},
+					InsecureSkipVerify: false,
+					ServerName:         server,
+					ClientSessionCache: tls.NewLRUClientSessionCache(1024),
+				},
+				ExpectContinueTimeout: 1 * time.Second,
+			},
 		},
 	}
 
