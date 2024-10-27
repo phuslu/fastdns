@@ -160,13 +160,13 @@ type HTTPDialer struct {
 	// This is the base address used for sending HTTP requests.
 	Endpoint *url.URL
 
-	// UserAgent defines the User-Agent header that will be included in the HTTP requests
-	// sent by this dialer. It can be customized for specific needs.
-	UserAgent string
-
 	// Transport allows for customizing the underlying transport mechanism used
 	// for making HTTP requests. If set, it overrides the default RoundTripper behavior.
 	Transport http.RoundTripper
+
+	// Header defines the request header that will be sent in the HTTP requests.
+	// It can be customized for specific needs, E.g. User-Agent.
+	Header http.Header
 }
 
 func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
@@ -176,6 +176,9 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 	c.req.Body = nil
 	c.req.URL = d.Endpoint
 	c.req.Host = d.Endpoint.Host
+	if d.Header != nil {
+		c.req.Header = d.Header
+	}
 	c.reader.B = nil
 	c.writer.B = c.writer.B[:0]
 	c.resp = nil
@@ -286,8 +289,8 @@ var httpconnpool = sync.Pool{
 			req: &http.Request{
 				Method: http.MethodPost,
 				Header: http.Header{
-					"content-type": []string{"application/dns-message"},
-					"user-agent":   []string{"fastdns/1.0"},
+					"content-type": {"application/dns-message"},
+					"user-agent":   {"fastdns/1.0"},
 				},
 			},
 			reader: new(bufferreader),

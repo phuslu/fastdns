@@ -113,7 +113,10 @@ func main() {
 		Addr: endpoint.String(),
 		Dialer: &fastdns.HTTPDialer{
 			Endpoint:  endpoint,
-			UserAgent: "fastdns/0.9",
+			Header: http.Header{
+				"content-type": {"application/dns-message"},
+				"user-agent":   {"fastdns/1.0"},
+			},
 			Transport: &http.Transport{
 				ForceAttemptHTTP2:   true,
 				MaxIdleConns:        100,
@@ -125,7 +128,6 @@ func main() {
 					ServerName:         endpoint.Hostname(),
 					ClientSessionCache: tls.NewLRUClientSessionCache(1024),
 				},
-				ExpectContinueTimeout: 1 * time.Second,
 			},
 		},
 	}

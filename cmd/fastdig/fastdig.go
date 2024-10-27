@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"net/http"
 	"net/netip"
 	"net/url"
 	"os"
@@ -29,8 +30,11 @@ func main() {
 			os.Exit(1)
 		}
 		client.Dialer = &fastdns.HTTPDialer{
-			Endpoint:  endpoint,
-			UserAgent: "fastdig/0.9",
+			Endpoint: endpoint,
+			Header: http.Header{
+				"content-type": {"application/dns-message"},
+				"user-agent":   {"fastdns/1.0"},
+			},
 		}
 	}
 

@@ -100,8 +100,7 @@ func TestClientLookup(t *testing.T) {
 		{
 			Addr: "https://1.1.1.1/dns-query",
 			Dialer: &HTTPDialer{
-				Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
-				UserAgent: "fastdns/0.9",
+				Endpoint: func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
 			},
 		},
 	}
@@ -289,8 +288,11 @@ func BenchmarkResolverFastdnsHTTP(b *testing.B) {
 	resolver := &Client{
 		Addr: server,
 		Dialer: &HTTPDialer{
-			Endpoint:  func() (u *url.URL) { u, _ = url.Parse("https://" + server + "/dns-query"); return }(),
-			UserAgent: "fastdns/0.9",
+			Endpoint: func() (u *url.URL) { u, _ = url.Parse("https://" + server + "/dns-query"); return }(),
+			Header: http.Header{
+				"content-type": {"application/dns-message"},
+				"user-agent":   {"fastdns/1.0"},
+			},
 			Transport: &http.Transport{
 				ForceAttemptHTTP2:   true,
 				MaxIdleConns:        100,
