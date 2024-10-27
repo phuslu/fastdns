@@ -173,14 +173,17 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 	c := httpconnpool.Get().(*httpConn)
 	c.dialer = d
 	c.ctx = ctx
-	c.req.Body = nil
-	c.req.URL = d.Endpoint
-	c.req.Host = d.Endpoint.Host
-	if d.Header != nil {
-		c.req.Header = d.Header
+	if c.req.Header == nil {
+		if d.Header != nil {
+			c.req.Header = d.Header
+		} else {
+			c.req.Header = httpconnheader
+		}
+		c.req.URL = d.Endpoint
+		c.req.Host = d.Endpoint.Host
 	}
-	c.reader.B = nil
 	c.writer.B = c.writer.B[:0]
+	c.reader.B = nil
 	c.resp = nil
 	return c, nil
 }
@@ -283,15 +286,16 @@ var httpctxoffset = func() uintptr {
 	panic("unsupported go version, please upgrade fastdns")
 }()
 
+var httpconnheader = http.Header{
+	"content-type": {"application/dns-message"},
+	"user-agent":   {"fastdns/1.0"},
+}
+
 var httpconnpool = sync.Pool{
 	New: func() any {
 		return &httpConn{
 			req: &http.Request{
 				Method: http.MethodPost,
-				Header: http.Header{
-					"content-type": {"application/dns-message"},
-					"user-agent":   {"fastdns/1.0"},
-				},
 			},
 			reader: new(bufferreader),
 			writer: new(bufferwriter),
