@@ -173,14 +173,11 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 	c := httpconnpool.Get().(*httpConn)
 	c.dialer = d
 	c.ctx = ctx
+	c.req.URL = d.Endpoint
+	c.req.Host = d.Endpoint.Host
+	c.req.Header = d.Header
 	if c.req.Header == nil {
-		if d.Header != nil {
-			c.req.Header = d.Header
-		} else {
-			c.req.Header = httpconnheader
-		}
-		c.req.URL = d.Endpoint
-		c.req.Host = d.Endpoint.Host
+		c.req.Header = httpconnheader
 	}
 	c.writer.B = c.writer.B[:0]
 	c.reader.B = nil
