@@ -16,11 +16,7 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 	var typ Type
 
 	switch network {
-	case "ip4":
-		typ = TypeA
-	case "ip6":
-		typ = TypeAAAA
-	default:
+	case "ip":
 		dst, err = c.AppendLookupNetIP(dst, ctx, "ip4", host)
 		if err != nil {
 			return
@@ -30,6 +26,12 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 			return
 		}
 		return dst, nil
+	case "ip4":
+		typ = TypeA
+	case "ip6":
+		typ = TypeAAAA
+	default:
+		return nil, ErrInvalidQuestion
 	}
 
 	req.SetRequestQuestion(host, typ, ClassINET)
@@ -39,11 +41,11 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 		return nil, err
 	}
 
-	cname := make([]byte, 0, 64)
+	var cname []byte
 	for r := range resp.Records {
 		switch r.Type {
 		case TypeCNAME:
-			cname = resp.DecodeName(cname[:0], r.Data)
+			cname = r.Data
 		case TypeA:
 			dst = append(dst, netip.AddrFrom4(*(*[4]byte)(r.Data)))
 		case TypeAAAA:
@@ -51,8 +53,9 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 		}
 	}
 
-	if len(cname) != 0 && len(dst) == 0 {
-		dst, err = c.AppendLookupNetIP(dst, ctx, network, b2s(cname))
+	if cname != nil && len(dst) == 0 {
+		b := resp.DecodeName(make([]byte, 0, 64), cname)
+		dst, err = c.AppendLookupNetIP(dst, ctx, network, b2s(b))
 	}
 
 	return dst, err

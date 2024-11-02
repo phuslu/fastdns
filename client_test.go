@@ -157,6 +157,21 @@ func TestClientLookup(t *testing.T) {
 	}
 }
 
+func TestClientLookupNetIP(t *testing.T) {
+	host := "ip.phus.lu"
+
+	client := &Client{
+		Addr:    "1.1.1.1:53",
+		Timeout: 1 * time.Second,
+	}
+
+	ips, err := client.LookupNetIP(context.Background(), "ip", host)
+	if err != nil {
+		t.Errorf("dns_server=%+v LookupNetIP(%#v) error: %+v\n", client.Addr, host, err)
+	}
+	t.Logf("dns_server=%+v LookupNetIP(%#v) return %+v", client.Addr, host, ips)
+}
+
 func BenchmarkResolverPureGo(b *testing.B) {
 	resolver := net.Resolver{PreferGo: true}
 
