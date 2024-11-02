@@ -96,8 +96,6 @@ var (
 	ErrInvalidQuestion = errors.New("dns message does not have the expected question size")
 	// ErrInvalidAnswer is returned when dns message does not have the expected answer size.
 	ErrInvalidAnswer = errors.New("dns message does not have the expected answer size")
-	// ErrMaxConns is returned when dns client reaches the max connections limitation.
-	ErrMaxConns = errors.New("dns client reaches the max connections limitation")
 )
 
 // ParseMessage parses dns request from payload into dst and returns the error.

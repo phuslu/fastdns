@@ -28,11 +28,8 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	ctx := context.Background()
 
 	err := h.DNSClient.Exchange(ctx, req, resp)
-	if err == fastdns.ErrMaxConns {
-		time.Sleep(10 * time.Millisecond)
-		err = h.DNSClient.Exchange(ctx, req, resp)
-	}
 	if err != nil {
+		slog.Error("serve exchange dns request error", "error", err, "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
 		fastdns.Error(rw, req, fastdns.RcodeServFail)
 	}
 
