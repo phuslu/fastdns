@@ -167,18 +167,38 @@ type HTTPDialer struct {
 	// Header defines the request header that will be sent in the HTTP requests.
 	// It can be customized for specific needs, E.g. User-Agent.
 	Header http.Header
+
+	once sync.Once
+	pool sync.Pool
 }
 
 func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
-	c := httpconnpool.Get().(*httpConn)
+	d.once.Do(func() {
+		if d.Header == nil {
+			d.Header = http.Header{
+				"content-type": {"application/dns-message"},
+				"user-agent":   {"fastdns/1.0"},
+			}
+		}
+		d.pool = sync.Pool{
+			New: func() any {
+				return &httpConn{
+					req: &http.Request{
+						Method: http.MethodPost,
+						URL:    d.Endpoint,
+						Host:   d.Endpoint.Host,
+						Header: d.Header,
+					},
+					reader: new(bufferreader),
+					writer: new(bufferwriter),
+				}
+			},
+		}
+	})
+
+	c := d.pool.Get().(*httpConn)
 	c.dialer = d
 	c.ctx = ctx
-	c.req.URL = d.Endpoint
-	c.req.Host = d.Endpoint.Host
-	c.req.Header = d.Header
-	if c.req.Header == nil {
-		c.req.Header = httpconnheader
-	}
 	c.writer.B = c.writer.B[:0]
 	c.reader.B = nil
 	c.resp = nil
@@ -187,7 +207,7 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 
 func (d *HTTPDialer) put(conn net.Conn) {
 	if c, _ := conn.(*httpConn); c != nil {
-		httpconnpool.Put(c)
+		d.pool.Put(c)
 	}
 }
 
@@ -282,23 +302,6 @@ var httpctxoffset = func() uintptr {
 	}
 	panic("unsupported go version, please upgrade fastdns")
 }()
-
-var httpconnheader = http.Header{
-	"content-type": {"application/dns-message"},
-	"user-agent":   {"fastdns/1.0"},
-}
-
-var httpconnpool = sync.Pool{
-	New: func() any {
-		return &httpConn{
-			req: &http.Request{
-				Method: http.MethodPost,
-			},
-			reader: new(bufferreader),
-			writer: new(bufferwriter),
-		}
-	},
-}
 
 type bufferwriter struct {
 	B []byte
