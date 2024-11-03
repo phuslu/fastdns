@@ -1,10 +1,12 @@
 package fastdns
 
 import (
+	"cmp"
 	"context"
 	"encoding/binary"
 	"net"
 	"net/netip"
+	"slices"
 )
 
 // AppendLookupNetIP looks up host and appends result to dst using the local resolver.
@@ -241,4 +243,96 @@ func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS
 	}
 
 	return
+}
+
+// LookupSRV tries to resolve an SRV query of the given service, protocol, and domain name.
+// The proto is "tcp" or "udp". The returned records are sorted by priority and randomized by weight within a priority.
+func (c *Client) LookupSRV(ctx context.Context, service, proto, name string) (target string, srvs []*net.SRV, err error) {
+	if service == "" && proto == "" {
+		target = name
+	} else {
+		target = "_" + service + "._" + proto + "." + name
+	}
+
+	req, resp := AcquireMessage(), AcquireMessage()
+	defer ReleaseMessage(resp)
+	defer ReleaseMessage(req)
+
+	req.SetRequestQuestion(target, TypeSRV, ClassINET)
+
+	err = c.Exchange(ctx, req, resp)
+	if err != nil {
+		return
+	}
+
+	var buf [256]byte
+	for r := range resp.Records {
+		switch r.Type {
+		case TypeSRV:
+			if len(r.Data) < 8 {
+				err = ErrInvalidAnswer
+				break
+			}
+			srvs = append(srvs, &net.SRV{
+				Target:   string(resp.DecodeName(buf[:0], r.Data[6:])),
+				Port:     binary.BigEndian.Uint16(r.Data[4:]),
+				Priority: binary.BigEndian.Uint16(r.Data[0:]),
+				Weight:   binary.BigEndian.Uint16(r.Data[2:]),
+			})
+		default:
+			err = ErrInvalidAnswer
+		}
+	}
+
+	if len(srvs) > 1 {
+		byPriorityWeight(srvs).sort()
+	}
+
+	return
+}
+
+// Copy from https://github.com/golang/go/blob/master/src/net/dnsclient.go
+// byPriorityWeight sorts SRV records by ascending priority and weight.
+type byPriorityWeight []*net.SRV
+
+// shuffleByWeight shuffles SRV records by weight using the algorithm
+// described in RFC 2782.
+func (addrs byPriorityWeight) shuffleByWeight() {
+	sum := 0
+	for _, addr := range addrs {
+		sum += int(addr.Weight)
+	}
+	for sum > 0 && len(addrs) > 1 {
+		s := 0
+		n := int(cheaprandn(uint32(sum)))
+		for i := range addrs {
+			s += int(addrs[i].Weight)
+			if s > n {
+				if i > 0 {
+					addrs[0], addrs[i] = addrs[i], addrs[0]
+				}
+				break
+			}
+		}
+		sum -= int(addrs[0].Weight)
+		addrs = addrs[1:]
+	}
+}
+
+// sort reorders SRV records as specified in RFC 2782.
+func (addrs byPriorityWeight) sort() {
+	slices.SortFunc(addrs, func(a, b *net.SRV) int {
+		if r := cmp.Compare(a.Priority, b.Priority); r != 0 {
+			return r
+		}
+		return cmp.Compare(a.Weight, b.Weight)
+	})
+	i := 0
+	for j := 1; j < len(addrs); j++ {
+		if addrs[i].Priority != addrs[j].Priority {
+			addrs[i:j].shuffleByWeight()
+			i = j
+		}
+	}
+	addrs[i:].shuffleByWeight()
 }

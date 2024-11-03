@@ -65,6 +65,23 @@ func TestClientExchange(t *testing.T) {
 	}
 }
 
+func deref(value any) any {
+	v := reflect.ValueOf(value)
+	if v.Kind() != reflect.Slice {
+		return v
+	}
+	result := make([]any, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		elem := v.Index(i)
+		if elem.Kind() == reflect.Ptr {
+			result[i] = elem.Elem().Interface()
+		} else {
+			result[i] = elem.Interface()
+		}
+	}
+	return result
+}
+
 func TestClientLookup(t *testing.T) {
 	var cases = []struct {
 		Host string
@@ -103,23 +120,6 @@ func TestClientLookup(t *testing.T) {
 				Endpoint: func() (u *url.URL) { u, _ = url.Parse("https://1.1.1.1/dns-query"); return }(),
 			},
 		},
-	}
-
-	deref := func(value any) any {
-		v := reflect.ValueOf(value)
-		if v.Kind() != reflect.Slice {
-			return v
-		}
-		result := make([]any, v.Len())
-		for i := 0; i < v.Len(); i++ {
-			elem := v.Index(i)
-			if elem.Kind() == reflect.Ptr {
-				result[i] = elem.Elem().Interface()
-			} else {
-				result[i] = elem.Interface()
-			}
-		}
-		return result
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -170,6 +170,19 @@ func TestClientLookupNetIP(t *testing.T) {
 		t.Errorf("dns_server=%+v LookupNetIP(%#v) error: %+v\n", client.Addr, host, err)
 	}
 	t.Logf("dns_server=%+v LookupNetIP(%#v) return %+v", client.Addr, host, ips)
+}
+
+func TestClientLookupSRV(t *testing.T) {
+	client := &Client{
+		Addr:    "1.1.1.1:53",
+		Timeout: 1 * time.Second,
+	}
+
+	cname, ips, err := client.LookupSRV(context.Background(), "xmpp-client", "tcp", "jabber.org")
+	if err != nil {
+		t.Errorf("dns_server=%+v LookupSRV(\"_xmpp-client._tcp.jabber.org\") error: %+v\n", client.Addr, err)
+	}
+	t.Logf("dns_server=%+v LookupSRV(\"_xmpp-client._tcp.jabber.org\") return %+v %+v", client.Addr, cname, deref(ips))
 }
 
 func BenchmarkResolverPureGo(b *testing.B) {
