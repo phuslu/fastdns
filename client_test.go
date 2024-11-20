@@ -108,10 +108,18 @@ func TestClientLookup(t *testing.T) {
 			},
 		},
 		{
-			Addr: "1.1.1.1:853",
-			Dialer: &TLSDialer{
-				Addr:     func() (u *net.TCPAddr) { u, _ = net.ResolveTCPAddr("tcp", "1.1.1.1:853"); return }(),
+			Addr: "1.1.1.1:53",
+			Dialer: &TCPDialer{
+				Addr:     func() (u *net.TCPAddr) { u, _ = net.ResolveTCPAddr("tcp", "1.1.1.1:53"); return }(),
 				MaxConns: 16,
+			},
+		},
+		{
+			Addr: "1.1.1.1:853",
+			Dialer: &TCPDialer{
+				Addr:      func() (u *net.TCPAddr) { u, _ = net.ResolveTCPAddr("tcp", "1.1.1.1:853"); return }(),
+				TLSConfig: &tls.Config{InsecureSkipVerify: true, ServerName: "1.1.1.1"},
+				MaxConns:  16,
 			},
 		},
 		{
@@ -282,12 +290,35 @@ func BenchmarkResolverFastdnsUDPAppend(b *testing.B) {
 	})
 }
 
+func BenchmarkResolverFastdnsTCP(b *testing.B) {
+	server := "1.1.1.1:53"
+
+	resolver := &Client{
+		Addr: server,
+		Dialer: &TCPDialer{
+			Addr:     func() (u *net.TCPAddr) { u, _ = net.ResolveTCPAddr("tcp", server); return }(),
+			MaxConns: 8,
+		},
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			ips, err := resolver.LookupNetIP(context.Background(), "ip4", "www.google.com")
+			if len(ips) == 0 || err != nil {
+				b.Errorf("fastdns return ips: %+v error: %+v", ips, err)
+			}
+		}
+	})
+}
+
 func BenchmarkResolverFastdnsTLS(b *testing.B) {
 	server := "1.1.1.1:853"
 
 	resolver := &Client{
 		Addr: server,
-		Dialer: &TLSDialer{
+		Dialer: &TCPDialer{
 			Addr:     func() (u *net.TCPAddr) { u, _ = net.ResolveTCPAddr("tcp", server); return }(),
 			MaxConns: 8,
 			TLSConfig: &tls.Config{

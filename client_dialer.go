@@ -67,13 +67,15 @@ func (d *UDPDialer) put(conn net.Conn) {
 	d.conns <- conn
 }
 
-// TLSDialer is a custom dialer for creating TLS connections.
+// TCPDialer is a custom dialer for creating TLS connections.
 // It manages a pool of connections to optimize performance in scenarios
 // where multiple TLS connections to the same server are required.
-type TLSDialer struct {
+type TCPDialer struct {
 	// Addr specifies the remote TLS address that the dialer will connect to.
 	Addr *net.TCPAddr
 
+	// TLSConfig specifies the *tls.Config for TLS handshakes.
+	// If set, use DoT instead of TCP protocol.
 	TLSConfig *tls.Config
 
 	// Timeout specifies the maximum duration for a query to complete.
@@ -89,18 +91,18 @@ type TLSDialer struct {
 	conns chan net.Conn
 }
 
-func (d *TLSDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+func (d *TCPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 	return d.get()
 }
 
-func (d *TLSDialer) get() (_ net.Conn, err error) {
+func (d *TCPDialer) get() (_ net.Conn, err error) {
 	d.once.Do(func() {
 		if d.MaxConns == 0 {
 			d.MaxConns = 8
 		}
 		d.conns = make(chan net.Conn, d.MaxConns)
 		for range d.MaxConns {
-			d.conns <- &tlsConn{nil, d, make([]byte, 0, 1024)}
+			d.conns <- &tcpConn{nil, d, make([]byte, 0, 1024)}
 		}
 	})
 
@@ -113,23 +115,27 @@ func (d *TLSDialer) get() (_ net.Conn, err error) {
 	return c, nil
 }
 
-func (d *TLSDialer) put(conn net.Conn) {
+func (d *TCPDialer) put(conn net.Conn) {
 	d.conns <- conn
 }
 
-type tlsConn struct {
-	*tls.Conn
-	dialer *TLSDialer
+type tcpConn struct {
+	net.Conn
+	dialer *TCPDialer
 	buffer []byte
 }
 
-func (c *tlsConn) Write(b []byte) (int, error) {
+func (c *tcpConn) Write(b []byte) (int, error) {
 	if c.Conn == nil {
-		conn, err := tls.DialWithDialer(&net.Dialer{Timeout: c.dialer.Timeout}, "tcp", c.dialer.Addr.String(), c.dialer.TLSConfig)
+		var err error
+		if c.dialer.TLSConfig != nil {
+			c.Conn, err = tls.DialWithDialer(&net.Dialer{Timeout: c.dialer.Timeout}, "tcp", c.dialer.Addr.String(), c.dialer.TLSConfig)
+		} else {
+			c.Conn, err = (&net.Dialer{Timeout: c.dialer.Timeout}).Dial("tcp", c.dialer.Addr.String())
+		}
 		if err != nil {
 			return 0, err
 		}
-		c.Conn = conn
 	}
 
 	n := len(b)
@@ -139,7 +145,7 @@ func (c *tlsConn) Write(b []byte) (int, error) {
 	return n, err
 }
 
-func (c *tlsConn) Read(b []byte) (n int, err error) {
+func (c *tcpConn) Read(b []byte) (n int, err error) {
 	c.buffer = c.buffer[:cap(c.buffer)]
 	n, err = c.Conn.Read(c.buffer)
 	if err != nil {
