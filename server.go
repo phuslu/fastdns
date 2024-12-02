@@ -53,6 +53,14 @@ func (s *Server) ListenAndServe(addr string) error {
 	return serve(conn, s.Handler, s.Stats, s.ErrorLog, s.Concurrency)
 }
 
+// Serve serves DNS requests from the given UDP addr.
+func (s *Server) Serve(conn *net.UDPConn) error {
+	if s.MaxProcs > 1 {
+		return errors.New("Server.MaxProcs cannot large than 1 when using Serve")
+	}
+	return serve(conn, s.Handler, s.Stats, s.ErrorLog, s.Concurrency)
+}
+
 // Index indicates the index of Server instances.
 func (s *Server) Index() (index int) {
 	index = s.index
