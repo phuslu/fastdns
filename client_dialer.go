@@ -63,7 +63,7 @@ func (d *UDPDialer) get() (_ net.Conn, err error) {
 	return c, nil
 }
 
-func (d *UDPDialer) put(conn net.Conn) {
+func (d *UDPDialer) Put(conn net.Conn) {
 	d.conns <- conn
 }
 
@@ -115,7 +115,7 @@ func (d *TCPDialer) get() (_ net.Conn, err error) {
 	return c, nil
 }
 
-func (d *TCPDialer) put(conn net.Conn) {
+func (d *TCPDialer) Put(conn net.Conn) {
 	d.conns <- conn
 }
 
@@ -211,7 +211,7 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 	return c, nil
 }
 
-func (d *HTTPDialer) put(conn net.Conn) {
+func (d *HTTPDialer) Put(conn net.Conn) {
 	if c, _ := conn.(*httpConn); c != nil {
 		d.pool.Put(c)
 	}
