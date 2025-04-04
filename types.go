@@ -1,6 +1,7 @@
 package fastdns
 
 import (
+	"fmt"
 	"net/netip"
 )
 
@@ -76,48 +77,48 @@ func (c Rcode) String() string {
 	return ""
 }
 
-func ParseRcode(rcode string) Rcode {
+func ParseRcode(rcode string) (Rcode, error) {
 	switch rcode {
 	case "NoError":
-		return RcodeNoError
+		return RcodeNoError, nil
 	case "FormErr":
-		return RcodeFormErr
+		return RcodeFormErr, nil
 	case "ServFail":
-		return RcodeServFail
+		return RcodeServFail, nil
 	case "NXDomain":
-		return RcodeNXDomain
+		return RcodeNXDomain, nil
 	case "NotImp":
-		return RcodeNotImp
+		return RcodeNotImp, nil
 	case "Refused":
-		return RcodeRefused
+		return RcodeRefused, nil
 	case "YXDomain":
-		return RcodeYXDomain
+		return RcodeYXDomain, nil
 	case "YXRRSet":
-		return RcodeYXRRSet
+		return RcodeYXRRSet, nil
 	case "NXRRSet":
-		return RcodeNXRRSet
+		return RcodeNXRRSet, nil
 	case "NotAuth":
-		return RcodeNotAuth
+		return RcodeNotAuth, nil
 	case "NotZone":
-		return RcodeNotZone
+		return RcodeNotZone, nil
 	case "BadSig", "BadVers":
-		return RcodeBADSIG // RcodeBADVERS
+		return RcodeBADSIG, nil // RcodeBADVERS
 	case "BadKey":
-		return RcodeBADKEY
+		return RcodeBADKEY, nil
 	case "BadTime":
-		return RcodeBADTIME
+		return RcodeBADTIME, nil
 	case "BadMode":
-		return RcodeBADMODE
+		return RcodeBADMODE, nil
 	case "BadName":
-		return RcodeBADNAME
+		return RcodeBADNAME, nil
 	case "BadAlg":
-		return RcodeBADALG
+		return RcodeBADALG, nil
 	case "BadTrunc":
-		return RcodeBADTRUNC
+		return RcodeBADTRUNC, nil
 	case "BadCookie":
-		return RcodeBADCOOKIE
+		return RcodeBADCOOKIE, nil
 	}
-	return RcodeNoError
+	return 0, fmt.Errorf("invalid rcode: %s", rcode)
 }
 
 // Opcode denotes a 4bit field that specified the query type.
