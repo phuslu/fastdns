@@ -76,6 +76,50 @@ func (c Rcode) String() string {
 	return ""
 }
 
+func ParseRcode(rcode string) Rcode {
+	switch rcode {
+	case "NoError":
+		return RcodeNoError
+	case "FormErr":
+		return RcodeFormErr
+	case "ServFail":
+		return RcodeServFail
+	case "NXDomain":
+		return RcodeNXDomain
+	case "NotImp":
+		return RcodeNotImp
+	case "Refused":
+		return RcodeRefused
+	case "YXDomain":
+		return RcodeYXDomain
+	case "YXRRSet":
+		return RcodeYXRRSet
+	case "NXRRSet":
+		return RcodeNXRRSet
+	case "NotAuth":
+		return RcodeNotAuth
+	case "NotZone":
+		return RcodeNotZone
+	case "BadSig", "BadVers":
+		return RcodeBADSIG // RcodeBADVERS
+	case "BadKey":
+		return RcodeBADKEY
+	case "BadTime":
+		return RcodeBADTIME
+	case "BadMode":
+		return RcodeBADMODE
+	case "BadName":
+		return RcodeBADNAME
+	case "BadAlg":
+		return RcodeBADALG
+	case "BadTrunc":
+		return RcodeBADTRUNC
+	case "BadCookie":
+		return RcodeBADCOOKIE
+	}
+	return RcodeNoError
+}
+
 // Opcode denotes a 4bit field that specified the query type.
 type Opcode byte
 
