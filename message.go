@@ -384,7 +384,7 @@ func (msg *Message) SetResponseHeader(rcode Rcode, ancount uint16) {
 var msgPool = sync.Pool{
 	New: func() interface{} {
 		msg := new(Message)
-		msg.Raw = make([]byte, 0, 1024)
+		msg.Raw = make([]byte, 0, 1500)
 		msg.Domain = make([]byte, 0, 256)
 		return msg
 	},
