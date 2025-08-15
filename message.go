@@ -224,11 +224,12 @@ type MessageRecord struct {
 type MessageRecords struct {
 	count   uint16
 	payload []byte
+	error   error
 	record  MessageRecord
 }
 
 func (r *MessageRecords) Next() bool {
-	if r.count == 0 {
+	if r.error != nil || r.count == 0 {
 		return false
 	}
 	r.count--
@@ -244,7 +245,8 @@ func (r *MessageRecords) Next() bool {
 		}
 	}
 	if r.record.Name == nil {
-		return true
+		r.error = ErrInvalidAnswer
+		return false
 	}
 	_ = r.payload[9] // hint compiler to remove bounds check
 	r.record.Type = Type(r.payload[0])<<8 | Type(r.payload[1])
@@ -261,12 +263,19 @@ func (r *MessageRecords) Item() MessageRecord {
 	return r.record
 }
 
+func (r *MessageRecords) Err() error {
+	return r.error
+}
+
 // Walk calls f for each item in the msg in the original order of the parsed RR.
-func (msg *Message) Records() MessageRecords {
-	return MessageRecords{
-		count:   msg.Header.ANCount + msg.Header.NSCount,
-		payload: msg.Raw[16+len(msg.Question.Name):],
+func (msg *Message) Records() (records MessageRecords) {
+	records.count = msg.Header.ANCount + msg.Header.NSCount
+	if n := 16 + len(msg.Question.Name); n < len(msg.Raw) {
+		records.payload = msg.Raw[n:]
+	} else {
+		records.error = ErrInvalidAnswer
 	}
+	return
 }
 
 // WalkAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.

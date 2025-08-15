@@ -56,6 +56,9 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 			dst = append(dst, netip.AddrFrom16(*(*[16]byte)(r.Data)))
 		}
 	}
+	if err := records.Err(); err != nil {
+		return nil, err
+	}
 
 	if cname != nil && len(dst) == 0 {
 		b := resp.DecodeName(make([]byte, 0, 64), cname)
@@ -93,6 +96,7 @@ func (c *Client) LookupCNAME(ctx context.Context, host string) (cname string, er
 			err = ErrInvalidAnswer
 		}
 	}
+	err = records.Err()
 
 	return
 }
@@ -124,6 +128,7 @@ func (c *Client) LookupNS(ctx context.Context, name string) (ns []*net.NS, err e
 			err = ErrInvalidAnswer
 		}
 	}
+	err = records.Err()
 
 	if len(soa) != 0 {
 		ns, err = c.LookupNS(ctx, b2s(soa))
@@ -159,6 +164,7 @@ func (c *Client) LookupTXT(ctx context.Context, host string) (txt []string, err 
 			err = ErrInvalidAnswer
 		}
 	}
+	err = records.Err()
 
 	return
 }
@@ -186,6 +192,7 @@ func (c *Client) LookupMX(ctx context.Context, host string) (mx []*net.MX, err e
 			})
 		}
 	}
+	err = records.Err()
 
 	return
 }
@@ -253,6 +260,7 @@ func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS
 			https = append(https, h)
 		}
 	}
+	err = records.Err()
 
 	return
 }
@@ -297,6 +305,7 @@ func (c *Client) LookupSRV(ctx context.Context, service, proto, name string) (ta
 			err = ErrInvalidAnswer
 		}
 	}
+	err = records.Err()
 
 	if len(srvs) > 1 {
 		byPriorityWeight(srvs).sort()
