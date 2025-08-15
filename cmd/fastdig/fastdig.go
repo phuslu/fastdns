@@ -107,7 +107,9 @@ func opt(option string, options []string) bool {
 }
 
 func short(resp *fastdns.Message) {
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		var v interface{}
 		switch r.Type {
 		case fastdns.TypeA, fastdns.TypeAAAA:
@@ -191,7 +193,9 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		fmt.Printf(";; AUTHORITY SECTION:\n")
 	}
 	index := 0
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		index++
 		data := r.Data
 		var v interface{}

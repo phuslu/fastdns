@@ -34,7 +34,9 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	}
 
 	if h.Debug {
-		for r := range resp.Records {
+		records := resp.Records()
+		for records.Next() {
+			r := records.Item()
 			switch r.Type {
 			case fastdns.TypeCNAME:
 				slog.Info("dns request CNAME", "name", resp.DecodeName(nil, r.Name), "ttl", r.TTL, "class", r.Class, "type", r.Type, "CNAME", resp.DecodeName(nil, r.Data))

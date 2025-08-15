@@ -221,42 +221,51 @@ type MessageRecord struct {
 	Data  []byte
 }
 
-// Walk calls f for each item in the msg in the original order of the parsed RR.
-func (msg *Message) Records(f func(MessageRecord) bool) {
-	n := msg.Header.ANCount + msg.Header.NSCount
-	if n == 0 {
-		return
+type MessageRecords struct {
+	count   uint16
+	payload []byte
+	record  MessageRecord
+}
+
+func (r *MessageRecords) Next() bool {
+	if r.count == 0 {
+		return false
 	}
-
-	payload := msg.Raw[16+len(msg.Question.Name):]
-
-	for i := uint16(0); i < n; i++ {
-		var name []byte
-		for j, b := range payload {
-			if b&0b11000000 == 0b11000000 {
-				name = payload[:j+2]
-				payload = payload[j+2:]
-				break
-			} else if b == 0 {
-				name = payload[:j+1]
-				payload = payload[j+1:]
-				break
-			}
-		}
-		if name == nil {
-			return
-		}
-		_ = payload[9] // hint compiler to remove bounds check
-		typ := Type(payload[0])<<8 | Type(payload[1])
-		class := Class(payload[2])<<8 | Class(payload[3])
-		ttl := uint32(payload[4])<<24 | uint32(payload[5])<<16 | uint32(payload[6])<<8 | uint32(payload[7])
-		length := uint16(payload[8])<<8 | uint16(payload[9])
-		data := payload[10 : 10+length]
-		payload = payload[10+length:]
-		ok := f(MessageRecord{Name: name, Type: typ, Class: class, TTL: ttl, Data: data})
-		if !ok {
+	r.count--
+	for j, b := range r.payload {
+		if b&0b11000000 == 0b11000000 {
+			r.record.Name = r.payload[:j+2]
+			r.payload = r.payload[j+2:]
+			break
+		} else if b == 0 {
+			r.record.Name = r.payload[:j+1]
+			r.payload = r.payload[j+1:]
 			break
 		}
+	}
+	if r.record.Name == nil {
+		return true
+	}
+	_ = r.payload[9] // hint compiler to remove bounds check
+	r.record.Type = Type(r.payload[0])<<8 | Type(r.payload[1])
+	r.record.Class = Class(r.payload[2])<<8 | Class(r.payload[3])
+	r.record.TTL = uint32(r.payload[4])<<24 | uint32(r.payload[5])<<16 | uint32(r.payload[6])<<8 | uint32(r.payload[7])
+	length := uint16(r.payload[8])<<8 | uint16(r.payload[9])
+	r.record.Data = r.payload[10 : 10+length]
+	r.payload = r.payload[10+length:]
+
+	return true
+}
+
+func (r *MessageRecords) Item() MessageRecord {
+	return r.record
+}
+
+// Walk calls f for each item in the msg in the original order of the parsed RR.
+func (msg *Message) Records() MessageRecords {
+	return MessageRecords{
+		count:   msg.Header.ANCount + msg.Header.NSCount,
+		payload: msg.Raw[16+len(msg.Question.Name):],
 	}
 }
 

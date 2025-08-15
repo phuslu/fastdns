@@ -52,7 +52,9 @@ func TestClientExchange(t *testing.T) {
 			t.Errorf("client=%+v exchange(%v) error: %+v\n", client, c.Domain, err)
 		}
 		t.Logf("%s: CLASS %s TYPE %s\n", resp.Domain, resp.Question.Class, resp.Question.Type)
-		for r := range resp.Records {
+		records := resp.Records()
+		for records.Next() {
+			r := records.Item()
 			switch r.Type {
 			case TypeCNAME:
 				t.Logf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, resp.DecodeName(nil, r.Data))

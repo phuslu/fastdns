@@ -44,7 +44,9 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 	}
 
 	var cname []byte
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		switch r.Type {
 		case TypeCNAME:
 			cname = r.Data
@@ -81,7 +83,9 @@ func (c *Client) LookupCNAME(ctx context.Context, host string) (cname string, er
 		return
 	}
 
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		switch r.Type {
 		case TypeCNAME:
 			cname = string(resp.DecodeName(nil, r.Data))
@@ -108,7 +112,9 @@ func (c *Client) LookupNS(ctx context.Context, name string) (ns []*net.NS, err e
 
 	soa := make([]byte, 0, 64)
 
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		switch r.Type {
 		case TypeSOA:
 			soa = resp.DecodeName(soa[:0], r.Name)
@@ -139,7 +145,9 @@ func (c *Client) LookupTXT(ctx context.Context, host string) (txt []string, err 
 		return
 	}
 
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		switch r.Type {
 		case TypeTXT:
 			if len(r.Data) > 1 && int(r.Data[0])+1 == len(r.Data) {
@@ -168,7 +176,9 @@ func (c *Client) LookupMX(ctx context.Context, host string) (mx []*net.MX, err e
 		return
 	}
 
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		if r.Type == TypeMX {
 			mx = append(mx, &net.MX{
 				Host: string(resp.DecodeName(nil, r.Data[2:])),
@@ -193,7 +203,9 @@ func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS
 		return
 	}
 
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		if r.Type == TypeHTTPS {
 			var h NetHTTPS
 			data := r.Data
@@ -266,7 +278,9 @@ func (c *Client) LookupSRV(ctx context.Context, service, proto, name string) (ta
 	}
 
 	var buf [256]byte
-	for r := range resp.Records {
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
 		switch r.Type {
 		case TypeSRV:
 			if len(r.Data) < 8 {
