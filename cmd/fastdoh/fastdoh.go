@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"net/netip"
 	"sync"
 	"time"
 
@@ -81,11 +82,23 @@ func (h *DoHHandler) HandlerDoH(ctx *fasthttp.RequestCtx) {
 
 	rw, req := memCtx.rw, memCtx.req
 	rw.Data = rw.Data[:0]
-	if v, _ := ctx.RemoteAddr().(*net.TCPAddr); v != nil {
+
+	switch v := ctx.RemoteAddr().(type) {
+	case *net.TCPAddr:
 		rw.Raddr = v.AddrPort()
+	case *net.UDPAddr:
+		rw.Raddr = v.AddrPort()
+	default:
+		rw.Raddr, _ = netip.ParseAddrPort(v.String())
 	}
-	if v, _ := ctx.LocalAddr().(*net.TCPAddr); v != nil {
+
+	switch v := ctx.LocalAddr().(type) {
+	case *net.TCPAddr:
 		rw.Laddr = v.AddrPort()
+	case *net.UDPAddr:
+		rw.Laddr = v.AddrPort()
+	default:
+		rw.Laddr, _ = netip.ParseAddrPort(v.String())
 	}
 
 	err := fastdns.ParseMessage(req, ctx.PostBody(), true)
