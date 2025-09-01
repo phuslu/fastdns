@@ -270,7 +270,7 @@ func (r *MessageRecords) Err() error {
 // Walk calls f for each item in the msg in the original order of the parsed RR.
 func (msg *Message) Records() (records MessageRecords) {
 	records.count = msg.Header.ANCount + msg.Header.NSCount
-	if n := 16 + len(msg.Question.Name); n < len(msg.Raw) {
+	if n := 16 + len(msg.Question.Name); n <= len(msg.Raw) {
 		records.payload = msg.Raw[n:]
 	} else {
 		records.error = ErrInvalidAnswer
