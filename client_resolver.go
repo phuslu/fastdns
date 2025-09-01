@@ -57,7 +57,7 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 		}
 	}
 	if err := records.Err(); err != nil {
-		return nil, err
+		return dst, err
 	}
 
 	if cname != nil && len(dst) == 0 {
