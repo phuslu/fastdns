@@ -223,6 +223,7 @@ type MessageRecord struct {
 
 type MessageRecords struct {
 	count   uint16
+	options uint16
 	payload []byte
 	error   error
 	record  MessageRecord
@@ -267,20 +268,16 @@ func (r *MessageRecords) Err() error {
 	return r.error
 }
 
-// Walk calls f for each item in the msg in the original order of the parsed RR.
+// Records return items in the msg in the original order of the parsed RR.
 func (msg *Message) Records() (records MessageRecords) {
 	records.count = msg.Header.ANCount + msg.Header.NSCount
+	records.options = msg.Header.ARCount
 	if n := 16 + len(msg.Question.Name); n <= len(msg.Raw) {
 		records.payload = msg.Raw[n:]
 	} else {
 		records.error = ErrInvalidAnswer
 	}
 	return
-}
-
-// WalkAdditionalRecords calls f for each item in the msg in the original order of the parsed AR.
-func (msg *Message) AdditionalRecords(f func(MessageRecord) bool) {
-	panic("not implemented")
 }
 
 // SetRequestQuestion set question for DNS request.
