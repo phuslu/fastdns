@@ -55,11 +55,11 @@ func main() {
 	}
 	end := time.Now()
 
-	if opt("raw", options) {
+	if _, ok := opt("raw", options); ok {
 		fmt.Printf("%x\n", resp.Raw)
 	}
 
-	if opt("short", options) {
+	if _, ok := opt("short", options); ok {
 		short(resp)
 	} else {
 		cmd(req, resp, server, start, end)
@@ -97,13 +97,16 @@ func parse(args []string) (domain, qtype, server string, options []string) {
 	return
 }
 
-func opt(option string, options []string) bool {
+func opt(option string, options []string) (string, bool) {
 	for _, s := range options {
-		if s == option {
-			return true
+		switch {
+		case s == option:
+			return "", true
+		case strings.HasPrefix(s, option+"="):
+			return s[len(option)+1:], true
 		}
 	}
-	return false
+	return "", false
 }
 
 func short(resp *fastdns.Message) {
