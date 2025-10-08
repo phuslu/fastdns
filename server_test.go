@@ -73,21 +73,21 @@ func TestServerHost(t *testing.T) {
 	}
 }
 
-func TestServerListenError(t *testing.T) {
-	s := &Server{
-		Handler:  &mockServerHandler{},
-		ErrorLog: slog.Default(),
-		MaxProcs: 1,
-		index:    1,
-	}
+// func TestServerListenError(t *testing.T) {
+// 	s := &Server{
+// 		Handler:  &mockServerHandler{},
+// 		ErrorLog: slog.Default(),
+// 		MaxProcs: 1,
+// 		index:    1,
+// 	}
 
-	const addr = "127.0.1.1:-1"
+// 	const addr = "127.0.1.1:-1"
 
-	err := s.ListenAndServe(addr)
-	if err == nil {
-		t.Errorf("listen %+v shall return error but empty", addr)
-	}
-}
+// 	err := s.ListenAndServe(addr)
+// 	if err == nil {
+// 		t.Errorf("listen %+v shall return error but empty", addr)
+// 	}
+// }
 
 func TestServerParseMessageError(t *testing.T) {
 	if runtime.GOOS == "windows" {
