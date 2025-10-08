@@ -44,6 +44,14 @@ func main() {
 
 	req.SetRequestQuestion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
 
+	if s, ok := opt("subnet", options); ok {
+		prefix, err := netip.ParsePrefix(s)
+		if err != nil {
+			panic(err)
+		}
+		req.SetRequestClientSubnet(prefix)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -176,7 +184,7 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 
 	fmt.Printf("\n")
 	fmt.Printf("; <<>> DiG 0.0.1-fastdns-%s <<>> %s\n", runtime.Version(), req.Domain)
-	fmt.Printf(";; global options: +cmd +noedns\n")
+	fmt.Printf(";; global options: +cmd\n")
 	fmt.Printf(";; Got answer:\n")
 	fmt.Printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %d\n",
 		strings.ToUpper(resp.Header.Flags.Opcode().String()), strings.ToUpper(resp.Header.Flags.Rcode().String()), resp.Header.ID)
@@ -184,8 +192,10 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		flags, resp.Header.QDCount, resp.Header.ANCount, resp.Header.NSCount, resp.Header.ARCount)
 
 	fmt.Printf("\n")
-	// fmt.Printf(";; OPT PSEUDOSECTION:\n")
-	// fmt.Printf("; EDNS: version: 0, flags:; udp: 512\n")
+	if req.Header.ARCount > 0 {
+		fmt.Printf(";; OPT PSEUDOSECTION:\n")
+		fmt.Printf("; EDNS: version: 0, flags:; udp: 1232\n")
+	}
 	fmt.Printf(";; QUESTION SECTION:\n")
 	fmt.Printf(";%s.		%s	%s\n", req.Domain, req.Question.Class, req.Question.Type)
 
