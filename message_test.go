@@ -129,6 +129,56 @@ func TestParseMessageError(t *testing.T) {
 	}
 }
 
+func TestParseMessageOptions(t *testing.T) {
+	var cases = []struct {
+		Hex string
+	}{
+		{
+			"42140120000100000000000107312d322d332d340269700470687573026c75000001000100002904d00000000000170008000700011800010203000a00083a3c5b8c233e045b",
+		},
+	}
+
+	for _, c := range cases {
+		payload, err := hex.DecodeString(c.Hex)
+		if err != nil {
+			t.Errorf("hex.DecodeString(%v) error: %+v\n", c.Hex, err)
+		}
+		msg := AcquireMessage()
+		err = ParseMessage(msg, payload, true)
+		if err != nil {
+			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+		}
+		t.Logf("msg.Header=%+v, msg.Domain=%s\n", msg.Header, msg.Domain)
+		records := msg.Records()
+		for records.Next() {
+			t.Logf("msg.Records().Item()=%#v\n", records.Item())
+		}
+		if err = records.Err(); err != nil {
+			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+		}
+		options, err := records.Options()
+		if err != nil {
+			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+		}
+		t.Logf("msg.Records().Options()=%+v\n", options)
+		for options.Next() {
+			option := options.Item()
+			t.Logf("msg.Records().Options().Item()=%#v\n", option)
+			switch option.Code {
+			case OptionCodeCSUBNET:
+				subnet, err := option.AsClientSubnet()
+				if err != nil {
+					t.Errorf("msg.Records().Options().Item().AsClientSubnet() error: %+v", err)
+				}
+				t.Logf("msg.Records().Options().Item().AsClientSubnet(): %+v", subnet)
+			}
+		}
+		if err = options.Err(); err != nil {
+			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+		}
+	}
+}
+
 func TestSetQuestion(t *testing.T) {
 	req := AcquireMessage()
 	defer ReleaseMessage(req)
