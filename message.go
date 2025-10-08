@@ -399,10 +399,12 @@ func (msg *Message) SetResponseHeader(rcode Rcode, ancount uint16) {
 	header[11] = 0
 }
 
+var MaxUDPSize = 1232
+
 var msgPool = sync.Pool{
 	New: func() interface{} {
 		msg := new(Message)
-		msg.Raw = make([]byte, 0, 1500)
+		msg.Raw = make([]byte, 0, MaxUDPSize)
 		msg.Domain = make([]byte, 0, 256)
 		return msg
 	},
