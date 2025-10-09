@@ -142,42 +142,36 @@ type MessageOptionsAppender struct {
 }
 
 func (a *MessageOptionsAppender) AppendClientSubnet(prefix netip.Prefix) {
-	length := uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])
+	bits := prefix.Bits()
+	count := (bits + 8 - 1) / 8
+	var family byte
 	if prefix.Addr().Is4() {
-		ipv4 := prefix.Addr().As4()
-		a.msg.Raw = append(a.msg.Raw,
-			0x00, 0x08, // Option Code: CSUBNET
-			0x00, 0x07, // Option Length: 7
-			0x00, 0x01, // Family: IPv4
-			0x18, // Source Netmask: 24
-			0x00, // Scope Netmask: 0
-			ipv4[0], ipv4[1], ipv4[2],
-		)
-		length += 11
+		family = 0x01
 	} else {
-		ipv6 := prefix.Addr().As16()
-		a.msg.Raw = append(a.msg.Raw,
-			0x00, 0x08, // Option Code: CSUBNET
-			0x00, 0x0b, // Option Length: 11
-			0x00, 0x02, // Family: IPv6
-			0x38, // Source Netmask:56
-			0x00, // Scope Netmask: 0
-			ipv6[0], ipv6[1], ipv6[2], ipv6[3],
-			ipv6[4], ipv6[5], ipv6[6],
-		)
-		length += 15
+		family = 0x02
 	}
+	ip := prefix.Addr().AsSlice()
+	if n := len(ip); count < n {
+		ip = ip[:count]
+	}
+	a.msg.Raw = append(append(a.msg.Raw,
+		0x00, 0x08, // Option Code: CSUBNET
+		0x00, byte(4+count), // Option Length: 4+count
+		0x00, family, // Family: IPv4/IPv6
+		byte(bits), // Source Netmask: bits
+		0x00,       // Scope Netmask: 0
+	), ip...)
+	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 4 + 4 + uint16(count)
 	a.msg.Raw[a.offset] = byte(length >> 8)
 	a.msg.Raw[a.offset+1] = byte(length & 0xff)
 }
 
 func (a *MessageOptionsAppender) AppendPadding(padding uint16) {
-	length := uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])
 	a.msg.Raw = append(append(a.msg.Raw,
 		0x00, 0x0c, // Option Code: PADDING
 		byte(padding>>8), byte(padding&0xff), // Option Length
 	), make([]byte, padding)...)
-	length += 2 + 2 + padding
+	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 2 + 2 + padding
 	a.msg.Raw[a.offset] = byte(length >> 8)
 	a.msg.Raw[a.offset+1] = byte(length & 0xff)
 }
