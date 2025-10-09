@@ -10,28 +10,17 @@ var (
 	ErrInvalidOption = errors.New("dns message does not have the expected option size")
 )
 
-func (r *MessageRecords) Options() (options MessageOptions, err error) {
-	if r.error != nil || r.count != 0 {
-		err = errors.New("cannot get dns options before records")
-		return
-	}
-	if len(r.payload) < 12 {
+func (r *MessageRecord) AsOptions() (options MessageOptions, err error) {
+	if r.Type != TypeOPT {
 		err = ErrInvalidOption
 		return
 	}
-	_ = r.payload[11] // hint compiler to remove bounds check
-	options.count = r.options
-	options.payload = r.payload
-	options.Type = Type(r.payload[1])<<8 | Type(r.payload[2])
-	options.UDPSize = uint16(r.payload[3])<<8 | uint16(r.payload[4])
-	options.Rcode = Rcode(r.payload[5])
-	options.Version = r.payload[6]
-	options.Flags = uint16(r.payload[7])<<8 | uint16(r.payload[8])
-	options.RDLength = uint16(r.payload[9])<<8 | uint16(r.payload[10])
-	options.payload = options.payload[11:]
-	if options.Type != TypeOPT || uint16(len(options.payload)) != options.RDLength {
-		err = ErrInvalidOption
-	}
+	options.Type = TypeOPT
+	options.UDPSize = uint16(r.Class)
+	options.Rcode = Rcode(r.TTL >> 24)
+	options.Version = byte(r.TTL >> 16 & 0xff)
+	options.Flags = uint16(r.TTL)
+	options.data = r.Data
 	return
 }
 
@@ -50,36 +39,33 @@ const (
 )
 
 type MessageOptions struct {
-	Type     Type
-	UDPSize  uint16
-	Rcode    Rcode
-	Version  byte
-	Flags    uint16
-	RDLength uint16
+	Type    Type
+	UDPSize uint16
+	Rcode   Rcode
+	Version byte
+	Flags   uint16
 
-	count   uint16
-	payload []byte
-	error   error
-	option  MessageOption
+	data   []byte
+	error  error
+	option MessageOption
 }
 
 func (o *MessageOptions) Next() bool {
-	if o.error != nil || o.count == 0 {
+	if o.error != nil || len(o.data) == 0 {
 		return false
 	}
-	o.count--
-	if len(o.payload) < 4 {
+	if len(o.data) < 4 {
 		o.error = ErrInvalidOption
 		return false
 	}
-	o.option.Code = OptionCode(o.payload[0])<<8 | OptionCode(o.payload[1])
-	length := uint16(o.payload[2])<<8 | uint16(o.payload[3])
-	if uint16(len(o.payload)) < 4+length {
+	o.option.Code = OptionCode(o.data[0])<<8 | OptionCode(o.data[1])
+	length := uint16(o.data[2])<<8 | uint16(o.data[3])
+	if uint16(len(o.data)) < 4+length {
 		o.error = ErrInvalidOption
 		return false
 	}
-	o.option.Data = o.payload[4 : 4+length]
-	o.payload = o.payload[4+length:]
+	o.option.Data = o.data[4 : 4+length]
+	o.data = o.data[4+length:]
 	return true
 }
 

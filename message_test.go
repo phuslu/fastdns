@@ -151,29 +151,32 @@ func TestParseMessageOptions(t *testing.T) {
 		t.Logf("msg.Header=%+v, msg.Domain=%s\n", msg.Header, msg.Domain)
 		records := msg.Records()
 		for records.Next() {
-			t.Logf("msg.Records().Item()=%#v\n", records.Item())
-		}
-		if err = records.Err(); err != nil {
-			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
-		}
-		options, err := records.Options()
-		if err != nil {
-			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
-		}
-		t.Logf("msg.Records().Options()=%+v\n", options)
-		for options.Next() {
-			option := options.Item()
-			t.Logf("msg.Records().Options().Item()=%#v\n", option)
-			switch option.Code {
-			case OptionCodeECS:
-				subnet, err := option.AsClientSubnet()
+			record := records.Item()
+			t.Logf("msg.Records().Item()=%#v\n", record)
+			if record.Type == TypeOPT {
+				options, err := record.AsOptions()
 				if err != nil {
-					t.Errorf("msg.Records().Options().Item().AsClientSubnet() error: %+v", err)
+					t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
 				}
-				t.Logf("msg.Records().Options().Item().AsClientSubnet(): %+v", subnet)
+				t.Logf("msg.Records().AsOptions()=%+v\n", options)
+				for options.Next() {
+					option := options.Item()
+					t.Logf("msg.Records().AsOptions().Item()=%#v\n", option)
+					switch option.Code {
+					case OptionCodeECS:
+						subnet, err := option.AsClientSubnet()
+						if err != nil {
+							t.Errorf("msg.Records().AsOptions().Item().AsClientSubnet() error: %+v", err)
+						}
+						t.Logf("msg.Records().AsOptions().Item().AsClientSubnet(): %+v", subnet)
+					}
+				}
+				if err = options.Err(); err != nil {
+					t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+				}
 			}
 		}
-		if err = options.Err(); err != nil {
+		if err = records.Err(); err != nil {
 			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
 		}
 	}

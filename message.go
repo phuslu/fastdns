@@ -223,7 +223,6 @@ type MessageRecord struct {
 
 type MessageRecords struct {
 	count   uint16
-	options uint16
 	payload []byte
 	error   error
 	record  MessageRecord
@@ -270,8 +269,7 @@ func (r *MessageRecords) Err() error {
 
 // Records return items in the msg in the original order of the parsed RR.
 func (msg *Message) Records() (records MessageRecords) {
-	records.count = msg.Header.ANCount + msg.Header.NSCount
-	records.options = msg.Header.ARCount
+	records.count = msg.Header.ANCount + msg.Header.NSCount + msg.Header.ARCount
 	if n := 16 + len(msg.Question.Name); n <= len(msg.Raw) {
 		records.payload = msg.Raw[n:]
 	} else {

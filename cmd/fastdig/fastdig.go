@@ -135,6 +135,9 @@ func short(resp *fastdns.Message) {
 		r := records.Item()
 		var v interface{}
 		switch r.Type {
+		case fastdns.TypeOPT:
+			// omit server options
+			continue
 		case fastdns.TypeA, fastdns.TypeAAAA:
 			v, _ = netip.AddrFromSlice(r.Data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
@@ -225,6 +228,9 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		data := r.Data
 		var v interface{}
 		switch r.Type {
+		case fastdns.TypeOPT:
+			// omit server options
+			continue
 		case fastdns.TypeA, fastdns.TypeAAAA:
 			v, _ = netip.AddrFromSlice(data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
