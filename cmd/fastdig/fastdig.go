@@ -45,7 +45,10 @@ func main() {
 
 	req.SetRequestQuestion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
 
-	roa := req.OptionsAppender()
+	roa, err := req.OptionsAppender()
+	if err != nil {
+		panic(err)
+	}
 	if s, ok := opt("subnet", options); ok {
 		prefix, err := netip.ParsePrefix(s)
 		if err != nil {
@@ -65,7 +68,7 @@ func main() {
 	defer cancel()
 
 	start := time.Now()
-	err := client.Exchange(ctx, req, resp)
+	err = client.Exchange(ctx, req, resp)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "client=%+v exchange(\"%s\") error: %+v\n", client, domain, err)
 		os.Exit(1)
