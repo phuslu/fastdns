@@ -127,8 +127,8 @@ func (o MessageOption) AsClientSubnet() (subnet netip.Prefix, err error) {
 	return
 }
 
-// GetOptionsAppender get an appender for append options to request message.
-func (msg *Message) GetOptionsAppender() *MessageOptionsAppender {
+// OptionsAppender return an options appender for request message.
+func (msg *Message) OptionsAppender() *MessageOptionsAppender {
 	return &MessageOptionsAppender{msg: msg, offset: len(msg.Raw)}
 }
 
@@ -175,6 +175,9 @@ func (a *MessageOptionsAppender) AppendClientSubnet(prefix netip.Prefix) {
 				ipv6[4], ipv6[5], ipv6[6],
 			)
 		}
+		a.msg.Header.ARCount++
+		a.msg.Raw[10] = byte(a.msg.Header.ARCount >> 8)
+		a.msg.Raw[11] = byte(a.msg.Header.ARCount & 0xff)
 	} else {
 		length := uint16(a.msg.Raw[a.offset+9])<<8 | uint16(a.msg.Raw[a.offset+10])
 		if prefix.Addr().Is4() {
@@ -204,8 +207,32 @@ func (a *MessageOptionsAppender) AppendClientSubnet(prefix netip.Prefix) {
 		a.msg.Raw[a.offset+9] = byte(length >> 8)
 		a.msg.Raw[a.offset+10] = byte(length & 0xff)
 	}
+}
 
-	a.msg.Header.ARCount++
-	a.msg.Raw[10] = byte(a.msg.Header.ARCount >> 8)
-	a.msg.Raw[11] = byte(a.msg.Header.ARCount & 0xff)
+func (a *MessageOptionsAppender) AppendPadding(padding uint16) {
+	if a.msg.Header.ARCount == 0 {
+		a.msg.Raw = append(append(a.msg.Raw,
+			0x00,       // Name
+			0x00, 0x29, // OPT
+			0x04, 0xd0, // UDP payload size: 1232
+			0x00,       // Extended RCODE
+			0x00,       // EDNS0 version
+			0x00, 0x00, // Z flags
+			byte((2+2+padding)>>8), byte((2+2+padding)&0xff), // RDLEN
+			0x00, 0x0c, // Option Code: PADDING
+			byte(padding>>8), byte(padding&0xff), // Option Length
+		), make([]byte, padding)...)
+		a.msg.Header.ARCount++
+		a.msg.Raw[10] = byte(a.msg.Header.ARCount >> 8)
+		a.msg.Raw[11] = byte(a.msg.Header.ARCount & 0xff)
+	} else {
+		length := (uint16(a.msg.Raw[a.offset+9])<<8 | uint16(a.msg.Raw[a.offset+10]))
+		a.msg.Raw = append(append(a.msg.Raw,
+			0x00, 0x0c, // Option Code: PADDING
+			byte(padding>>8), byte(padding&0xff), // Option Length
+		), make([]byte, padding)...)
+		length += 2 + 2 + padding
+		a.msg.Raw[a.offset+9] = byte(length >> 8)
+		a.msg.Raw[a.offset+10] = byte(length & 0xff)
+	}
 }

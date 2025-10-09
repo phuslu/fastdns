@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -43,14 +44,21 @@ func main() {
 	defer fastdns.ReleaseMessage(resp)
 
 	req.SetRequestQuestion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
-	roa := req.GetOptionsAppender()
 
+	roa := req.OptionsAppender()
 	if s, ok := opt("subnet", options); ok {
 		prefix, err := netip.ParsePrefix(s)
 		if err != nil {
 			panic(err)
 		}
 		roa.AppendClientSubnet(prefix)
+	}
+	if s, ok := opt("padding", options); ok {
+		length, err := strconv.Atoi(s)
+		if err != nil {
+			panic(err)
+		}
+		roa.AppendPadding(uint16(length))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
