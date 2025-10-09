@@ -120,46 +120,85 @@ func (o MessageOption) AsClientSubnet() (subnet netip.Prefix, err error) {
 	return
 }
 
-// SetRequestClientSubnet set ecs option for DNS request.
-func (msg *Message) SetRequestClientSubnet(prefix netip.Prefix) {
-	msg.Header.ARCount++
-	msg.Raw[10] = byte(msg.Header.ARCount >> 8)
-	msg.Raw[11] = byte(msg.Header.ARCount & 0xff)
+// GetOptionsAppender get an appender for append options to request message.
+func (msg *Message) GetOptionsAppender() *MessageOptionsAppender {
+	return &MessageOptionsAppender{msg: msg, offset: len(msg.Raw)}
+}
 
-	if prefix.Addr().Is4() {
-		ipv4 := prefix.Addr().As4()
-		msg.Raw = append(msg.Raw,
-			0x00,       // Name
-			0x00, 0x29, // OPT
-			0x04, 0xd0, // UDP payload size: 1232
-			0x00,       // Extended RCODE
-			0x00,       // EDNS0 version
-			0x00, 0x00, // Z flags
-			0x00, 0x0b, // Data Legnth: 11
-			0x00, 0x08, // Option Code: CSUBNET
-			0x00, 0x07, // Option Length: 7
-			0x00, 0x01, // Family: IPv4
-			0x18, // Source Netmask: 24
-			0x00, // Scope Netmask: 0
-			ipv4[0], ipv4[1], ipv4[2],
-		)
+type MessageOptionsAppender struct {
+	msg    *Message
+	offset int
+}
+
+func (a *MessageOptionsAppender) AppendClientSubnet(prefix netip.Prefix) {
+	if a.msg.Header.ARCount == 0 {
+		if prefix.Addr().Is4() {
+			ipv4 := prefix.Addr().As4()
+			a.msg.Raw = append(a.msg.Raw,
+				0x00,       // Name
+				0x00, 0x29, // OPT
+				0x04, 0xd0, // UDP payload size: 1232
+				0x00,       // Extended RCODE
+				0x00,       // EDNS0 version
+				0x00, 0x00, // Z flags
+				0x00, 0x0b, // Data Legnth: 11
+				0x00, 0x08, // Option Code: CSUBNET
+				0x00, 0x07, // Option Length: 7
+				0x00, 0x01, // Family: IPv4
+				0x18, // Source Netmask: 24
+				0x00, // Scope Netmask: 0
+				ipv4[0], ipv4[1], ipv4[2],
+			)
+		} else {
+			ipv6 := prefix.Addr().As16()
+			a.msg.Raw = append(a.msg.Raw,
+				0x00,       // Name
+				0x00, 0x29, // OPT
+				0x04, 0xd0, // UDP payload size: 1232
+				0x00,       // Extended RCODE
+				0x00,       // EDNS0 version
+				0x00, 0x00, // Z flags
+				0x00, 0x0f, // Data Legnth: 15
+				0x00, 0x08, // Option Code: CSUBNET
+				0x00, 0x0b, // Option Length: 11
+				0x00, 0x02, // Family: IPv6
+				0x38, // Source Netmask:56
+				0x00, // Scope Netmask: 0
+				ipv6[0], ipv6[1], ipv6[2], ipv6[3],
+				ipv6[4], ipv6[5], ipv6[6],
+			)
+		}
 	} else {
-		ipv6 := prefix.Addr().As16()
-		msg.Raw = append(msg.Raw,
-			0x00,       // Name
-			0x00, 0x29, // OPT
-			0x04, 0xd0, // UDP payload size: 1232
-			0x00,       // Extended RCODE
-			0x00,       // EDNS0 version
-			0x00, 0x00, // Z flags
-			0x00, 0x0f, // Data Legnth: 15
-			0x00, 0x08, // Option Code: CSUBNET
-			0x00, 0x0b, // Option Length: 11
-			0x00, 0x02, // Family: IPv6
-			0x38, // Source Netmask:56
-			0x00, // Scope Netmask: 0
-			ipv6[0], ipv6[1], ipv6[2], ipv6[3],
-			ipv6[4], ipv6[5], ipv6[6],
-		)
+		length := uint16(a.msg.Raw[a.offset+9])<<8 | uint16(a.msg.Raw[a.offset+10])
+		if prefix.Addr().Is4() {
+			ipv4 := prefix.Addr().As4()
+			a.msg.Raw = append(a.msg.Raw,
+				0x00, 0x08, // Option Code: CSUBNET
+				0x00, 0x07, // Option Length: 7
+				0x00, 0x01, // Family: IPv4
+				0x18, // Source Netmask: 24
+				0x00, // Scope Netmask: 0
+				ipv4[0], ipv4[1], ipv4[2],
+			)
+			length += 11
+		} else {
+			ipv6 := prefix.Addr().As16()
+			a.msg.Raw = append(a.msg.Raw,
+				0x00, 0x08, // Option Code: CSUBNET
+				0x00, 0x0b, // Option Length: 11
+				0x00, 0x02, // Family: IPv6
+				0x38, // Source Netmask:56
+				0x00, // Scope Netmask: 0
+				ipv6[0], ipv6[1], ipv6[2], ipv6[3],
+				ipv6[4], ipv6[5], ipv6[6],
+			)
+			length += 15
+		}
+		a.msg.Raw[a.offset+9] = byte(length >> 8)
+		a.msg.Raw[a.offset+10] = byte(length & 0xff)
 	}
+
+	a.msg.Header.ARCount++
+	a.msg.Raw[10] = byte(a.msg.Header.ARCount >> 8)
+	a.msg.Raw[11] = byte(a.msg.Header.ARCount & 0xff)
 }

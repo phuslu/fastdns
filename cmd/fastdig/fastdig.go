@@ -43,13 +43,14 @@ func main() {
 	defer fastdns.ReleaseMessage(resp)
 
 	req.SetRequestQuestion(domain, fastdns.ParseType(qtype), fastdns.ClassINET)
+	roa := req.GetOptionsAppender()
 
 	if s, ok := opt("subnet", options); ok {
 		prefix, err := netip.ParsePrefix(s)
 		if err != nil {
 			panic(err)
 		}
-		req.SetRequestClientSubnet(prefix)
+		roa.AppendClientSubnet(prefix)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
