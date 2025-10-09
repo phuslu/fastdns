@@ -38,8 +38,15 @@ func (r *MessageRecords) Options() (options MessageOptions, err error) {
 type OptionCode uint16
 
 const (
-	OptionCodeCSUBNET OptionCode = 8
-	OptionCodeCOOKIE  OptionCode = 10
+	OptionCodeNSID      OptionCode = 3
+	OptionCodeDAU       OptionCode = 5
+	OptionCodeDHU       OptionCode = 6
+	OptionCodeN3U       OptionCode = 7
+	OptionCodeECS       OptionCode = 8
+	OptionCodeEXPIRE    OptionCode = 9
+	OptionCodeCOOKIE    OptionCode = 10
+	OptionCodeKeepalive OptionCode = 11
+	OptionCodePadding   OptionCode = 12
 )
 
 type MessageOptions struct {
@@ -90,7 +97,7 @@ type MessageOption struct {
 }
 
 func (o MessageOption) AsClientSubnet() (subnet netip.Prefix, err error) {
-	if o.Code != OptionCodeCSUBNET || len(o.Data) < 4 {
+	if o.Code != OptionCodeECS || len(o.Data) < 4 {
 		err = ErrInvalidOption
 		return
 	}

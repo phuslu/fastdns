@@ -165,7 +165,7 @@ func TestParseMessageOptions(t *testing.T) {
 			option := options.Item()
 			t.Logf("msg.Records().Options().Item()=%#v\n", option)
 			switch option.Code {
-			case OptionCodeCSUBNET:
+			case OptionCodeECS:
 				subnet, err := option.AsClientSubnet()
 				if err != nil {
 					t.Errorf("msg.Records().Options().Item().AsClientSubnet() error: %+v", err)
