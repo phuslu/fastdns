@@ -11,6 +11,7 @@
 * Similar Interface with net/http
 * Fast DoH Server Co-create with fasthttp
 * Fast DNS Client with rich features
+* Fast EDNS options
 * Compatible metrics with coredns
 * High Performance
     - 0-allocs dns request parser
