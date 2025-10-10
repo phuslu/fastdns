@@ -124,6 +124,9 @@ func (o MessageOption) AsCookie() (string, error) {
 	if o.Code != OptionCodeCOOKIE {
 		return "", ErrInvalidOption
 	}
+	if n := len(o.Data); !(8 <= n && n <= 40) {
+		return "", ErrInvalidOption
+	}
 	return string(o.Data), nil
 }
 
