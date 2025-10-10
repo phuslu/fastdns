@@ -113,6 +113,18 @@ func (o MessageOption) AsClientSubnet() (subnet netip.Prefix, err error) {
 	return
 }
 
+func (o MessageOption) AsCookie() (cookie string, err error) {
+	if o.Code != OptionCodeCOOKIE || len(o.Data) < 4 {
+		err = ErrInvalidOption
+		return
+	}
+	cookie = string(o.Data[4:])
+	if uint16(len(cookie)) != (uint16(o.Data[2])<<8 | uint16(o.Data[3])) {
+		err = ErrInvalidOption
+	}
+	return
+}
+
 // OptionsAppender return an options appender for request message.
 func (msg *Message) OptionsAppender() (moa MessageOptionsAppender, err error) {
 	if msg.Header.ARCount != 0 {
@@ -162,6 +174,16 @@ func (a *MessageOptionsAppender) AppendClientSubnet(prefix netip.Prefix) {
 		0x00,       // Scope Netmask: 0
 	), ip...)
 	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 4 + 4 + uint16(count)
+	a.msg.Raw[a.offset] = byte(length >> 8)
+	a.msg.Raw[a.offset+1] = byte(length & 0xff)
+}
+
+func (a *MessageOptionsAppender) AppendCookie(cookie string) {
+	a.msg.Raw = append(append(a.msg.Raw,
+		0x00, 0x0a, // Option Code: COOKIE
+		byte(len(cookie)>>8), byte(len(cookie)&0xff), // Option Length
+	), cookie...)
+	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 2 + 2 + uint16(len(cookie))
 	a.msg.Raw[a.offset] = byte(length >> 8)
 	a.msg.Raw[a.offset+1] = byte(length & 0xff)
 }
