@@ -139,10 +139,9 @@ func (o MessageOption) AsPadding() (padding string, err error) {
 
 // OptionsAppender return an options appender for request message.
 func (msg *Message) OptionsAppender() (moa MessageOptionsAppender, err error) {
-	if msg.Header.ARCount != 0 {
-		err = ErrInvalidHeader
-		return
-	}
+	msg.Header.ARCount++
+	msg.Raw[10] = byte(msg.Header.ARCount >> 8)
+	msg.Raw[11] = byte(msg.Header.ARCount & 0xff)
 	msg.Raw = append(msg.Raw,
 		0x00,       // Name
 		0x00, 0x29, // OPT
@@ -152,9 +151,6 @@ func (msg *Message) OptionsAppender() (moa MessageOptionsAppender, err error) {
 		0x00, 0x00, // Z flags
 		0x00, 0x00, // Data Legnth: 0
 	)
-	msg.Raw[10] = 0
-	msg.Raw[11] = 1
-	msg.Header.ARCount++
 	moa.msg = msg
 	moa.offset = len(msg.Raw) - 2
 	return
