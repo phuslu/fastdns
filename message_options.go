@@ -162,6 +162,10 @@ type MessageOptionsAppender struct {
 }
 
 func (a *MessageOptionsAppender) AppendSubnet(prefix netip.Prefix) {
+	prefix = prefix.Masked()
+	if !prefix.IsValid() {
+		return
+	}
 	bits := prefix.Bits()
 	count := (bits + 8 - 1) / 8
 	var family byte
