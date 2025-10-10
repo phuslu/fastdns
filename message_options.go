@@ -114,9 +114,10 @@ func (o MessageOption) AsClientSubnet() (subnet netip.Prefix, err error) {
 }
 
 // OptionsAppender return an options appender for request message.
-func (msg *Message) OptionsAppender() (*MessageOptionsAppender, error) {
+func (msg *Message) OptionsAppender() (moa MessageOptionsAppender, err error) {
 	if msg.Header.ARCount != 0 {
-		return nil, ErrInvalidHeader
+		err = ErrInvalidHeader
+		return
 	}
 	msg.Raw = append(msg.Raw,
 		0x00,       // Name
@@ -130,10 +131,9 @@ func (msg *Message) OptionsAppender() (*MessageOptionsAppender, error) {
 	msg.Raw[10] = 0
 	msg.Raw[11] = 1
 	msg.Header.ARCount++
-	return &MessageOptionsAppender{
-		msg:    msg,
-		offset: len(msg.Raw) - 2,
-	}, nil
+	moa.msg = msg
+	moa.offset = len(msg.Raw) - 2
+	return
 }
 
 type MessageOptionsAppender struct {
