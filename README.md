@@ -11,7 +11,7 @@
 * Similar Interface with net/http
 * Fast DoH Server Co-create with fasthttp
 * Fast DNS Client with rich features
-* Fast EDNS options
+* Fast eDNS options
 * Compatible metrics with coredns
 * High Performance
     - 0-allocs dns request parser
@@ -140,28 +140,34 @@ func main() {
 }
 ```
 
-### DNS Client Tool
+### DNS/eDNS Client Tool
 ```bash
 $ go install github.com/phuslu/fastdns/cmd/fastdig@master
-$ fastdig ip.phus.lu @https://1.1.1.1/dns-query
+$ fastdig www.google.com @https://8.8.8.8/dns-query +subnet=1.2.3.0/24
 
-; <<>> DiG 0.0.1-Fastdns <<>> ip.phus.lu
-;; global options: +cmd +noedns
+; <<>> DiG 0.0.1-fastdns-go1.25.0 <<>> www.google.com
+;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: Query, status: Success, id: 2775
-;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 0
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 589
+;; flags: qr rd ra; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 1
 
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
 ;; QUESTION SECTION:
-;ip.phus.lu.            IN      A
+;www.google.com.                IN      A
 
 ;; ANSWER SECTION:
-ip.phus.lu.     299     IN      CNAME   phus.lu.
-phus.lu.        299     IN      A       101.32.116.118
+www.google.com. 300     IN      A       142.250.9.147
+www.google.com. 300     IN      A       142.250.9.104
+www.google.com. 300     IN      A       142.250.9.99
+www.google.com. 300     IN      A       142.250.9.105
+www.google.com. 300     IN      A       142.250.9.106
+www.google.com. 300     IN      A       142.250.9.103
 
-;; Query time: 15 msec
-;; SERVER: 8.8.8.8#53(8.8.8.8)
-;; WHEN: Mon Apr 12 22:07:16 +08 2021
-;; MSG SIZE  rcvd: 58
+;; Query time: 30 msec
+;; SERVER: https://8.8.8.8/dns-query#53(https://8.8.8.8/dns-query)
+;; WHEN: Sat Oct 11 00:44:09 +08 2025
+;; MSG SIZE  rcvd: 150
 ```
 
 ### DoH Server Example
