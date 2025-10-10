@@ -125,6 +125,18 @@ func (o MessageOption) AsCookie() (cookie string, err error) {
 	return
 }
 
+func (o MessageOption) AsPadding() (padding string, err error) {
+	if o.Code != OptionCodePadding || len(o.Data) < 4 {
+		err = ErrInvalidOption
+		return
+	}
+	padding = string(o.Data[4:])
+	if uint16(len(padding)) != (uint16(o.Data[2])<<8 | uint16(o.Data[3])) {
+		err = ErrInvalidOption
+	}
+	return
+}
+
 // OptionsAppender return an options appender for request message.
 func (msg *Message) OptionsAppender() (moa MessageOptionsAppender, err error) {
 	if msg.Header.ARCount != 0 {
