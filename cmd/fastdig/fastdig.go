@@ -54,7 +54,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		roa.AppendClientSubnet(prefix)
+		roa.AppendSubnet(prefix)
 	}
 	if s, ok := opt("padding", options); ok {
 		length, err := strconv.Atoi(s)

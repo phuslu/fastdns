@@ -82,7 +82,7 @@ type MessageOption struct {
 	Data []byte
 }
 
-func (o MessageOption) AsClientSubnet() (netip.Prefix, error) {
+func (o MessageOption) AsSubnet() (netip.Prefix, error) {
 	if o.Code != OptionCodeECS || len(o.Data) < 4 {
 		return netip.Prefix{}, ErrInvalidOption
 	}
@@ -93,7 +93,7 @@ func (o MessageOption) AsClientSubnet() (netip.Prefix, error) {
 		return netip.Prefix{}, ErrInvalidOption
 	}
 	switch family {
-	case 1:
+	case 0x01:
 		if netmask > 32 || length > 4 {
 			return netip.Prefix{}, ErrInvalidOption
 		}
@@ -104,7 +104,7 @@ func (o MessageOption) AsClientSubnet() (netip.Prefix, error) {
 			return netip.Prefix{}, ErrInvalidOption
 		}
 		return netip.PrefixFrom(ip, int(netmask)), nil
-	case 2:
+	case 0x02:
 		if netmask > 128 || length > 16 {
 			return netip.Prefix{}, ErrInvalidOption
 		}
@@ -158,7 +158,7 @@ type MessageOptionsAppender struct {
 	offset int
 }
 
-func (a *MessageOptionsAppender) AppendClientSubnet(prefix netip.Prefix) {
+func (a *MessageOptionsAppender) AppendSubnet(prefix netip.Prefix) {
 	bits := prefix.Bits()
 	count := (bits + 8 - 1) / 8
 	var family byte

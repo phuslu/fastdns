@@ -164,11 +164,11 @@ func TestParseMessageOptions(t *testing.T) {
 					t.Logf("msg.Records().AsOptions().Item()=%#v\n", option)
 					switch option.Code {
 					case OptionCodeECS:
-						subnet, err := option.AsClientSubnet()
+						subnet, err := option.AsSubnet()
 						if err != nil {
-							t.Errorf("msg.Records().AsOptions().Item().AsClientSubnet() error: %+v", err)
+							t.Errorf("msg.Records().AsOptions().Item().AsSubnet() error: %+v", err)
 						}
-						t.Logf("msg.Records().AsOptions().Item().AsClientSubnet(): %+v", subnet)
+						t.Logf("msg.Records().AsOptions().Item().AsSubnet(): %+v", subnet)
 					}
 				}
 				if err = options.Err(); err != nil {
