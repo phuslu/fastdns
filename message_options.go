@@ -82,59 +82,56 @@ type MessageOption struct {
 	Data []byte
 }
 
-func (o MessageOption) AsClientSubnet() (subnet netip.Prefix, err error) {
+func (o MessageOption) AsClientSubnet() (netip.Prefix, error) {
 	if o.Code != OptionCodeECS || len(o.Data) < 4 {
-		err = ErrInvalidOption
-		return
+		return netip.Prefix{}, ErrInvalidOption
 	}
 	family := uint16(o.Data[0])<<8 | uint16(o.Data[1])
-	sourceNetmask := o.Data[2]
-	// scopeNetmask := o.Data[3]
+	netmask := o.Data[2]
+	length := len(o.Data) - 4
+	if expected := int(netmask+8-1) / 8; length < expected {
+		return netip.Prefix{}, ErrInvalidOption
+	}
 	switch family {
 	case 1:
+		if netmask > 32 || length > 4 {
+			return netip.Prefix{}, ErrInvalidOption
+		}
 		var b [4]byte
 		copy(b[:], o.Data[4:])
 		ip, ok := netip.AddrFromSlice(b[:])
 		if !ok {
-			err = ErrInvalidOption
-			return
+			return netip.Prefix{}, ErrInvalidOption
 		}
-		subnet = netip.PrefixFrom(ip, int(sourceNetmask))
+		return netip.PrefixFrom(ip, int(netmask)), nil
 	case 2:
+		if netmask > 128 || length > 16 {
+			return netip.Prefix{}, ErrInvalidOption
+		}
 		var b [16]byte
 		copy(b[:], o.Data[4:])
 		ip, ok := netip.AddrFromSlice(b[:])
 		if !ok {
-			err = ErrInvalidOption
-			return
+			return netip.Prefix{}, ErrInvalidOption
 		}
-		subnet = netip.PrefixFrom(ip, int(sourceNetmask))
+		return netip.PrefixFrom(ip, int(netmask)), nil
+	default:
+		return netip.Prefix{}, ErrInvalidOption
 	}
-	return
 }
 
-func (o MessageOption) AsCookie() (cookie string, err error) {
-	if o.Code != OptionCodeCOOKIE || len(o.Data) < 4 {
-		err = ErrInvalidOption
-		return
+func (o MessageOption) AsCookie() (string, error) {
+	if o.Code != OptionCodeCOOKIE {
+		return "", ErrInvalidOption
 	}
-	cookie = string(o.Data[4:])
-	if uint16(len(cookie)) != (uint16(o.Data[2])<<8 | uint16(o.Data[3])) {
-		err = ErrInvalidOption
-	}
-	return
+	return string(o.Data), nil
 }
 
-func (o MessageOption) AsPadding() (padding string, err error) {
-	if o.Code != OptionCodePadding || len(o.Data) < 4 {
-		err = ErrInvalidOption
-		return
+func (o MessageOption) AsPadding() (string, error) {
+	if o.Code != OptionCodePadding {
+		return "", ErrInvalidOption
 	}
-	padding = string(o.Data[4:])
-	if uint16(len(padding)) != (uint16(o.Data[2])<<8 | uint16(o.Data[3])) {
-		err = ErrInvalidOption
-	}
-	return
+	return string(o.Data), nil
 }
 
 // OptionsAppender return an options appender for request message.
