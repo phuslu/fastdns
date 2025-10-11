@@ -4,7 +4,9 @@ package fastdns
 
 import (
 	"context"
+	"fmt"
 	"net"
+	"runtime"
 	"syscall"
 	"unsafe"
 )
@@ -30,11 +32,27 @@ func listen(network, address string) (*net.UDPConn, error) {
 func taskset(cpu int) error {
 	const SYS_SCHED_SETAFFINITY = 203
 
-	mask := make([]byte, 128)
-	mask[cpu/8] = 1 << (cpu % 8)
+	if cpu < 0 {
+		return fmt.Errorf("taskset: cpu(%d) must be non-negative", cpu)
+	}
+	if cpu >= 128*8 {
+		return fmt.Errorf("taskset: cpu(%d) exceeds mask capacity", cpu)
+	}
 
-	_, _, e := syscall.RawSyscall(SYS_SCHED_SETAFFINITY, uintptr(0), uintptr(len(mask)), uintptr(unsafe.Pointer(&mask[0])))
+	maxCPU := runtime.NumCPU()
+	if cpu >= maxCPU {
+		return fmt.Errorf("taskset: cpu(%d) >= runtime.NumCPU(%d)", cpu, maxCPU)
+	}
+
+	var mask [128]byte
+	mask[cpu/8] = byte(1 << (uint(cpu) % 8))
+
+	_, _, e := syscall.RawSyscall(SYS_SCHED_SETAFFINITY, uintptr(0), uintptr(128), uintptr(unsafe.Pointer(&mask[0])))
 	if e == 0 {
+		return nil
+	}
+	if e == syscall.EPERM || e == syscall.EINVAL {
+		// Sandboxes without sched_setaffinity permission surface EPERM/EINVAL; treat as best-effort.
 		return nil
 	}
 
