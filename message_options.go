@@ -161,6 +161,10 @@ type MessageOptionsAppender struct {
 	offset int
 }
 
+func (a *MessageOptionsAppender) IsVaild() bool {
+	return a.msg != nil
+}
+
 func (a *MessageOptionsAppender) AppendSubnet(prefix netip.Prefix) {
 	prefix = prefix.Masked()
 	if !prefix.IsValid() {
