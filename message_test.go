@@ -169,6 +169,18 @@ func TestParseMessageOptions(t *testing.T) {
 							t.Errorf("msg.Records().AsOptions().Item().AsSubnet() error: %+v", err)
 						}
 						t.Logf("msg.Records().AsOptions().Item().AsSubnet(): %+v", subnet)
+					case OptionCodeCOOKIE:
+						cookie, err := option.AsCookie()
+						if err != nil {
+							t.Errorf("msg.Records().AsOptions().Item().AsCookie() error: %+v", err)
+						}
+						t.Logf("msg.Records().AsOptions().Item().AsCookie(): %#v", cookie)
+					case OptionCodePadding:
+						padding, err := option.AsPadding()
+						if err != nil {
+							t.Errorf("msg.Records().AsOptions().Item().AsPadding() error: %+v", err)
+						}
+						t.Logf("msg.Records().AsOptions().Item().AsPadding(): %#v", padding)
 					}
 				}
 				if err = options.Err(); err != nil {
