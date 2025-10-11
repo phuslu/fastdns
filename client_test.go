@@ -182,6 +182,23 @@ func TestClientLookupNetIP(t *testing.T) {
 	t.Logf("dns_server=%+v LookupNetIP(%#v) return %+v", client.Addr, host, ips)
 }
 
+func TestClientLookupNetIPWithSubnet(t *testing.T) {
+	host := "www.google.com"
+
+	client := &Client{
+		Addr:    "8.8.8.8:53",
+		Timeout: 1 * time.Second,
+	}
+
+	subnet := netip.PrefixFrom(netip.AddrFrom4([4]byte{1, 2, 4, 8}), 24)
+
+	ips, err := client.LookupNetIP(WithClientSubnet(context.Background(), subnet), "ip", host)
+	if err != nil {
+		t.Errorf("dns_server=%+v LookupNetIP(%#v) error: %+v\n", client.Addr, host, err)
+	}
+	t.Logf("dns_server=%+v LookupNetIP(%#v) return %+v", client.Addr, host, ips)
+}
+
 func TestClientLookupSRV(t *testing.T) {
 	client := &Client{
 		Addr:    "1.1.1.1:53",
