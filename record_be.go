@@ -8,8 +8,8 @@ import (
 	"unsafe"
 )
 
-// AppendHOST1Record appends a Host record to dst and returns the resulting dst.
-func (req *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []byte {
+// AppendHOST1Record appends a Host record to msg.
+func (msg *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []byte {
 	b := (*[16]byte)(unsafe.Pointer(&ip))
 	if ip.Is4() {
 		dst = append(dst,
@@ -18,7 +18,7 @@ func (req *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []b
 			// TYPE
 			0x00, byte(TypeA),
 			// CLASS
-			byte(req.Question.Class>>8), byte(req.Question.Class),
+			byte(msg.Question.Class>>8), byte(msg.Question.Class),
 			// TTL
 			byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 			// RDLENGTH
@@ -33,7 +33,7 @@ func (req *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []b
 			// TYPE
 			0x00, byte(TypeAAAA),
 			// CLASS
-			byte(req.Question.Class>>8), byte(req.Question.Class),
+			byte(msg.Question.Class>>8), byte(msg.Question.Class),
 			// TTL
 			byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 			// RDLENGTH
@@ -49,8 +49,8 @@ func (req *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []b
 	return dst
 }
 
-// AppendHOSTRecord appends the Host records to dst and returns the resulting dst.
-func (req *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) []byte {
+// AppendHOSTRecord appends the Host records to msg.
+func (msg *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) []byte {
 	for _, ip := range ips {
 		b := (*[16]byte)(unsafe.Pointer(&ip))
 		if ip.Is4() {
@@ -60,7 +60,7 @@ func (req *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) [
 				// TYPE
 				0x00, byte(TypeA),
 				// CLASS
-				byte(req.Question.Class>>8), byte(req.Question.Class),
+				byte(msg.Question.Class>>8), byte(msg.Question.Class),
 				// TTL
 				byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 				// RDLENGTH
@@ -75,7 +75,7 @@ func (req *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) [
 				// TYPE
 				0x00, byte(TypeAAAA),
 				// CLASS
-				byte(req.Question.Class>>8), byte(req.Question.Class),
+				byte(msg.Question.Class>>8), byte(msg.Question.Class),
 				// TTL
 				byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 				// RDLENGTH
@@ -92,8 +92,8 @@ func (req *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) [
 	return dst
 }
 
-// AppendCNAMERecord appends the CNAME and Host records to dst and returns the resulting dst.
-func (req *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, ips []netip.Addr) []byte {
+// AppendCNAMERecord appends the CNAME and Host records to msg.
+func (msg *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, ips []netip.Addr) []byte {
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {
@@ -104,7 +104,7 @@ func (req *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, i
 			// TYPE
 			0x00, byte(TypeCNAME),
 			// CLASS
-			byte(req.Question.Class>>8), byte(req.Question.Class),
+			byte(msg.Question.Class>>8), byte(msg.Question.Class),
 			// TTL
 			byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 			// RDLENGTH
@@ -112,7 +112,7 @@ func (req *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, i
 		)
 		// set offset
 		if i == 0 {
-			offset += len(req.Question.Name) + 2 + 2 + 12
+			offset += len(msg.Question.Name) + 2 + 2 + 12
 		} else {
 			offset += len(cname) + 2 + 12
 		}
@@ -129,7 +129,7 @@ func (req *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, i
 				// TYPE
 				0x00, byte(TypeA),
 				// CLASS
-				byte(req.Question.Class>>8), byte(req.Question.Class),
+				byte(msg.Question.Class>>8), byte(msg.Question.Class),
 				// TTL
 				byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 				// RDLENGTH
@@ -144,7 +144,7 @@ func (req *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, i
 				// TYPE
 				0x00, byte(TypeAAAA),
 				// CLASS
-				byte(req.Question.Class>>8), byte(req.Question.Class),
+				byte(msg.Question.Class>>8), byte(msg.Question.Class),
 				// TTL
 				byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 				// RDLENGTH

@@ -4,8 +4,8 @@ import (
 	"net"
 )
 
-// AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
-func (req *Message) AppendSRVRecord(dst []byte, ttl uint32, srvs []net.SRV) []byte {
+// AppendSRVRecord appends the SRV records to msg.
+func (msg *Message) AppendSRVRecord(dst []byte, ttl uint32, srvs []net.SRV) []byte {
 	// SRV Records
 	for _, srv := range srvs {
 		length := 8 + len(srv.Target)
@@ -15,7 +15,7 @@ func (req *Message) AppendSRVRecord(dst []byte, ttl uint32, srvs []net.SRV) []by
 			// TYPE
 			0x00, byte(TypeSRV),
 			// CLASS
-			byte(req.Question.Class>>8), byte(req.Question.Class),
+			byte(msg.Question.Class>>8), byte(msg.Question.Class),
 			// TTL
 			byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 			// RDLENGTH
@@ -33,8 +33,8 @@ func (req *Message) AppendSRVRecord(dst []byte, ttl uint32, srvs []net.SRV) []by
 	return dst
 }
 
-// AppendNSRecord appends the NS records to dst and returns the resulting dst.
-func (req *Message) AppendNSRecord(dst []byte, ttl uint32, nameservers []net.NS) []byte {
+// AppendNSRecord appends the NS records to msg.
+func (msg *Message) AppendNSRecord(dst []byte, ttl uint32, nameservers []net.NS) []byte {
 	// NS Records
 	for _, ns := range nameservers {
 		dst = EncodeDomain(append(dst,
@@ -43,7 +43,7 @@ func (req *Message) AppendNSRecord(dst []byte, ttl uint32, nameservers []net.NS)
 			// TYPE
 			0x00, byte(TypeNS),
 			// CLASS
-			byte(req.Question.Class>>8), byte(req.Question.Class),
+			byte(msg.Question.Class>>8), byte(msg.Question.Class),
 			// TTL
 			byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 			// RDLENGTH
@@ -55,8 +55,8 @@ func (req *Message) AppendNSRecord(dst []byte, ttl uint32, nameservers []net.NS)
 	return dst
 }
 
-// AppendSOARecord appends the SOA records to dst and returns the resulting dst.
-func (req *Message) AppendSOARecord(dst []byte, ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) []byte {
+// AppendSOARecord appends the SOA records to msg.
+func (msg *Message) AppendSOARecord(dst []byte, ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) []byte {
 	length := 2 + len(mname.Host) + 2 + len(rname.Host) + 4 + 4 + 4 + 4 + 4
 	dst = append(dst,
 		// NAME
@@ -64,7 +64,7 @@ func (req *Message) AppendSOARecord(dst []byte, ttl uint32, mname, rname net.NS,
 		// TYPE
 		0x00, byte(TypeSOA),
 		// CLASS
-		byte(req.Question.Class>>8), byte(req.Question.Class),
+		byte(msg.Question.Class>>8), byte(msg.Question.Class),
 		// TTL
 		byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 		// RDLENGTH
@@ -92,8 +92,8 @@ func (req *Message) AppendSOARecord(dst []byte, ttl uint32, mname, rname net.NS,
 	return dst
 }
 
-// AppendMXRecord appends the MX records to dst and returns the resulting dst.
-func (req *Message) AppendMXRecord(dst []byte, ttl uint32, mxs []net.MX) []byte {
+// AppendMXRecord appends the MX records to msg.
+func (msg *Message) AppendMXRecord(dst []byte, ttl uint32, mxs []net.MX) []byte {
 	// MX Records
 	for _, mx := range mxs {
 		length := 4 + len(mx.Host)
@@ -103,7 +103,7 @@ func (req *Message) AppendMXRecord(dst []byte, ttl uint32, mxs []net.MX) []byte 
 			// TYPE
 			0x00, byte(TypeMX),
 			// CLASS
-			byte(req.Question.Class>>8), byte(req.Question.Class),
+			byte(msg.Question.Class>>8), byte(msg.Question.Class),
 			// TTL
 			byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 			// RDLENGTH
@@ -117,15 +117,15 @@ func (req *Message) AppendMXRecord(dst []byte, ttl uint32, mxs []net.MX) []byte 
 	return dst
 }
 
-// AppendPTRRecord appends the PTR records to dst and returns the resulting dst.
-func (req *Message) AppendPTRRecord(dst []byte, ttl uint32, ptr string) []byte {
+// AppendPTRRecord appends the PTR records to msg.
+func (msg *Message) AppendPTRRecord(dst []byte, ttl uint32, ptr string) []byte {
 	dst = EncodeDomain(append(dst,
 		// NAME
 		0xc0, 0x0c,
 		// TYPE
 		0x00, byte(TypePTR),
 		// CLASS
-		byte(req.Question.Class>>8), byte(req.Question.Class),
+		byte(msg.Question.Class>>8), byte(msg.Question.Class),
 		// TTL
 		byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 		// RDLENGTH
@@ -136,8 +136,8 @@ func (req *Message) AppendPTRRecord(dst []byte, ttl uint32, ptr string) []byte {
 	return dst
 }
 
-// AppendTXTRecord appends the TXT records to dst and returns the resulting dst.
-func (req *Message) AppendTXTRecord(dst []byte, ttl uint32, txt string) []byte {
+// AppendTXTRecord appends the TXT records to msg.
+func (msg *Message) AppendTXTRecord(dst []byte, ttl uint32, txt string) []byte {
 	length := len(txt) + (len(txt)+0xff)/0x100
 	dst = append(dst,
 		// NAME
@@ -145,7 +145,7 @@ func (req *Message) AppendTXTRecord(dst []byte, ttl uint32, txt string) []byte {
 		// TYPE
 		0x00, byte(TypeTXT),
 		// CLASS
-		byte(req.Question.Class>>8), byte(req.Question.Class),
+		byte(msg.Question.Class>>8), byte(msg.Question.Class),
 		// TTL
 		byte(ttl>>24), byte(ttl>>16), byte(ttl>>8), byte(ttl),
 		// RDLENGTH
