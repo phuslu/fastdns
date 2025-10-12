@@ -9,10 +9,10 @@ import (
 )
 
 // AppendHOST1Record appends a Host record to msg.
-func (msg *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []byte {
+func (msg *Message) AppendHOST1Record(ttl uint32, ip netip.Addr) []byte {
 	b := (*[16]byte)(unsafe.Pointer(&ip))
 	if ip.Is4() {
-		dst = append(dst,
+		msg.Raw = append(msg.Raw,
 			// NAME
 			0xc0, 0x0c,
 			// TYPE
@@ -27,7 +27,7 @@ func (msg *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []b
 			b[8], b[9], b[10], b[11],
 		)
 	} else {
-		dst = append(dst,
+		msg.Raw = append(msg.Raw,
 			// NAME
 			0xc0, 0x0c,
 			// TYPE
@@ -45,16 +45,14 @@ func (msg *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []b
 			b[4], b[5], b[6], b[7],
 		)
 	}
-
-	return dst
 }
 
 // AppendHOSTRecord appends the Host records to msg.
-func (msg *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) []byte {
+func (msg *Message) AppendHOSTRecord(ttl uint32, ips []netip.Addr) []byte {
 	for _, ip := range ips {
 		b := (*[16]byte)(unsafe.Pointer(&ip))
 		if ip.Is4() {
-			dst = append(dst,
+			msg.Raw = append(msg.Raw,
 				// NAME
 				0xc0, 0x0c,
 				// TYPE
@@ -69,7 +67,7 @@ func (msg *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) [
 				b[8], b[9], b[10], b[11],
 			)
 		} else {
-			dst = append(dst,
+			msg.Raw = append(msg.Raw,
 				// NAME
 				0xc0, 0x0c,
 				// TYPE
@@ -88,17 +86,15 @@ func (msg *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) [
 			)
 		}
 	}
-
-	return dst
 }
 
 // AppendCNAMERecord appends the CNAME and Host records to msg.
-func (msg *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, ips []netip.Addr) []byte {
+func (msg *Message) AppendCNAMERecord(ttl uint32, cnames []string, ips []netip.Addr) []byte {
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {
 		// fixed size array for avoid bounds check
-		dst = append(dst,
+		msg.Raw = append(msg.Raw,
 			// NAME
 			0xc0|byte(offset>>8), byte(offset),
 			// TYPE
@@ -117,13 +113,13 @@ func (msg *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, i
 			offset += len(cname) + 2 + 12
 		}
 		// RDATA
-		dst = EncodeDomain(dst, cname)
+		msg.Raw = EncodeDomain(msg.Raw, cname)
 	}
 	// Host Records
 	for _, ip := range ips {
 		b := (*[16]byte)(unsafe.Pointer(&ip))
 		if ip.Is4() {
-			dst = append(dst,
+			msg.Raw = append(msg.Raw,
 				// NAME
 				0xc0|byte(offset>>8), byte(offset),
 				// TYPE
@@ -138,7 +134,7 @@ func (msg *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, i
 				b[8], b[9], b[10], b[11],
 			)
 		} else {
-			dst = append(dst,
+			msg.Raw = append(msg.Raw,
 				// NAME
 				0xc0|byte(offset>>8), byte(offset),
 				// TYPE
@@ -157,6 +153,4 @@ func (msg *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, i
 			)
 		}
 	}
-
-	return dst
 }

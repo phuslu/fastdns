@@ -5,11 +5,11 @@ import (
 )
 
 // AppendSRVRecord appends the SRV records to msg.
-func (msg *Message) AppendSRVRecord(dst []byte, ttl uint32, srvs []net.SRV) []byte {
+func (msg *Message) AppendSRVRecord(ttl uint32, srvs []net.SRV) {
 	// SRV Records
 	for _, srv := range srvs {
 		length := 8 + len(srv.Target)
-		dst = EncodeDomain(append(dst,
+		msg.Raw = EncodeDomain(append(msg.Raw,
 			// NAME
 			0xc0, 0x0c,
 			// TYPE
@@ -29,15 +29,13 @@ func (msg *Message) AppendSRVRecord(dst []byte, ttl uint32, srvs []net.SRV) []by
 			// RDATA
 		), srv.Target)
 	}
-
-	return dst
 }
 
 // AppendNSRecord appends the NS records to msg.
-func (msg *Message) AppendNSRecord(dst []byte, ttl uint32, nameservers []net.NS) []byte {
+func (msg *Message) AppendNSRecord(ttl uint32, nameservers []net.NS) {
 	// NS Records
 	for _, ns := range nameservers {
-		dst = EncodeDomain(append(dst,
+		msg.Raw = EncodeDomain(append(msg.Raw,
 			// NAME
 			0xc0, 0x0c,
 			// TYPE
@@ -51,14 +49,12 @@ func (msg *Message) AppendNSRecord(dst []byte, ttl uint32, nameservers []net.NS)
 			// RDATA
 		), ns.Host)
 	}
-
-	return dst
 }
 
 // AppendSOARecord appends the SOA records to msg.
-func (msg *Message) AppendSOARecord(dst []byte, ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) []byte {
+func (msg *Message) AppendSOARecord(ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) {
 	length := 2 + len(mname.Host) + 2 + len(rname.Host) + 4 + 4 + 4 + 4 + 4
-	dst = append(dst,
+	msg.Raw = append(msg.Raw,
 		// NAME
 		0xc0, 0x0c,
 		// TYPE
@@ -72,11 +68,11 @@ func (msg *Message) AppendSOARecord(dst []byte, ttl uint32, mname, rname net.NS,
 	)
 
 	// MNAME
-	dst = EncodeDomain(dst, mname.Host)
+	msg.Raw = EncodeDomain(msg.Raw, mname.Host)
 	// RNAME
-	dst = EncodeDomain(dst, rname.Host)
+	msg.Raw = EncodeDomain(msg.Raw, rname.Host)
 
-	dst = append(dst,
+	msg.Raw = append(msg.Raw,
 		// SERIAL
 		byte(serial>>24), byte(serial>>16), byte(serial>>8), byte(serial),
 		// REFRESH
@@ -88,16 +84,14 @@ func (msg *Message) AppendSOARecord(dst []byte, ttl uint32, mname, rname net.NS,
 		// MINIMUM
 		byte(minimum>>24), byte(minimum>>16), byte(minimum>>8), byte(minimum),
 	)
-
-	return dst
 }
 
 // AppendMXRecord appends the MX records to msg.
-func (msg *Message) AppendMXRecord(dst []byte, ttl uint32, mxs []net.MX) []byte {
+func (msg *Message) AppendMXRecord(ttl uint32, mxs []net.MX) {
 	// MX Records
 	for _, mx := range mxs {
 		length := 4 + len(mx.Host)
-		dst = EncodeDomain(append(dst,
+		msg.Raw = EncodeDomain(append(msg.Raw,
 			// NAME
 			0xc0, 0x0c,
 			// TYPE
@@ -113,13 +107,11 @@ func (msg *Message) AppendMXRecord(dst []byte, ttl uint32, mxs []net.MX) []byte 
 			// RDATA
 		), mx.Host)
 	}
-
-	return dst
 }
 
 // AppendPTRRecord appends the PTR records to msg.
-func (msg *Message) AppendPTRRecord(dst []byte, ttl uint32, ptr string) []byte {
-	dst = EncodeDomain(append(dst,
+func (msg *Message) AppendPTRRecord(ttl uint32, ptr string) {
+	msg.Raw = EncodeDomain(append(msg.Raw,
 		// NAME
 		0xc0, 0x0c,
 		// TYPE
@@ -132,14 +124,12 @@ func (msg *Message) AppendPTRRecord(dst []byte, ttl uint32, ptr string) []byte {
 		00, byte(2+len(ptr)),
 		// PTR
 	), ptr)
-
-	return dst
 }
 
 // AppendTXTRecord appends the TXT records to msg.
-func (msg *Message) AppendTXTRecord(dst []byte, ttl uint32, txt string) []byte {
+func (msg *Message) AppendTXTRecord(ttl uint32, txt string) {
 	length := len(txt) + (len(txt)+0xff)/0x100
-	dst = append(dst,
+	msg.Raw = append(msg.Raw,
 		// NAME
 		0xc0, 0x0c,
 		// TYPE
@@ -154,16 +144,14 @@ func (msg *Message) AppendTXTRecord(dst []byte, ttl uint32, txt string) []byte {
 
 	for len(txt) > 0xff {
 		// TXT Length
-		dst = append(dst, 0xff)
+		msg.Raw = append(msg.Raw, 0xff)
 		// TXT
-		dst = append(dst, txt[:0xff]...)
+		msg.Raw = append(msg.Raw, txt[:0xff]...)
 		txt = txt[0xff:]
 	}
 
 	// TXT Length
-	dst = append(dst, byte(len(txt)))
+	msg.Raw = append(msg.Raw, byte(len(txt)))
 	// TXT
-	dst = append(dst, txt...)
-
-	return dst
+	msg.Raw = append(msg.Raw, txt...)
 }
