@@ -41,7 +41,7 @@ func b2s(b []byte) string { return *(*string)(unsafe.Pointer(&b)) }
 func cheaprandn(x uint32) uint32
 
 /*
-	  b := AppendableBytes(make([]byte, 0, 1024))
+	  b := appendablebytes(make([]byte, 0, 1024))
 	  b = b.Str("GET ").Str(req.RequestURI).Str(" HTTP/1.1\r\n")
 	  for key, values := range req.Header {
 		for _, value := range values {
@@ -50,49 +50,49 @@ func cheaprandn(x uint32) uint32
 	  }
 	  b = b.Str("\r\n")
 */
-type AppendableBytes []byte
+type appendablebytes []byte
 
-func (b AppendableBytes) Str(s string) AppendableBytes {
+func (b appendablebytes) Str(s string) appendablebytes {
 	return append(b, s...)
 }
 
-func (b AppendableBytes) Bytes(s []byte) AppendableBytes {
+func (b appendablebytes) Bytes(s []byte) appendablebytes {
 	return append(b, s...)
 }
 
-func (b AppendableBytes) Byte(c byte) AppendableBytes {
+func (b appendablebytes) Byte(c byte) appendablebytes {
 	return append(b, c)
 }
 
-func (b AppendableBytes) Base64(data []byte) AppendableBytes {
+func (b appendablebytes) Base64(data []byte) appendablebytes {
 	return base64.StdEncoding.AppendEncode(b, data)
 }
 
-func (b AppendableBytes) Hex(data []byte) AppendableBytes {
+func (b appendablebytes) Hex(data []byte) appendablebytes {
 	return hex.AppendEncode(b, data)
 }
 
-func (b AppendableBytes) NetIPAddr(ip netip.Addr) AppendableBytes {
+func (b appendablebytes) NetIPAddr(ip netip.Addr) appendablebytes {
 	return ip.AppendTo(b)
 }
 
-func (b AppendableBytes) NetIPAddrPort(addr netip.AddrPort) AppendableBytes {
+func (b appendablebytes) NetIPAddrPort(addr netip.AddrPort) appendablebytes {
 	return addr.AppendTo(b)
 }
 
-func (b AppendableBytes) Uint64(i uint64, base int) AppendableBytes {
+func (b appendablebytes) Uint64(i uint64, base int) appendablebytes {
 	return strconv.AppendUint(b, i, base)
 }
 
-func (b AppendableBytes) Float64(f float64) AppendableBytes {
+func (b appendablebytes) Float64(f float64) appendablebytes {
 	return strconv.AppendFloat(b, f, 'f', -1, 64)
 }
 
-func (b AppendableBytes) Int64(i int64, base int) AppendableBytes {
+func (b appendablebytes) Int64(i int64, base int) appendablebytes {
 	return strconv.AppendInt(b, i, base)
 }
 
-func (b AppendableBytes) Pad(c byte, base int) AppendableBytes {
+func (b appendablebytes) Pad(c byte, base int) appendablebytes {
 	n := (base - len(b)%base) % base
 	if n == 0 {
 		return b

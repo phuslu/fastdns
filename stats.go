@@ -260,7 +260,7 @@ func (s *CoreStats) UpdateStats(addr netip.AddrPort, msg *Message, duration time
 }
 
 func (s *CoreStats) AppendOpenMetrics(dst []byte) []byte {
-	b := AppendableBytes(dst)
+	b := appendablebytes(dst)
 
 	b = b.Str(s.Prefix).Str(`dns_request_count_total{family="`).Str(s.Family).Str(`",proto="`).Str(s.Proto).Str(`",server="`).Str(s.Server).Str(`",zone="`).Str(s.Zone).Str(`"} `).Uint64(atomic.LoadUint64(&s.RequestCountTotal), 10).Byte('\n')
 	b = b.Str(s.Prefix).Str(`dns_request_duration_seconds_bucket{server="`).Str(s.Server).Str(`",zone="`).Str(s.Zone).Str(`",le="0.00025"} `).Uint64(atomic.LoadUint64(&s.RequestDurationSecondsBucket_0_00025), 10).Byte('\n')
