@@ -206,22 +206,30 @@ goarch: amd64
 pkg: github.com/phuslu/fastdns
 cpu: AMD EPYC 7763 64-Core Processor
 
-BenchmarkParseMessage-4               	82899165	        14.70 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetQuestion-4                	40500043	        30.06 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSetResponseHeader-4          	333101234	         3.608 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeName-4                 	47590918	        23.08 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerHOST1-4               	151656412	         7.869 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerHOST-4                	140818957	         8.397 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerCNAME-4               	36251384	        33.21 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerSRV-4                 	46082176	        25.48 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerNS-4                  	32105473	        37.65 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerSOA-4                 	25117120	        54.71 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerMX-4                  	40611693	        38.65 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerPTR-4                 	41517327	        30.83 ns/op	       0 B/op	       0 allocs/op
-BenchmarkHandlerTXT-4                 	100000000	        10.18 ns/op	       0 B/op	       0 allocs/op
-BenchmarkUpdateStats-4                	39940761	        30.07 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAppendOpenMetrics-4          	  457724	      2643 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeDomain-4               	100000000	        11.75 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageParseMessage-4        	80922766	        14.68 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageEncodeDomain-4       	100000000	        12.78 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageSetQuestion-4         	40993672	        30.27 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageSetResponseHeader-4   	320204428	         3.606 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageDecodeName-4          	52074597	        23.07 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageAppendHOST-4          	183561132	         6.544 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageAppendCNAME-4         	42692521	        27.77 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageAppendSRV-4           	50555230	        23.85 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageAppendNS-4            	32065906	        36.33 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageAppendSOA-4           	26630746	        45.05 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageAppendPTR-4           	54242904	        22.74 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageAppendMX-4            	61512556	        19.59 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMessageAppendTXT-4           	166240762	         7.213 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerHOST1-4         	152072834	         7.914 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerHOST-4          	130878036	         8.404 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerCNAME-4         	36238018	        33.11 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerSRV-4           	47581225	        25.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerNS-4            	30977643	        39.82 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerSOA-4           	22182384	        54.29 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerMX-4            	42502989	        28.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerPTR-4           	40598533	        28.77 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerHandlerTXT-4           	100000000	        14.72 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerUpdateStats-4          	39958220	        30.05 ns/op	       0 B/op	       0 allocs/op
+BenchmarkServerAppendOpenMetrics-4    	  465868	      2662 ns/op	       0 B/op	       0 allocs/op
 
 PASS
 ok  	github.com/phuslu/fastdns
