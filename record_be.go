@@ -9,7 +9,7 @@ import (
 )
 
 // AppendHOST1Record appends a Host record to dst and returns the resulting dst.
-func AppendHOST1Record(dst []byte, req *Message, ttl uint32, ip netip.Addr) []byte {
+func (req *Message) AppendHOST1Record(dst []byte, ttl uint32, ip netip.Addr) []byte {
 	b := (*[16]byte)(unsafe.Pointer(&ip))
 	if ip.Is4() {
 		dst = append(dst,
@@ -50,7 +50,7 @@ func AppendHOST1Record(dst []byte, req *Message, ttl uint32, ip netip.Addr) []by
 }
 
 // AppendHOSTRecord appends the Host records to dst and returns the resulting dst.
-func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []netip.Addr) []byte {
+func (req *Message) AppendHOSTRecord(dst []byte, ttl uint32, ips []netip.Addr) []byte {
 	for _, ip := range ips {
 		b := (*[16]byte)(unsafe.Pointer(&ip))
 		if ip.Is4() {
@@ -93,7 +93,7 @@ func AppendHOSTRecord(dst []byte, req *Message, ttl uint32, ips []netip.Addr) []
 }
 
 // AppendCNAMERecord appends the CNAME and Host records to dst and returns the resulting dst.
-func AppendCNAMERecord(dst []byte, req *Message, ttl uint32, cnames []string, ips []netip.Addr) []byte {
+func (req *Message) AppendCNAMERecord(dst []byte, ttl uint32, cnames []string, ips []netip.Addr) []byte {
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {

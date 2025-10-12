@@ -5,7 +5,7 @@ import (
 )
 
 // AppendSRVRecord appends the SRV records to dst and returns the resulting dst.
-func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srvs []net.SRV) []byte {
+func (req *Message) AppendSRVRecord(dst []byte, ttl uint32, srvs []net.SRV) []byte {
 	// SRV Records
 	for _, srv := range srvs {
 		length := 8 + len(srv.Target)
@@ -34,7 +34,7 @@ func AppendSRVRecord(dst []byte, req *Message, ttl uint32, srvs []net.SRV) []byt
 }
 
 // AppendNSRecord appends the NS records to dst and returns the resulting dst.
-func AppendNSRecord(dst []byte, req *Message, ttl uint32, nameservers []net.NS) []byte {
+func (req *Message) AppendNSRecord(dst []byte, ttl uint32, nameservers []net.NS) []byte {
 	// NS Records
 	for _, ns := range nameservers {
 		dst = EncodeDomain(append(dst,
@@ -56,7 +56,7 @@ func AppendNSRecord(dst []byte, req *Message, ttl uint32, nameservers []net.NS) 
 }
 
 // AppendSOARecord appends the SOA records to dst and returns the resulting dst.
-func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) []byte {
+func (req *Message) AppendSOARecord(dst []byte, ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) []byte {
 	length := 2 + len(mname.Host) + 2 + len(rname.Host) + 4 + 4 + 4 + 4 + 4
 	dst = append(dst,
 		// NAME
@@ -93,7 +93,7 @@ func AppendSOARecord(dst []byte, req *Message, ttl uint32, mname, rname net.NS, 
 }
 
 // AppendMXRecord appends the MX records to dst and returns the resulting dst.
-func AppendMXRecord(dst []byte, req *Message, ttl uint32, mxs []net.MX) []byte {
+func (req *Message) AppendMXRecord(dst []byte, ttl uint32, mxs []net.MX) []byte {
 	// MX Records
 	for _, mx := range mxs {
 		length := 4 + len(mx.Host)
@@ -118,7 +118,7 @@ func AppendMXRecord(dst []byte, req *Message, ttl uint32, mxs []net.MX) []byte {
 }
 
 // AppendPTRRecord appends the PTR records to dst and returns the resulting dst.
-func AppendPTRRecord(dst []byte, req *Message, ttl uint32, ptr string) []byte {
+func (req *Message) AppendPTRRecord(dst []byte, ttl uint32, ptr string) []byte {
 	dst = EncodeDomain(append(dst,
 		// NAME
 		0xc0, 0x0c,
@@ -137,7 +137,7 @@ func AppendPTRRecord(dst []byte, req *Message, ttl uint32, ptr string) []byte {
 }
 
 // AppendTXTRecord appends the TXT records to dst and returns the resulting dst.
-func AppendTXTRecord(dst []byte, req *Message, ttl uint32, txt string) []byte {
+func (req *Message) AppendTXTRecord(dst []byte, ttl uint32, txt string) []byte {
 	length := len(txt) + (len(txt)+0xff)/0x100
 	dst = append(dst,
 		// NAME
