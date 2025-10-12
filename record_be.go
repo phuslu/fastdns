@@ -8,8 +8,8 @@ import (
 	"unsafe"
 )
 
-// AppendHOST1Record appends a Host record to msg.
-func (msg *Message) AppendHOST1Record(ttl uint32, ip netip.Addr) []byte {
+// AppendHOST1 appends a Host record to msg.
+func (msg *Message) AppendHOST1(ttl uint32, ip netip.Addr) []byte {
 	b := (*[16]byte)(unsafe.Pointer(&ip))
 	if ip.Is4() {
 		msg.Raw = append(msg.Raw,
@@ -47,8 +47,8 @@ func (msg *Message) AppendHOST1Record(ttl uint32, ip netip.Addr) []byte {
 	}
 }
 
-// AppendHOSTRecord appends the Host records to msg.
-func (msg *Message) AppendHOSTRecord(ttl uint32, ips []netip.Addr) []byte {
+// AppendHOST appends the Host records to msg.
+func (msg *Message) AppendHOST(ttl uint32, ips []netip.Addr) []byte {
 	for _, ip := range ips {
 		b := (*[16]byte)(unsafe.Pointer(&ip))
 		if ip.Is4() {
@@ -88,8 +88,8 @@ func (msg *Message) AppendHOSTRecord(ttl uint32, ips []netip.Addr) []byte {
 	}
 }
 
-// AppendCNAMERecord appends the CNAME and Host records to msg.
-func (msg *Message) AppendCNAMERecord(ttl uint32, cnames []string, ips []netip.Addr) []byte {
+// AppendCNAME appends the CNAME and Host records to msg.
+func (msg *Message) AppendCNAME(ttl uint32, cnames []string, ips []netip.Addr) []byte {
 	offset := 0x0c
 	// CName Records
 	for i, cname := range cnames {

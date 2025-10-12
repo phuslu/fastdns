@@ -47,40 +47,40 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	switch req.Question.Type {
 	case fastdns.TypeA:
 		req.SetResponseHeader(fastdns.RcodeNoError, 1)
-		req.AppendHOST1Record(600, netip.AddrFrom4([4]byte{8, 8, 8, 8}))
+		req.AppendHOST1(600, netip.AddrFrom4([4]byte{8, 8, 8, 8}))
 	case fastdns.TypeAAAA:
 		ips := []netip.Addr{netip.MustParseAddr("2001:4860:4860::8888")}
 		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(ips)))
-		req.AppendHOSTRecord(600, ips)
+		req.AppendHOST(600, ips)
 	case fastdns.TypeCNAME:
 		cnames, ips := []string{"dns.google"}, []netip.Addr{netip.MustParseAddr("8.8.8.8")}
 		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(cnames)+len(ips)))
-		req.AppendCNAMERecord(600, cnames, ips)
+		req.AppendCNAME(600, cnames, ips)
 	case fastdns.TypeSRV:
 		srvs := []net.SRV{{"www.google.com", 443, 1000, 1000}}
 		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(srvs)))
-		req.AppendSRVRecord(600, srvs)
+		req.AppendSRV(600, srvs)
 	case fastdns.TypeNS:
 		nameservers := []net.NS{{"ns1.google.com"}, {"ns2.google.com"}}
 		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(nameservers)))
-		req.AppendNSRecord(600, nameservers)
+		req.AppendNS(600, nameservers)
 	case fastdns.TypeSOA:
 		mname := net.NS{Host: "ns1.google.com"}
 		rname := net.NS{Host: "dns-admin.google.com"}
 		req.SetResponseHeader(fastdns.RcodeNoError, 1)
-		req.AppendSOARecord(600, mname, rname, 42, 900, 900, 1800, 60)
+		req.AppendSOA(600, mname, rname, 42, 900, 900, 1800, 60)
 	case fastdns.TypeMX:
 		mxs := []net.MX{{"mail.gmail.com", 10}, {"smtp.gmail.com", 10}}
 		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(mxs)))
-		req.AppendMXRecord(600, mxs)
+		req.AppendMX(600, mxs)
 	case fastdns.TypePTR:
 		ptr := "ptr.google.com"
 		req.SetResponseHeader(fastdns.RcodeNoError, 1)
-		req.AppendPTRRecord(600, ptr)
+		req.AppendPTR(600, ptr)
 	case fastdns.TypeTXT:
 		txt := "iamatxtrecord"
 		req.SetResponseHeader(fastdns.RcodeNoError, 1)
-		req.AppendTXTRecord(600, txt)
+		req.AppendTXT(600, txt)
 	default:
 		req.SetResponseHeader(fastdns.RcodeFormErr, 0)
 	}

@@ -31,7 +31,7 @@ func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Message) {
 	slog.Info("serve dns request", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
 	ips := []netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1})}
 	req.SetResponseHeader(RcodeNoError, uint16(len(ips)))
-	req.AppendHOSTRecord(600, ips)
+	req.AppendHOST(600, ips)
 	_, _ = rw.Write(req.Raw)
 }
 
@@ -234,7 +234,7 @@ func BenchmarkHandlerHOST1(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, 1)
-		req.AppendHOST1Record(600, ip)
+		req.AppendHOST1(600, ip)
 		_, _ = rw.Write(req.Raw)
 	}
 }
@@ -246,7 +246,7 @@ func BenchmarkHandlerHOST(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, uint16(len(ips)))
-		req.AppendHOSTRecord(600, ips)
+		req.AppendHOST(600, ips)
 		_, _ = rw.Write(req.Raw)
 	}
 }
@@ -259,7 +259,7 @@ func BenchmarkHandlerCNAME(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, uint16(len(cnames)+len(ips)))
-		req.AppendCNAMERecord(600, cnames, ips)
+		req.AppendCNAME(600, cnames, ips)
 		_, _ = rw.Write(req.Raw)
 	}
 }
@@ -271,7 +271,7 @@ func BenchmarkHandlerSRV(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, uint16(len(srvs)))
-		req.AppendSRVRecord(600, srvs)
+		req.AppendSRV(600, srvs)
 		_, _ = rw.Write(req.Raw)
 	}
 }
@@ -283,7 +283,7 @@ func BenchmarkHandlerNS(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, uint16(len(nameservers)))
-		req.AppendNSRecord(600, nameservers)
+		req.AppendNS(600, nameservers)
 		_, _ = rw.Write(req.Raw)
 	}
 }
@@ -296,7 +296,7 @@ func BenchmarkHandlerSOA(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, 1)
-		req.AppendSOARecord(600, mname, rname, 42, 900, 900, 1800, 60)
+		req.AppendSOA(600, mname, rname, 42, 900, 900, 1800, 60)
 		_, _ = rw.Write(req.Raw)
 	}
 }
@@ -308,7 +308,7 @@ func BenchmarkHandlerMX(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, uint16(len(mxs)))
-		req.AppendMXRecord(600, mxs)
+		req.AppendMX(600, mxs)
 		_, _ = rw.Write(req.Raw)
 	}
 }
@@ -320,7 +320,7 @@ func BenchmarkHandlerPTR(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, 1)
-		req.AppendPTRRecord(600, ptr)
+		req.AppendPTR(600, ptr)
 		_, _ = rw.Write(req.Raw)
 	}
 }
@@ -332,7 +332,7 @@ func BenchmarkHandlerTXT(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		req.SetResponseHeader(RcodeNoError, 1)
-		req.AppendTXTRecord(600, txt)
+		req.AppendTXT(600, txt)
 		_, _ = rw.Write(req.Raw)
 	}
 }

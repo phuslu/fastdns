@@ -4,8 +4,8 @@ import (
 	"net"
 )
 
-// AppendSRVRecord appends the SRV records to msg.
-func (msg *Message) AppendSRVRecord(ttl uint32, srvs []net.SRV) {
+// AppendSRV appends the SRV records to msg.
+func (msg *Message) AppendSRV(ttl uint32, srvs []net.SRV) {
 	// SRV Records
 	for _, srv := range srvs {
 		length := 8 + len(srv.Target)
@@ -31,8 +31,8 @@ func (msg *Message) AppendSRVRecord(ttl uint32, srvs []net.SRV) {
 	}
 }
 
-// AppendNSRecord appends the NS records to msg.
-func (msg *Message) AppendNSRecord(ttl uint32, nameservers []net.NS) {
+// AppendNS appends the NS records to msg.
+func (msg *Message) AppendNS(ttl uint32, nameservers []net.NS) {
 	// NS Records
 	for _, ns := range nameservers {
 		msg.Raw = EncodeDomain(append(msg.Raw,
@@ -51,8 +51,8 @@ func (msg *Message) AppendNSRecord(ttl uint32, nameservers []net.NS) {
 	}
 }
 
-// AppendSOARecord appends the SOA records to msg.
-func (msg *Message) AppendSOARecord(ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) {
+// AppendSOA appends the SOA records to msg.
+func (msg *Message) AppendSOA(ttl uint32, mname, rname net.NS, serial, refresh, retry, expire, minimum uint32) {
 	length := 2 + len(mname.Host) + 2 + len(rname.Host) + 4 + 4 + 4 + 4 + 4
 	msg.Raw = append(msg.Raw,
 		// NAME
@@ -86,8 +86,8 @@ func (msg *Message) AppendSOARecord(ttl uint32, mname, rname net.NS, serial, ref
 	)
 }
 
-// AppendMXRecord appends the MX records to msg.
-func (msg *Message) AppendMXRecord(ttl uint32, mxs []net.MX) {
+// AppendMX appends the MX records to msg.
+func (msg *Message) AppendMX(ttl uint32, mxs []net.MX) {
 	// MX Records
 	for _, mx := range mxs {
 		length := 4 + len(mx.Host)
@@ -109,8 +109,8 @@ func (msg *Message) AppendMXRecord(ttl uint32, mxs []net.MX) {
 	}
 }
 
-// AppendPTRRecord appends the PTR records to msg.
-func (msg *Message) AppendPTRRecord(ttl uint32, ptr string) {
+// AppendPTR appends the PTR records to msg.
+func (msg *Message) AppendPTR(ttl uint32, ptr string) {
 	msg.Raw = EncodeDomain(append(msg.Raw,
 		// NAME
 		0xc0, 0x0c,
@@ -126,8 +126,8 @@ func (msg *Message) AppendPTRRecord(ttl uint32, ptr string) {
 	), ptr)
 }
 
-// AppendTXTRecord appends the TXT records to msg.
-func (msg *Message) AppendTXTRecord(ttl uint32, txt string) {
+// AppendTXT appends the TXT records to msg.
+func (msg *Message) AppendTXT(ttl uint32, txt string) {
 	length := len(txt) + (len(txt)+0xff)/0x100
 	msg.Raw = append(msg.Raw,
 		// NAME

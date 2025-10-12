@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestAppendHOSTRecord(t *testing.T) {
+func TestAppendHOST(t *testing.T) {
 	cases := []struct {
 		Hex string
 		IPs []netip.Addr
@@ -29,15 +29,15 @@ func TestAppendHOSTRecord(t *testing.T) {
 	for _, c := range cases {
 		req := new(Message)
 		req.Question.Class = ClassINET
-		req.AppendHOSTRecord(c.TTL, c.IPs)
+		req.AppendHOST(c.TTL, c.IPs)
 		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
-			t.Errorf("AppendHOSTRecord(%v) error got=%#v want=%#v", c.IPs, got, want)
+			t.Errorf("AppendHOST(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
 
 }
 
-func TestAppendCNAMERecord(t *testing.T) {
+func TestAppendCNAME(t *testing.T) {
 	cases := []struct {
 		Hex    string
 		CNAMEs []string
@@ -68,15 +68,15 @@ func TestAppendCNAMERecord(t *testing.T) {
 		req := new(Message)
 		req.Question.Name = EncodeDomain(nil, "ip.phus.lu")
 		req.Question.Class = ClassINET
-		req.AppendCNAMERecord(c.TTL, c.CNAMEs, c.IPs)
+		req.AppendCNAME(c.TTL, c.CNAMEs, c.IPs)
 		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
-			t.Errorf("AppendCNAMERecord(%v) error got=%#v want=%#v", c.IPs, got, want)
+			t.Errorf("AppendCNAME(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
 
 }
 
-func TestAppendSRVRecord(t *testing.T) {
+func TestAppendSRV(t *testing.T) {
 	cases := []struct {
 		Hex string
 		TTL uint32
@@ -97,15 +97,15 @@ func TestAppendSRVRecord(t *testing.T) {
 	for _, c := range cases {
 		req := new(Message)
 		req.Question.Class = ClassINET
-		req.AppendSRVRecord(c.TTL, []net.SRV{c.SRV})
+		req.AppendSRV(c.TTL, []net.SRV{c.SRV})
 		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
-			t.Errorf("AppendSRVRecord(%v) error got=%#v want=%#v", c.SRV, got, want)
+			t.Errorf("AppendSRV(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
 	}
 
 }
 
-func TestAppendNSRecord(t *testing.T) {
+func TestAppendNS(t *testing.T) {
 	cases := []struct {
 		Hex         string
 		TTL         uint32
@@ -127,15 +127,15 @@ func TestAppendNSRecord(t *testing.T) {
 		req := new(Message)
 		req.Question.Name = EncodeDomain(nil, "ip.phus.lu")
 		req.Question.Class = ClassINET
-		req.AppendNSRecord(c.TTL, c.Nameservers)
+		req.AppendNS(c.TTL, c.Nameservers)
 		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
-			t.Errorf("AppendNSRecord(%v) error got=%#v want=%#v", c.Nameservers, got, want)
+			t.Errorf("AppendNS(%v) error got=%#v want=%#v", c.Nameservers, got, want)
 		}
 	}
 
 }
 
-func TestAppendSOARecord(t *testing.T) {
+func TestAppendSOA(t *testing.T) {
 	cases := []struct {
 		Hex     string
 		TTL     uint32
@@ -164,15 +164,15 @@ func TestAppendSOARecord(t *testing.T) {
 		req := new(Message)
 		req.Question.Name = EncodeDomain(nil, "www.google.com")
 		req.Question.Class = ClassINET
-		req.AppendSOARecord(c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)
+		req.AppendSOA(c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)
 		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
-			t.Errorf("AppendSOARecord(%v) error got=%#v want=%#v", c.MName, got, want)
+			t.Errorf("AppendSOA(%v) error got=%#v want=%#v", c.MName, got, want)
 		}
 	}
 
 }
 
-func TestAppendMXRecord(t *testing.T) {
+func TestAppendMX(t *testing.T) {
 	cases := []struct {
 		Hex string
 		TTL uint32
@@ -193,15 +193,15 @@ func TestAppendMXRecord(t *testing.T) {
 	for _, c := range cases {
 		req := new(Message)
 		req.Question.Class = ClassINET
-		req.AppendMXRecord(c.TTL, []net.MX{c.MX})
+		req.AppendMX(c.TTL, []net.MX{c.MX})
 		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
-			t.Errorf("AppendMXRecord(%v) error got=%#v want=%#v", c.MX, got, want)
+			t.Errorf("AppendMX(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
 	}
 
 }
 
-func TestAppendPTRRecord(t *testing.T) {
+func TestAppendPTR(t *testing.T) {
 	cases := []struct {
 		Hex string
 		PTR string
@@ -222,15 +222,15 @@ func TestAppendPTRRecord(t *testing.T) {
 	for _, c := range cases {
 		req := new(Message)
 		req.Question.Class = ClassINET
-		req.AppendPTRRecord(c.TTL, c.PTR)
+		req.AppendPTR(c.TTL, c.PTR)
 		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
-			t.Errorf("AppendPTRRecord(%v) error got=%#v want=%#v", c.PTR, got, want)
+			t.Errorf("AppendPTR(%v) error got=%#v want=%#v", c.PTR, got, want)
 		}
 	}
 
 }
 
-func TestAppendTXTRecord(t *testing.T) {
+func TestAppendTXT(t *testing.T) {
 	cases := []struct {
 		Hex string
 		TXT string
@@ -251,15 +251,15 @@ func TestAppendTXTRecord(t *testing.T) {
 	for _, c := range cases {
 		req := new(Message)
 		req.Question.Class = ClassINET
-		req.AppendTXTRecord(c.TTL, c.TXT)
+		req.AppendTXT(c.TTL, c.TXT)
 		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
-			t.Errorf("AppendTXTRecord(%v) error got=%#v want=%#v", c.TXT, got, want)
+			t.Errorf("AppendTXT(%v) error got=%#v want=%#v", c.TXT, got, want)
 		}
 	}
 
 }
 
-func BenchmarkAppendHOSTRecord(b *testing.B) {
+func BenchmarkAppendHOST(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -271,11 +271,11 @@ func BenchmarkAppendHOSTRecord(b *testing.B) {
 	ips := []netip.Addr{netip.AddrFrom4([4]byte{8, 8, 8, 8})}
 	for i := 0; i < b.N; i++ {
 		req.Raw = req.Raw[:size]
-		req.AppendHOSTRecord(3000, ips)
+		req.AppendHOST(3000, ips)
 	}
 }
 
-func BenchmarkAppendCNAMERecord(b *testing.B) {
+func BenchmarkAppendCNAME(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -287,11 +287,11 @@ func BenchmarkAppendCNAMERecord(b *testing.B) {
 	cnames := []string{"cname.example.org"}
 	for i := 0; i < b.N; i++ {
 		req.Raw = req.Raw[:size]
-		req.AppendCNAMERecord(3000, cnames, nil)
+		req.AppendCNAME(3000, cnames, nil)
 	}
 }
 
-func BenchmarkAppendSRVRecord(b *testing.B) {
+func BenchmarkAppendSRV(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -303,11 +303,11 @@ func BenchmarkAppendSRVRecord(b *testing.B) {
 	srv := net.SRV{Target: "service1.example.org", Port: 443, Priority: 100, Weight: 100}
 	for i := 0; i < b.N; i++ {
 		req.Raw = req.Raw[:size]
-		req.AppendSRVRecord(3000, []net.SRV{srv})
+		req.AppendSRV(3000, []net.SRV{srv})
 	}
 }
 
-func BenchmarkAppendNSRecord(b *testing.B) {
+func BenchmarkAppendNS(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -319,11 +319,11 @@ func BenchmarkAppendNSRecord(b *testing.B) {
 	nameservers := []net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}}
 	for i := 0; i < b.N; i++ {
 		req.Raw = req.Raw[:size]
-		req.AppendNSRecord(300, nameservers)
+		req.AppendNS(300, nameservers)
 	}
 }
 
-func BenchmarkAppendSOARecord(b *testing.B) {
+func BenchmarkAppendSOA(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -334,11 +334,11 @@ func BenchmarkAppendSOARecord(b *testing.B) {
 	size := len(req.Raw)
 	for i := 0; i < b.N; i++ {
 		req.Raw = req.Raw[:size]
-		req.AppendSOARecord(300, net.NS{Host: "ns1.google.com"}, net.NS{Host: "dns-admin.google.com"}, 1073741824, 900, 900, 1800, 60)
+		req.AppendSOA(300, net.NS{Host: "ns1.google.com"}, net.NS{Host: "dns-admin.google.com"}, 1073741824, 900, 900, 1800, 60)
 	}
 }
 
-func BenchmarkAppendPTRRecord(b *testing.B) {
+func BenchmarkAppendPTR(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -350,11 +350,11 @@ func BenchmarkAppendPTRRecord(b *testing.B) {
 	ptr := "ptr.example.org"
 	for i := 0; i < b.N; i++ {
 		req.Raw = req.Raw[:size]
-		req.AppendPTRRecord(3000, ptr)
+		req.AppendPTR(3000, ptr)
 	}
 }
 
-func BenchmarkAppendMXRecord(b *testing.B) {
+func BenchmarkAppendMX(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -366,11 +366,11 @@ func BenchmarkAppendMXRecord(b *testing.B) {
 	mx := net.MX{Host: "mail.google.com", Pref: 100}
 	for i := 0; i < b.N; i++ {
 		req.Raw = req.Raw[:size]
-		req.AppendMXRecord(3000, []net.MX{mx})
+		req.AppendMX(3000, []net.MX{mx})
 	}
 }
 
-func BenchmarkAppendTXTRecord(b *testing.B) {
+func BenchmarkAppendTXT(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -382,6 +382,6 @@ func BenchmarkAppendTXTRecord(b *testing.B) {
 	txt := "iamatxtrecord"
 	for i := 0; i < b.N; i++ {
 		req.Raw = req.Raw[:size]
-		req.AppendTXTRecord(3000, txt)
+		req.AppendTXT(3000, txt)
 	}
 }
