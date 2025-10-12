@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+// Handler is implemented by any value that implements ServeDNS.
+type Handler interface {
+	ServeDNS(rw ResponseWriter, req *Message)
+}
+
 // Server implements a mutli-listener DNS server.
 type Server struct {
 	// handler to invoke
@@ -194,7 +199,8 @@ func serveCtx(ctx *udpCtx) error {
 
 	err := ParseMessage(req, req.Raw, false)
 	if err != nil {
-		Error(rw, req, RcodeFormErr)
+		req.SetResponseHeader(RcodeFormErr, 0)
+		_, _ = rw.Write(req.Raw)
 	} else {
 		ctx.handler.ServeDNS(rw, req)
 	}

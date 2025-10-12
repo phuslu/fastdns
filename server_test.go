@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"net"
@@ -28,7 +29,10 @@ type mockServerHandler struct{}
 
 func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Message) {
 	slog.Info("serve dns request", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
-	HOST(rw, req, 300, []netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1})})
+	ips := []netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1})}
+	req.SetResponseHeader(RcodeNoError, uint16(len(ips)))
+	req.AppendHOSTRecord(600, ips)
+	_, _ = rw.Write(req.Raw)
 }
 
 func TestServerHost(t *testing.T) {
@@ -201,4 +205,134 @@ func TestServerForkParseMessageError(t *testing.T) {
 	}
 
 	_, _ = conn.Write([]byte{0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+}
+
+type nilResponseWriter struct{}
+
+func (rw *nilResponseWriter) RemoteAddr() netip.AddrPort { return netip.AddrPort{} }
+
+func (rw *nilResponseWriter) LocalAddr() netip.AddrPort { return netip.AddrPort{} }
+
+func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p), nil }
+
+func mockMessage() (msg *Message) {
+	// domain = hk.phus.lu
+	payload, _ := hex.DecodeString("00028180000100010000000002686b0470687573026c750000010001c00c000100010000012b0004771c56be")
+	msg = AcquireMessage()
+	err := ParseMessage(msg, payload, true)
+	if err != nil {
+		panic(err)
+	}
+
+	return
+}
+
+func BenchmarkHandlerHOST1(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	ip := netip.AddrFrom4([4]byte{8, 8, 8, 8})
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, 1)
+		req.AppendHOST1Record(600, ip)
+		_, _ = rw.Write(req.Raw)
+	}
+}
+
+func BenchmarkHandlerHOST(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	ips := []netip.Addr{netip.AddrFrom4([4]byte{8, 8, 8, 8})}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, uint16(len(ips)))
+		req.AppendHOSTRecord(600, ips)
+		_, _ = rw.Write(req.Raw)
+	}
+}
+
+func BenchmarkHandlerCNAME(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	cnames := []string{"cname.example.org"}
+	ips := []netip.Addr{netip.AddrFrom4([4]byte{1, 2, 3, 4})}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, uint16(len(cnames)+len(ips)))
+		req.AppendCNAMERecord(600, cnames, ips)
+		_, _ = rw.Write(req.Raw)
+	}
+}
+
+func BenchmarkHandlerSRV(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	srvs := []net.SRV{{Target: "service1.example.org", Port: 8001, Priority: 1000, Weight: 1000}}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, uint16(len(srvs)))
+		req.AppendSRVRecord(600, srvs)
+		_, _ = rw.Write(req.Raw)
+	}
+}
+
+func BenchmarkHandlerNS(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	nameservers := []net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, uint16(len(nameservers)))
+		req.AppendNSRecord(600, nameservers)
+		_, _ = rw.Write(req.Raw)
+	}
+}
+
+func BenchmarkHandlerSOA(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	mname := net.NS{Host: "ns1.google.com"}
+	rname := net.NS{Host: "dns-admin.google.com"}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, 1)
+		req.AppendSOARecord(600, mname, rname, 42, 900, 900, 1800, 60)
+		_, _ = rw.Write(req.Raw)
+	}
+}
+
+func BenchmarkHandlerMX(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	mxs := []net.MX{{Host: "mail.google.com", Pref: 100}}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, uint16(len(mxs)))
+		req.AppendMXRecord(600, mxs)
+		_, _ = rw.Write(req.Raw)
+	}
+}
+
+func BenchmarkHandlerPTR(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	ptr := "ptr.example.org"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, 1)
+		req.AppendPTRRecord(600, ptr)
+		_, _ = rw.Write(req.Raw)
+	}
+}
+
+func BenchmarkHandlerTXT(b *testing.B) {
+	rw := &nilResponseWriter{}
+	req := mockMessage()
+	txt := "iamatxtrecord"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req.SetResponseHeader(RcodeNoError, 1)
+		req.AppendTXTRecord(600, txt)
+		_, _ = rw.Write(req.Raw)
+	}
 }
