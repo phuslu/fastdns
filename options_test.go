@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestParseMessageOptions(t *testing.T) {
+func TestMessageParseMessageOptions(t *testing.T) {
 	var cases = []struct {
 		Hex string
 	}{

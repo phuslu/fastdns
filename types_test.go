@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestRcode(t *testing.T) {
+func TestTypeRcode(t *testing.T) {
 	var cases = []struct {
 		Rcode  Rcode
 		String string
@@ -39,7 +39,7 @@ func TestRcode(t *testing.T) {
 	}
 }
 
-func TestOpcode(t *testing.T) {
+func TestTypeOpcode(t *testing.T) {
 	var cases = []struct {
 		Opcode Opcode
 		String string
@@ -59,7 +59,7 @@ func TestOpcode(t *testing.T) {
 	}
 }
 
-func TestClass(t *testing.T) {
+func TestTypeClass(t *testing.T) {
 	var cases = []struct {
 		Class  Class
 		String string
@@ -80,7 +80,7 @@ func TestClass(t *testing.T) {
 	}
 }
 
-func TestType(t *testing.T) {
+func TestTypeString(t *testing.T) {
 	var cases = []struct {
 		Type   Type
 		String string

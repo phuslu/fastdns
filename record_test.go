@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestAppendHOST(t *testing.T) {
+func TestMessageAppendHOST(t *testing.T) {
 	cases := []struct {
 		Hex string
 		IPs []netip.Addr
@@ -37,7 +37,7 @@ func TestAppendHOST(t *testing.T) {
 
 }
 
-func TestAppendCNAME(t *testing.T) {
+func TestMessageAppendCNAME(t *testing.T) {
 	cases := []struct {
 		Hex    string
 		CNAMEs []string
@@ -76,7 +76,7 @@ func TestAppendCNAME(t *testing.T) {
 
 }
 
-func TestAppendSRV(t *testing.T) {
+func TestMessageAppendSRV(t *testing.T) {
 	cases := []struct {
 		Hex string
 		TTL uint32
@@ -105,7 +105,7 @@ func TestAppendSRV(t *testing.T) {
 
 }
 
-func TestAppendNS(t *testing.T) {
+func TestMessageAppendNS(t *testing.T) {
 	cases := []struct {
 		Hex         string
 		TTL         uint32
@@ -135,7 +135,7 @@ func TestAppendNS(t *testing.T) {
 
 }
 
-func TestAppendSOA(t *testing.T) {
+func TestMessageAppendSOA(t *testing.T) {
 	cases := []struct {
 		Hex     string
 		TTL     uint32
@@ -172,7 +172,7 @@ func TestAppendSOA(t *testing.T) {
 
 }
 
-func TestAppendMX(t *testing.T) {
+func TestMessageAppendMX(t *testing.T) {
 	cases := []struct {
 		Hex string
 		TTL uint32
@@ -201,7 +201,7 @@ func TestAppendMX(t *testing.T) {
 
 }
 
-func TestAppendPTR(t *testing.T) {
+func TestMessageAppendPTR(t *testing.T) {
 	cases := []struct {
 		Hex string
 		PTR string
@@ -230,7 +230,7 @@ func TestAppendPTR(t *testing.T) {
 
 }
 
-func TestAppendTXT(t *testing.T) {
+func TestMessageAppendTXT(t *testing.T) {
 	cases := []struct {
 		Hex string
 		TXT string
@@ -259,7 +259,7 @@ func TestAppendTXT(t *testing.T) {
 
 }
 
-func BenchmarkAppendHOST(b *testing.B) {
+func BenchmarkMessageAppendHOST(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -275,7 +275,7 @@ func BenchmarkAppendHOST(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendCNAME(b *testing.B) {
+func BenchmarkMessageAppendCNAME(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -291,7 +291,7 @@ func BenchmarkAppendCNAME(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendSRV(b *testing.B) {
+func BenchmarkMessageAppendSRV(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -307,7 +307,7 @@ func BenchmarkAppendSRV(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendNS(b *testing.B) {
+func BenchmarkMessageAppendNS(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -323,7 +323,7 @@ func BenchmarkAppendNS(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendSOA(b *testing.B) {
+func BenchmarkMessageAppendSOA(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -338,7 +338,7 @@ func BenchmarkAppendSOA(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendPTR(b *testing.B) {
+func BenchmarkMessageAppendPTR(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -354,7 +354,7 @@ func BenchmarkAppendPTR(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendMX(b *testing.B) {
+func BenchmarkMessageAppendMX(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 
@@ -370,7 +370,7 @@ func BenchmarkAppendMX(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendTXT(b *testing.B) {
+func BenchmarkMessageAppendTXT(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
 

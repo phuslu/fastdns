@@ -227,7 +227,7 @@ func mockMessage() (msg *Message) {
 	return
 }
 
-func BenchmarkHandlerHOST1(b *testing.B) {
+func BenchmarkServerHandlerHOST1(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	ip := netip.AddrFrom4([4]byte{8, 8, 8, 8})
@@ -239,7 +239,7 @@ func BenchmarkHandlerHOST1(b *testing.B) {
 	}
 }
 
-func BenchmarkHandlerHOST(b *testing.B) {
+func BenchmarkServerHandlerHOST(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	ips := []netip.Addr{netip.AddrFrom4([4]byte{8, 8, 8, 8})}
@@ -251,7 +251,7 @@ func BenchmarkHandlerHOST(b *testing.B) {
 	}
 }
 
-func BenchmarkHandlerCNAME(b *testing.B) {
+func BenchmarkServerHandlerCNAME(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	cnames := []string{"cname.example.org"}
@@ -264,7 +264,7 @@ func BenchmarkHandlerCNAME(b *testing.B) {
 	}
 }
 
-func BenchmarkHandlerSRV(b *testing.B) {
+func BenchmarkServerHandlerSRV(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	srvs := []net.SRV{{Target: "service1.example.org", Port: 8001, Priority: 1000, Weight: 1000}}
@@ -276,7 +276,7 @@ func BenchmarkHandlerSRV(b *testing.B) {
 	}
 }
 
-func BenchmarkHandlerNS(b *testing.B) {
+func BenchmarkServerHandlerNS(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	nameservers := []net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}}
@@ -288,7 +288,7 @@ func BenchmarkHandlerNS(b *testing.B) {
 	}
 }
 
-func BenchmarkHandlerSOA(b *testing.B) {
+func BenchmarkServerHandlerSOA(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	mname := net.NS{Host: "ns1.google.com"}
@@ -301,7 +301,7 @@ func BenchmarkHandlerSOA(b *testing.B) {
 	}
 }
 
-func BenchmarkHandlerMX(b *testing.B) {
+func BenchmarkServerHandlerMX(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	mxs := []net.MX{{Host: "mail.google.com", Pref: 100}}
@@ -313,7 +313,7 @@ func BenchmarkHandlerMX(b *testing.B) {
 	}
 }
 
-func BenchmarkHandlerPTR(b *testing.B) {
+func BenchmarkServerHandlerPTR(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	ptr := "ptr.example.org"
@@ -325,7 +325,7 @@ func BenchmarkHandlerPTR(b *testing.B) {
 	}
 }
 
-func BenchmarkHandlerTXT(b *testing.B) {
+func BenchmarkServerHandlerTXT(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
 	txt := "iamatxtrecord"

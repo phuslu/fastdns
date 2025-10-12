@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestParseMessageOK(t *testing.T) {
+func TestMessageParseMessageOK(t *testing.T) {
 	var cases = [2]struct {
 		Raw     []byte
 		Message *Message
@@ -97,7 +97,7 @@ func TestParseMessageOK(t *testing.T) {
 	}
 }
 
-func TestParseMessageError(t *testing.T) {
+func TestMessageParseMessageError(t *testing.T) {
 	var cases = []struct {
 		Hex   string
 		Error error
@@ -129,7 +129,23 @@ func TestParseMessageError(t *testing.T) {
 	}
 }
 
-func TestSetQuestion(t *testing.T) {
+func TestMessageEncodeDomain(t *testing.T) {
+	var cases = []struct {
+		Domain string
+		QName  string
+	}{
+		{"phus.lu", "\x04phus\x02lu\x00"},
+		{"splunk.phus.lu", "\x06splunk\x04phus\x02lu\x00"},
+	}
+
+	for _, c := range cases {
+		if got, want := string(EncodeDomain(nil, c.Domain)), c.QName; got != want {
+			t.Errorf("EncodeDomain(%v) error got=%#v want=%#v", c.Domain, got, want)
+		}
+	}
+}
+
+func TestMessageSetQuestion(t *testing.T) {
 	req := AcquireMessage()
 	defer ReleaseMessage(req)
 
@@ -176,7 +192,7 @@ func TestSetQuestion(t *testing.T) {
 	}
 }
 
-func TestDecodeName(t *testing.T) {
+func TestMessageDecodeName(t *testing.T) {
 	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
 
 	resp := AcquireMessage()
@@ -192,7 +208,7 @@ func TestDecodeName(t *testing.T) {
 	}
 }
 
-func BenchmarkParseMessage(b *testing.B) {
+func BenchmarkMessageParseMessage(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	var msg Message
 
@@ -203,7 +219,14 @@ func BenchmarkParseMessage(b *testing.B) {
 	}
 }
 
-func BenchmarkSetQuestion(b *testing.B) {
+func BenchmarkMessageEncodeDomain(b *testing.B) {
+	dst := make([]byte, 0, 256)
+	for i := 0; i < b.N; i++ {
+		dst = EncodeDomain(dst[:0], "hk.phus.lu")
+	}
+}
+
+func BenchmarkMessageSetQuestion(b *testing.B) {
 	req := AcquireMessage()
 	defer ReleaseMessage(req)
 
@@ -212,7 +235,7 @@ func BenchmarkSetQuestion(b *testing.B) {
 	}
 }
 
-func BenchmarkSetResponseHeader(b *testing.B) {
+func BenchmarkMessageSetResponseHeader(b *testing.B) {
 	req := AcquireMessage()
 	defer ReleaseMessage(req)
 
@@ -223,7 +246,7 @@ func BenchmarkSetResponseHeader(b *testing.B) {
 	}
 }
 
-func BenchmarkDecodeName(b *testing.B) {
+func BenchmarkMessageDecodeName(b *testing.B) {
 	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
 
 	resp := AcquireMessage()
