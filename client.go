@@ -65,8 +65,8 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 	if cookie, ok := ctx.Value(ClientCookieContextKey).(string); ok {
 		roa.AppendCookie(cookie)
 	}
-	if padding, ok := ctx.Value(ClientPaddingContextKey).(string); ok {
-		roa.AppendCookie(padding)
+	if padding, ok := ctx.Value(ClientPaddingContextKey).(uint16); ok {
+		roa.AppendPadding(padding)
 	}
 
 	_, err = conn.Write(req.Raw)

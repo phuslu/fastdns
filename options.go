@@ -212,6 +212,7 @@ func (a *MessageOptionsAppender) AppendPadding(padding uint16) {
 	if a.offset == 0 {
 		a.init()
 	}
+	padding = (uint16(len(a.msg.Raw)) + padding - 1) / padding * padding
 	a.msg.Raw = append(append(a.msg.Raw,
 		0x00, 0x0c, // Option Code: PADDING
 		byte(padding>>8), byte(padding&0xff), // Option Length
