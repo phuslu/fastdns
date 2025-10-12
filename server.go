@@ -213,3 +213,9 @@ func serveCtx(ctx *udpCtx) error {
 
 	return err
 }
+
+// Error replies to the request with the specified Rcode.
+func Error(rw ResponseWriter, req *Message, rcode Rcode) {
+	req.SetResponseHeader(rcode, 0)
+	_, _ = rw.Write(req.Raw)
+}
