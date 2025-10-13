@@ -187,7 +187,11 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *slog.Logger,
 		ctx.handler = handler
 		ctx.stats = stats
 
-		pool.Serve(ctx)
+		ok := pool.Serve(ctx)
+
+		if !ok {
+			udpCtxPool.Put(ctx)
+		}
 	}
 }
 
