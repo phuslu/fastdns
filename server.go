@@ -147,7 +147,7 @@ var udpCtxPool = &sync.Pool{
 		ctx := new(udpCtx)
 		ctx.rw = new(udpResponseWriter)
 		ctx.req = new(Message)
-		ctx.req.Raw = make([]byte, 0, 1024)
+		ctx.req.Raw = make([]byte, 0, MaxUDPSize)
 		ctx.req.Domain = make([]byte, 0, 256)
 		return ctx
 	},
