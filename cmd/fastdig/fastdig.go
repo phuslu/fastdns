@@ -18,6 +18,7 @@ import (
 	"github.com/phuslu/fastdns"
 )
 
+// main executes the fastdig CLI query flow.
 func main() {
 	domain, qtype, server, options := parse(os.Args[1:])
 
@@ -86,6 +87,7 @@ func main() {
 	}
 }
 
+// parse interprets CLI arguments into query parameters.
 func parse(args []string) (domain, qtype, server string, options []string) {
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
@@ -117,6 +119,7 @@ func parse(args []string) (domain, qtype, server string, options []string) {
 	return
 }
 
+// opt retrieves a named option value from the CLI arguments.
 func opt(option string, options []string) (string, bool) {
 	for _, s := range options {
 		switch {
@@ -129,6 +132,7 @@ func opt(option string, options []string) (string, bool) {
 	return "", false
 }
 
+// short prints a compact response summary similar to dig +short.
 func short(resp *fastdns.Message) {
 	records := resp.Records()
 	for records.Next() {
@@ -178,6 +182,7 @@ func short(resp *fastdns.Message) {
 	}
 }
 
+// cmd renders a verbose dig-compatible response.
 func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	var flags string
 	for _, f := range []struct {

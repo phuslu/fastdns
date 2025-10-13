@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestMessageParseMessageOK ensures valid wire payloads round-trip into Message.
 func TestMessageParseMessageOK(t *testing.T) {
 	var cases = [2]struct {
 		Raw     []byte
@@ -97,6 +98,7 @@ func TestMessageParseMessageOK(t *testing.T) {
 	}
 }
 
+// TestMessageParseMessageError validates parser failures for malformed inputs.
 func TestMessageParseMessageError(t *testing.T) {
 	var cases = []struct {
 		Hex   string
@@ -129,6 +131,7 @@ func TestMessageParseMessageError(t *testing.T) {
 	}
 }
 
+// TestMessageEncodeDomain encodes textual domains into DNS labels.
 func TestMessageEncodeDomain(t *testing.T) {
 	var cases = []struct {
 		Domain string
@@ -145,6 +148,7 @@ func TestMessageEncodeDomain(t *testing.T) {
 	}
 }
 
+// TestMessageSetQuestion populates a request header and question section.
 func TestMessageSetQuestion(t *testing.T) {
 	req := AcquireMessage()
 	defer ReleaseMessage(req)
@@ -192,6 +196,7 @@ func TestMessageSetQuestion(t *testing.T) {
 	}
 }
 
+// TestMessageDecodeName follows compression pointers back to the canon name.
 func TestMessageDecodeName(t *testing.T) {
 	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
 
@@ -208,6 +213,7 @@ func TestMessageDecodeName(t *testing.T) {
 	}
 }
 
+// BenchmarkMessageParseMessage measures ParseMessage throughput.
 func BenchmarkMessageParseMessage(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	var msg Message
@@ -219,6 +225,7 @@ func BenchmarkMessageParseMessage(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageEncodeDomain measures EncodeDomain allocation behavior.
 func BenchmarkMessageEncodeDomain(b *testing.B) {
 	dst := make([]byte, 0, 256)
 	for i := 0; i < b.N; i++ {
@@ -226,6 +233,7 @@ func BenchmarkMessageEncodeDomain(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageSetQuestion measures building questions repeatedly.
 func BenchmarkMessageSetQuestion(b *testing.B) {
 	req := AcquireMessage()
 	defer ReleaseMessage(req)
@@ -235,6 +243,7 @@ func BenchmarkMessageSetQuestion(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageSetResponseHeader measures response header updates.
 func BenchmarkMessageSetResponseHeader(b *testing.B) {
 	req := AcquireMessage()
 	defer ReleaseMessage(req)
@@ -246,6 +255,7 @@ func BenchmarkMessageSetResponseHeader(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageDecodeName measures compressed name decoding speed.
 func BenchmarkMessageDecodeName(b *testing.B) {
 	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
 

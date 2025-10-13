@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// TestMessageParseMessageOptions parses an OPT record and decodes its options.
 func TestMessageParseMessageOptions(t *testing.T) {
 	var cases = []struct {
 		Hex string

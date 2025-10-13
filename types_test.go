@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// TestTypeRcode verifies stringification of response codes.
 func TestTypeRcode(t *testing.T) {
 	var cases = []struct {
 		Rcode  Rcode
@@ -39,6 +40,7 @@ func TestTypeRcode(t *testing.T) {
 	}
 }
 
+// TestTypeOpcode verifies opcode stringification.
 func TestTypeOpcode(t *testing.T) {
 	var cases = []struct {
 		Opcode Opcode
@@ -59,6 +61,7 @@ func TestTypeOpcode(t *testing.T) {
 	}
 }
 
+// TestTypeClass verifies class stringification.
 func TestTypeClass(t *testing.T) {
 	var cases = []struct {
 		Class  Class
@@ -80,6 +83,7 @@ func TestTypeClass(t *testing.T) {
 	}
 }
 
+// TestTypeString verifies DNS type stringification over the supported set.
 func TestTypeString(t *testing.T) {
 	var cases = []struct {
 		Type   Type

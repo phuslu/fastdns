@@ -72,6 +72,7 @@ func (s *Server) Index() (index int) {
 	return
 }
 
+// spawn starts worker processes and restarts them when they exit.
 func (s *Server) spawn(addr string, maxProcs int) (err error) {
 	type racer struct {
 		index int
@@ -152,6 +153,7 @@ var udpCtxPool = &sync.Pool{
 	},
 }
 
+// serve reads UDP packets and dispatches them to the worker pool.
 func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *slog.Logger, concurrency int) error {
 	if concurrency == 0 {
 		concurrency = 256 * 1024
@@ -189,6 +191,7 @@ func serve(conn *net.UDPConn, handler Handler, stats Stats, logger *slog.Logger,
 	}
 }
 
+// serveCtx executes the handler for a single incoming DNS request.
 func serveCtx(ctx *udpCtx) error {
 	var start time.Time
 	if ctx.stats != nil {

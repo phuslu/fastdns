@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// TestMessageAppendHOST serializes A and AAAA answers into the message buffer.
 func TestMessageAppendHOST(t *testing.T) {
 	cases := []struct {
 		Hex string
@@ -37,6 +38,7 @@ func TestMessageAppendHOST(t *testing.T) {
 
 }
 
+// TestMessageAppendCNAME emits CNAME chains and optional address records.
 func TestMessageAppendCNAME(t *testing.T) {
 	cases := []struct {
 		Hex    string
@@ -76,6 +78,7 @@ func TestMessageAppendCNAME(t *testing.T) {
 
 }
 
+// TestMessageAppendSRV writes SRV records with varying priorities.
 func TestMessageAppendSRV(t *testing.T) {
 	cases := []struct {
 		Hex string
@@ -105,6 +108,7 @@ func TestMessageAppendSRV(t *testing.T) {
 
 }
 
+// TestMessageAppendNS writes NS records for different zones.
 func TestMessageAppendNS(t *testing.T) {
 	cases := []struct {
 		Hex         string
@@ -135,6 +139,7 @@ func TestMessageAppendNS(t *testing.T) {
 
 }
 
+// TestMessageAppendSOA emits an SOA record with expected fields.
 func TestMessageAppendSOA(t *testing.T) {
 	cases := []struct {
 		Hex     string
@@ -172,6 +177,7 @@ func TestMessageAppendSOA(t *testing.T) {
 
 }
 
+// TestMessageAppendMX serializes MX answers with priorities.
 func TestMessageAppendMX(t *testing.T) {
 	cases := []struct {
 		Hex string
@@ -201,6 +207,7 @@ func TestMessageAppendMX(t *testing.T) {
 
 }
 
+// TestMessageAppendPTR assembles PTR responses for reverse lookups.
 func TestMessageAppendPTR(t *testing.T) {
 	cases := []struct {
 		Hex string
@@ -230,6 +237,7 @@ func TestMessageAppendPTR(t *testing.T) {
 
 }
 
+// TestMessageAppendTXT builds TXT records including multi-chunk payloads.
 func TestMessageAppendTXT(t *testing.T) {
 	cases := []struct {
 		Hex string
@@ -259,6 +267,7 @@ func TestMessageAppendTXT(t *testing.T) {
 
 }
 
+// BenchmarkMessageAppendHOST measures host record serialization speed.
 func BenchmarkMessageAppendHOST(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
@@ -275,6 +284,7 @@ func BenchmarkMessageAppendHOST(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageAppendCNAME measures CNAME serialization speed.
 func BenchmarkMessageAppendCNAME(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
@@ -291,6 +301,7 @@ func BenchmarkMessageAppendCNAME(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageAppendSRV measures SRV serialization speed.
 func BenchmarkMessageAppendSRV(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
@@ -307,6 +318,7 @@ func BenchmarkMessageAppendSRV(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageAppendNS measures NS serialization speed.
 func BenchmarkMessageAppendNS(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
@@ -323,6 +335,7 @@ func BenchmarkMessageAppendNS(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageAppendSOA measures SOA serialization speed.
 func BenchmarkMessageAppendSOA(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
@@ -338,6 +351,7 @@ func BenchmarkMessageAppendSOA(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageAppendPTR measures PTR serialization speed.
 func BenchmarkMessageAppendPTR(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
@@ -354,6 +368,7 @@ func BenchmarkMessageAppendPTR(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageAppendMX measures MX serialization speed.
 func BenchmarkMessageAppendMX(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)
@@ -370,6 +385,7 @@ func BenchmarkMessageAppendMX(b *testing.B) {
 	}
 }
 
+// BenchmarkMessageAppendTXT measures TXT serialization speed.
 func BenchmarkMessageAppendTXT(b *testing.B) {
 	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
 	req := new(Message)

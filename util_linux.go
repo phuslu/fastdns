@@ -11,6 +11,7 @@ import (
 	"unsafe"
 )
 
+// listen binds a UDP socket with SO_REUSEPORT on Linux.
 func listen(network, address string) (*net.UDPConn, error) {
 	lc := &net.ListenConfig{
 		Control: func(network, address string, conn syscall.RawConn) error {
@@ -29,6 +30,7 @@ func listen(network, address string) (*net.UDPConn, error) {
 	return conn.(*net.UDPConn), nil
 }
 
+// taskset applies a CPU affinity mask to the current process.
 func taskset(cpu int) error {
 	const SYS_SCHED_SETAFFINITY = 203
 

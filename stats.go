@@ -96,6 +96,7 @@ type CoreStats struct {
 	Prefix, Family, Proto, Server, Zone string
 }
 
+// UpdateStats records the request metrics derived from the message and timing data.
 func (s *CoreStats) UpdateStats(addr netip.AddrPort, msg *Message, duration time.Duration) {
 	atomic.AddUint64(&s.RequestCountTotal, 1)
 	// request seconds
@@ -259,6 +260,7 @@ func (s *CoreStats) UpdateStats(addr netip.AddrPort, msg *Message, duration time
 	atomic.AddUint64(&s.ResponseSizeBytesCount, 1)
 }
 
+// AppendOpenMetrics appends Prometheus-formatted metrics to dst.
 func (s *CoreStats) AppendOpenMetrics(dst []byte) []byte {
 	b := appendablebytes(dst)
 

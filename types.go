@@ -33,6 +33,7 @@ const (
 	RcodeBADCOOKIE Rcode = 23 // Bad/missing Server Cookie         [DNS Cookies]
 )
 
+// String returns the canonical text form of the Rcode value.
 func (c Rcode) String() string {
 	switch c {
 	case RcodeNoError:
@@ -77,6 +78,7 @@ func (c Rcode) String() string {
 	return ""
 }
 
+// ParseRcode maps the provided text to a defined Rcode.
 func ParseRcode(rcode string) (Rcode, error) {
 	switch rcode {
 	case "NoError":
@@ -133,6 +135,7 @@ const (
 	OpcodeUpdate Opcode = 5
 )
 
+// String returns the textual opcode name.
 func (c Opcode) String() string {
 	switch c {
 	case OpcodeQuery:
@@ -158,42 +161,42 @@ func (c Opcode) String() string {
 // +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 type Flags uint16
 
-// QR is QR bit in Flags
+// QR returns the QR bit in Flags.
 func (f Flags) QR() byte {
 	return byte(f >> 15)
 }
 
-// Opcode is Opcode in Flags
+// Opcode extracts the opcode from Flags.
 func (f Flags) Opcode() Opcode {
 	return Opcode((f & 0b0111111111111111) >> 11)
 }
 
-// AA is AA bit in Flags
+// AA returns the AA bit in Flags.
 func (f Flags) AA() byte {
 	return byte((f & 0b0000010000000000) >> 10)
 }
 
-// TC is TC bit in Flags
+// TC returns the TC bit in Flags.
 func (f Flags) TC() byte {
 	return byte((f & 0b0000001000000000) >> 9)
 }
 
-// RD is RD bit in Flags
+// RD returns the RD bit in Flags.
 func (f Flags) RD() byte {
 	return byte((f & 0b0000000100000000) >> 8)
 }
 
-// RA is RA bit in Flags
+// RA returns the RA bit in Flags.
 func (f Flags) RA() byte {
 	return byte((f & 0b0000000010000000) >> 7)
 }
 
-// Z is Z bits in Flags
+// Z returns the Z bits in Flags.
 func (f Flags) Z() byte {
 	return byte((f & 0b0000000001110000) >> 4)
 }
 
-// Rcode is Rcode in Flags
+// Rcode extracts the response code from Flags.
 func (f Flags) Rcode() Rcode {
 	return Rcode((f & 0b0000000000001111))
 }
@@ -211,6 +214,7 @@ const (
 	ClassANY    Class = 255
 )
 
+// String returns the textual class identifier.
 func (c Class) String() string {
 	switch c {
 	case ClassINET:
@@ -320,6 +324,7 @@ const (
 	TypeReserved   Type = 65535
 )
 
+// String returns the mnemonic for the DNS record type.
 func (t Type) String() string {
 	switch t {
 	case TypeNone:

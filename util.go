@@ -8,10 +8,11 @@ import (
 	"unsafe"
 )
 
+// b2s converts a byte slice to a string without allocation.
 // nolint
 func b2s(b []byte) string { return *(*string)(unsafe.Pointer(&b)) }
 
-// cheaprandn returns a pseudorandom uint32 in [0,n).
+// cheaprandn returns a pseudorandom uint32 in [0, x).
 //
 //go:noescape
 //go:linkname cheaprandn runtime.cheaprandn
@@ -29,46 +30,57 @@ func cheaprandn(x uint32) uint32
 */
 type appendablebytes []byte
 
+// Str appends s to the buffer.
 func (b appendablebytes) Str(s string) appendablebytes {
 	return append(b, s...)
 }
 
+// Bytes appends raw bytes to the buffer.
 func (b appendablebytes) Bytes(s []byte) appendablebytes {
 	return append(b, s...)
 }
 
+// Byte appends a single byte to the buffer.
 func (b appendablebytes) Byte(c byte) appendablebytes {
 	return append(b, c)
 }
 
+// Base64 appends the base64 encoding of data to the buffer.
 func (b appendablebytes) Base64(data []byte) appendablebytes {
 	return base64.StdEncoding.AppendEncode(b, data)
 }
 
+// Hex appends the hexadecimal encoding of data to the buffer.
 func (b appendablebytes) Hex(data []byte) appendablebytes {
 	return hex.AppendEncode(b, data)
 }
 
+// NetIPAddr appends the textual representation of ip to the buffer.
 func (b appendablebytes) NetIPAddr(ip netip.Addr) appendablebytes {
 	return ip.AppendTo(b)
 }
 
+// NetIPAddrPort appends the textual representation of addr to the buffer.
 func (b appendablebytes) NetIPAddrPort(addr netip.AddrPort) appendablebytes {
 	return addr.AppendTo(b)
 }
 
+// Uint64 appends i formatted in the specified base.
 func (b appendablebytes) Uint64(i uint64, base int) appendablebytes {
 	return strconv.AppendUint(b, i, base)
 }
 
+// Float64 appends f using decimal notation.
 func (b appendablebytes) Float64(f float64) appendablebytes {
 	return strconv.AppendFloat(b, f, 'f', -1, 64)
 }
 
+// Int64 appends i formatted in the specified base.
 func (b appendablebytes) Int64(i int64, base int) appendablebytes {
 	return strconv.AppendInt(b, i, base)
 }
 
+// Pad right-aligns the buffer to the base by inserting the provided byte.
 func (b appendablebytes) Pad(c byte, base int) appendablebytes {
 	n := (base - len(b)%base) % base
 	if n == 0 {

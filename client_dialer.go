@@ -34,10 +34,12 @@ type UDPDialer struct {
 	conns chan net.Conn
 }
 
+// DialContext returns a pooled UDP connection for the requested network.
 func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 	return d.get()
 }
 
+// get initializes the UDP pool on first use and returns a connection handle.
 func (d *UDPDialer) get() (_ net.Conn, err error) {
 	d.once.Do(func() {
 		if d.MaxConns == 0 {
@@ -63,6 +65,7 @@ func (d *UDPDialer) get() (_ net.Conn, err error) {
 	return c, nil
 }
 
+// Put returns the UDP connection to the pool for reuse.
 func (d *UDPDialer) Put(conn net.Conn) {
 	d.conns <- conn
 }
@@ -91,10 +94,12 @@ type TCPDialer struct {
 	conns chan net.Conn
 }
 
+// DialContext returns a pooled TCP or TLS connection based on the dialer settings.
 func (d *TCPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 	return d.get()
 }
 
+// get initializes the TCP pool on first use and returns a wrapped connection.
 func (d *TCPDialer) get() (_ net.Conn, err error) {
 	d.once.Do(func() {
 		if d.MaxConns == 0 {
@@ -115,6 +120,7 @@ func (d *TCPDialer) get() (_ net.Conn, err error) {
 	return c, nil
 }
 
+// Put returns the TCP connection wrapper to the pool.
 func (d *TCPDialer) Put(conn net.Conn) {
 	d.conns <- conn
 }
@@ -125,6 +131,7 @@ type tcpConn struct {
 	buffer []byte
 }
 
+// Write ensures the underlying TCP or TLS connection is ready and sends the framed payload.
 func (c *tcpConn) Write(b []byte) (int, error) {
 	if c.Conn == nil {
 		var err error
@@ -145,6 +152,7 @@ func (c *tcpConn) Write(b []byte) (int, error) {
 	return n, err
 }
 
+// Read reads a framed DNS response from the TCP connection into b.
 func (c *tcpConn) Read(b []byte) (n int, err error) {
 	c.buffer = c.buffer[:cap(c.buffer)]
 	n, err = c.Conn.Read(c.buffer)
@@ -178,6 +186,7 @@ type HTTPDialer struct {
 	pool sync.Pool
 }
 
+// DialContext returns an HTTP connection wrapper for DNS-over-HTTPS queries.
 func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
 	d.once.Do(func() {
 		if d.Header == nil {
@@ -211,6 +220,7 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 	return c, nil
 }
 
+// Put releases the HTTP connection wrapper back to the pool.
 func (d *HTTPDialer) Put(conn net.Conn) {
 	if c, _ := conn.(*httpConn); c != nil {
 		d.pool.Put(c)
@@ -226,6 +236,7 @@ type httpConn struct {
 	resp   []byte
 }
 
+// Read copies buffered HTTP response bytes into b.
 func (c *httpConn) Read(b []byte) (n int, err error) {
 	if c.resp == nil {
 		err = io.EOF
@@ -242,6 +253,7 @@ func (c *httpConn) Read(b []byte) (n int, err error) {
 	return n, nil
 }
 
+// Write issues the DNS-over-HTTPS request and stores the response body for reads.
 func (c *httpConn) Write(b []byte) (n int, err error) {
 	var tr = c.dialer.Transport
 	if tr == nil {
@@ -273,26 +285,32 @@ func (c *httpConn) Write(b []byte) (n int, err error) {
 	return len(b), nil
 }
 
+// Close is a no-op to satisfy the net.Conn interface.
 func (c *httpConn) Close() (err error) {
 	return
 }
 
+// LocalAddr returns a placeholder local address for compatibility.
 func (c *httpConn) LocalAddr() net.Addr {
 	return &net.TCPAddr{}
 }
 
+// RemoteAddr returns a placeholder remote address for compatibility.
 func (c *httpConn) RemoteAddr() net.Addr {
 	return &net.TCPAddr{}
 }
 
+// SetDeadline is a stub to satisfy the net.Conn interface.
 func (c *httpConn) SetDeadline(t time.Time) error {
 	return nil
 }
 
+// SetReadDeadline is a stub to satisfy the net.Conn interface.
 func (c *httpConn) SetReadDeadline(t time.Time) error {
 	return nil
 }
 
+// SetWriteDeadline is a stub to satisfy the net.Conn interface.
 func (c *httpConn) SetWriteDeadline(t time.Time) error {
 	return nil
 }
@@ -313,6 +331,7 @@ type bufferwriter struct {
 	B []byte
 }
 
+// Write appends p to the buffered writer backing store.
 func (b *bufferwriter) Write(p []byte) (int, error) {
 	b.B = append(b.B, p...)
 	return len(p), nil
@@ -322,6 +341,7 @@ type bufferreader struct {
 	B []byte
 }
 
+// Read copies buffered data into b or reports EOF when exhausted.
 func (r *bufferreader) Read(b []byte) (int, error) {
 	if r.B == nil {
 		return 0, io.EOF
@@ -337,11 +357,13 @@ func (r *bufferreader) Read(b []byte) (int, error) {
 	return n, nil
 }
 
+// Close releases the buffered reader resources.
 func (r *bufferreader) Close() error {
 	r.B = nil
 	return nil
 }
 
+// WriteTo writes the buffered data to w.
 func (r *bufferreader) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(r.B)
 	return int64(n), err

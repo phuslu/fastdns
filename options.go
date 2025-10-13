@@ -10,6 +10,7 @@ var (
 	ErrInvalidOption = errors.New("dns message does not have the expected option size")
 )
 
+// AsOptions converts an OPT record into message options.
 func (r *MessageRecord) AsOptions() (options MessageOptions, err error) {
 	if r.Type != TypeOPT {
 		err = ErrInvalidOption
@@ -50,6 +51,7 @@ type MessageOptions struct {
 	option MessageOption
 }
 
+// Next advances to the next available option.
 func (o *MessageOptions) Next() bool {
 	if o.error != nil || len(o.data) == 0 {
 		return false
@@ -69,10 +71,12 @@ func (o *MessageOptions) Next() bool {
 	return true
 }
 
+// Item returns the current option.
 func (o *MessageOptions) Item() MessageOption {
 	return o.option
 }
 
+// Err reports the iteration error.
 func (o *MessageOptions) Err() error {
 	return o.error
 }
@@ -82,6 +86,7 @@ type MessageOption struct {
 	Data []byte
 }
 
+// AsSubnet decodes an ECS option into a subnet prefix.
 func (o MessageOption) AsSubnet() (netip.Prefix, error) {
 	if o.Code != OptionCodeECS || len(o.Data) < 4 {
 		return netip.Prefix{}, ErrInvalidOption
@@ -120,6 +125,7 @@ func (o MessageOption) AsSubnet() (netip.Prefix, error) {
 	}
 }
 
+// AsCookie decodes a COOKIE option payload.
 func (o MessageOption) AsCookie() (string, error) {
 	if o.Code != OptionCodeCOOKIE {
 		return "", ErrInvalidOption
@@ -130,6 +136,7 @@ func (o MessageOption) AsCookie() (string, error) {
 	return string(o.Data), nil
 }
 
+// AsPadding returns the padding option payload.
 func (o MessageOption) AsPadding() (string, error) {
 	if o.Code != OptionCodePadding {
 		return "", ErrInvalidOption
@@ -137,7 +144,7 @@ func (o MessageOption) AsPadding() (string, error) {
 	return string(o.Data), nil
 }
 
-// OptionsAppender return an options appender for request message.
+// OptionsAppender constructs an EDNS options appender for the message.
 func (msg *Message) OptionsAppender() (moa MessageOptionsAppender, err error) {
 	return MessageOptionsAppender{msg: msg}, nil
 }
@@ -147,6 +154,7 @@ type MessageOptionsAppender struct {
 	offset int
 }
 
+// init prepares the message for appending options.
 func (a *MessageOptionsAppender) init() {
 	a.msg.Header.ARCount++
 	a.msg.Raw[10] = byte(a.msg.Header.ARCount >> 8)
@@ -163,6 +171,7 @@ func (a *MessageOptionsAppender) init() {
 	a.offset = len(a.msg.Raw) - 2
 }
 
+// AppendSubnet adds an ECS option for the given prefix.
 func (a *MessageOptionsAppender) AppendSubnet(prefix netip.Prefix) {
 	if a.offset == 0 {
 		a.init()
@@ -189,12 +198,14 @@ func (a *MessageOptionsAppender) AppendSubnet(prefix netip.Prefix) {
 		0x00, family, // Family: IPv4/IPv6
 		byte(bits), // Source Netmask: bits
 		0x00,       // Scope Netmask: 0
+		// IP slice
 	), ip...)
 	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 4 + 4 + uint16(count)
 	a.msg.Raw[a.offset] = byte(length >> 8)
 	a.msg.Raw[a.offset+1] = byte(length & 0xff)
 }
 
+// AppendCookie adds a COOKIE option to the message.
 func (a *MessageOptionsAppender) AppendCookie(cookie string) {
 	if a.offset == 0 {
 		a.init()
@@ -208,6 +219,7 @@ func (a *MessageOptionsAppender) AppendCookie(cookie string) {
 	a.msg.Raw[a.offset+1] = byte(length & 0xff)
 }
 
+// AppendPadding grows the message with a padding option.
 func (a *MessageOptionsAppender) AppendPadding(padding uint16) {
 	if a.offset == 0 {
 		a.init()
@@ -216,6 +228,7 @@ func (a *MessageOptionsAppender) AppendPadding(padding uint16) {
 	a.msg.Raw = append(append(a.msg.Raw,
 		0x00, 0x0c, // Option Code: PADDING
 		byte(padding>>8), byte(padding&0xff), // Option Length
+		// Padding
 	), make([]byte, padding)...)
 	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 2 + 2 + padding
 	a.msg.Raw[a.offset] = byte(length >> 8)

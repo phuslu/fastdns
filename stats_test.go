@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// BenchmarkServerUpdateStats measures the bookkeeping for incoming requests.
 func BenchmarkServerUpdateStats(b *testing.B) {
 	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
 
@@ -34,6 +35,7 @@ func BenchmarkServerUpdateStats(b *testing.B) {
 	}
 }
 
+// BenchmarkServerAppendOpenMetrics measures metrics rendering throughput.
 func BenchmarkServerAppendOpenMetrics(b *testing.B) {
 	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
 

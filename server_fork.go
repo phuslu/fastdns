@@ -69,6 +69,7 @@ func (s *ForkServer) Index() (index int) {
 	return
 }
 
+// fork launches a child process with the provided worker index.
 func fork(index int) (*exec.Cmd, error) {
 	/* #nosec G204 */
 	cmd := exec.Command(os.Args[0], os.Args[1:]...)
@@ -78,6 +79,7 @@ func fork(index int) (*exec.Cmd, error) {
 	return cmd, cmd.Start()
 }
 
+// fork supervises child processes and restarts them as needed.
 func (s *ForkServer) fork(addr string, maxProcs int) (err error) {
 	type racer struct {
 		index int

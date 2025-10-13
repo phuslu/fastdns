@@ -15,6 +15,7 @@ import (
 	"unsafe"
 )
 
+// TestClientContext ensures the HTTP request context pointer patching works.
 func TestClientContext(t *testing.T) {
 	key, value := struct{ key string }{key: "a"}, "b"
 
@@ -30,6 +31,7 @@ func TestClientContext(t *testing.T) {
 	}
 }
 
+// TestClientExchange exercises the UDP exchange path against a public resolver.
 func TestClientExchange(t *testing.T) {
 	var cases = []struct {
 		Domain string
@@ -67,6 +69,7 @@ func TestClientExchange(t *testing.T) {
 	}
 }
 
+// deref converts slices of pointers into slices of values for easier logging.
 func deref(value any) any {
 	v := reflect.ValueOf(value)
 	if v.Kind() != reflect.Slice {
@@ -84,6 +87,7 @@ func deref(value any) any {
 	return result
 }
 
+// TestClientLookup validates the high-level lookup helpers across transports.
 func TestClientLookup(t *testing.T) {
 	var cases = []struct {
 		Host string
@@ -167,6 +171,7 @@ func TestClientLookup(t *testing.T) {
 	}
 }
 
+// TestClientLookupNetIP resolves both IPv4 and IPv6 addresses via LookupNetIP.
 func TestClientLookupNetIP(t *testing.T) {
 	host := "ip.phus.lu"
 
@@ -182,6 +187,7 @@ func TestClientLookupNetIP(t *testing.T) {
 	t.Logf("dns_server=%+v LookupNetIP(%#v) return %+v", client.Addr, host, ips)
 }
 
+// TestClientLookupNetIPWithSubnet propagates the EDNS subnet option into lookups.
 func TestClientLookupNetIPWithSubnet(t *testing.T) {
 	host := "www.google.com"
 
@@ -199,6 +205,7 @@ func TestClientLookupNetIPWithSubnet(t *testing.T) {
 	t.Logf("dns_server=%+v LookupNetIP(%#v) return %+v", client.Addr, host, ips)
 }
 
+// TestClientLookupSRV verifies SRV lookups and result decoding.
 func TestClientLookupSRV(t *testing.T) {
 	client := &Client{
 		Addr:    "1.1.1.1:53",
@@ -212,6 +219,7 @@ func TestClientLookupSRV(t *testing.T) {
 	t.Logf("dns_server=%+v LookupSRV(\"_xmpp-client._tcp.jabber.org\") return %+v %+v", client.Addr, cname, deref(ips))
 }
 
+// BenchmarkResolverPureGo measures the standard library resolver performance.
 func BenchmarkResolverPureGo(b *testing.B) {
 	resolver := net.Resolver{PreferGo: true}
 
@@ -224,6 +232,7 @@ func BenchmarkResolverPureGo(b *testing.B) {
 	})
 }
 
+// BenchmarkResolverFastdnsDefault benchmarks the client with default socket dialing.
 func BenchmarkResolverFastdnsDefault(b *testing.B) {
 	server := "8.8.8.8:53"
 	if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
@@ -249,6 +258,7 @@ func BenchmarkResolverFastdnsDefault(b *testing.B) {
 	})
 }
 
+// BenchmarkResolverFastdnsUDP benchmarks the UDP connection pool dialer.
 func BenchmarkResolverFastdnsUDP(b *testing.B) {
 	server := "8.8.8.8:53"
 	if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
@@ -278,6 +288,7 @@ func BenchmarkResolverFastdnsUDP(b *testing.B) {
 	})
 }
 
+// BenchmarkResolverFastdnsUDPAppend measures AppendLookupNetIP with pooled buffers.
 func BenchmarkResolverFastdnsUDPAppend(b *testing.B) {
 	server := "8.8.8.8:53"
 	if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
@@ -309,6 +320,7 @@ func BenchmarkResolverFastdnsUDPAppend(b *testing.B) {
 	})
 }
 
+// BenchmarkResolverFastdnsTCP measures TCP-based DNS lookups.
 func BenchmarkResolverFastdnsTCP(b *testing.B) {
 	server := "1.1.1.1:53"
 
@@ -332,6 +344,7 @@ func BenchmarkResolverFastdnsTCP(b *testing.B) {
 	})
 }
 
+// BenchmarkResolverFastdnsTLS measures DNS-over-TLS lookups.
 func BenchmarkResolverFastdnsTLS(b *testing.B) {
 	server := "1.1.1.1:853"
 
@@ -360,6 +373,7 @@ func BenchmarkResolverFastdnsTLS(b *testing.B) {
 	})
 }
 
+// BenchmarkResolverFastdnsHTTP measures DNS-over-HTTPS lookups.
 func BenchmarkResolverFastdnsHTTP(b *testing.B) {
 	server := "1.1.1.1"
 

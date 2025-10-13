@@ -46,14 +46,17 @@ type udpResponseWriter struct {
 	AddrPort netip.AddrPort
 }
 
+// RemoteAddr returns the remote UDP address for the response writer.
 func (rw *udpResponseWriter) RemoteAddr() netip.AddrPort {
 	return rw.AddrPort
 }
 
+// LocalAddr returns the local UDP address used to send responses.
 func (rw *udpResponseWriter) LocalAddr() netip.AddrPort {
 	return rw.Conn.LocalAddr().(*net.UDPAddr).AddrPort()
 }
 
+// Write sends the DNS response payload to the remote client.
 func (rw *udpResponseWriter) Write(p []byte) (n int, err error) {
 	n, _, err = rw.Conn.WriteMsgUDPAddrPort(p, nil, rw.AddrPort)
 	return

@@ -228,6 +228,7 @@ type MessageRecords struct {
 	record  MessageRecord
 }
 
+// Next advances to the next resource record and reports whether one exists.
 func (r *MessageRecords) Next() bool {
 	if r.error != nil || r.count == 0 {
 		return false
@@ -259,15 +260,17 @@ func (r *MessageRecords) Next() bool {
 	return true
 }
 
+// Item returns the current resource record.
 func (r *MessageRecords) Item() MessageRecord {
 	return r.record
 }
 
+// Err reports the first error encountered during iteration.
 func (r *MessageRecords) Err() error {
 	return r.error
 }
 
-// Records return items in the msg in the original order of the parsed RR.
+// Records returns the message records in their original wire order.
 func (msg *Message) Records() (records MessageRecords) {
 	records.count = msg.Header.ANCount + msg.Header.NSCount + msg.Header.ARCount
 	if n := 16 + len(msg.Question.Name); n <= len(msg.Raw) {
@@ -301,7 +304,7 @@ func EncodeDomain(dst []byte, domain string) []byte {
 	return dst
 }
 
-// SetRequestQuestion set question for DNS request.
+// SetRequestQuestion primes the message with a standard DNS query header and question.
 func (msg *Message) SetRequestQuestion(domain string, typ Type, class Class) {
 	// random head id
 	msg.Header.ID = uint16(cheaprandn(65536))
@@ -428,12 +431,12 @@ var msgPool = sync.Pool{
 	},
 }
 
-// AcquireMessage returns new dns request.
+// AcquireMessage retrieves a reusable Message from the pool.
 func AcquireMessage() *Message {
 	return msgPool.Get().(*Message)
 }
 
-// ReleaseMessage returnes the dns request to the pool.
+// ReleaseMessage releases the Message back into the pool.
 func ReleaseMessage(msg *Message) {
 	msgPool.Put(msg)
 }

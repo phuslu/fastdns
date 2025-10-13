@@ -44,6 +44,7 @@ type workerChan struct {
 	ch          chan workerItem
 }
 
+// Start initializes the worker pool and kicks off the reaper goroutine.
 func (wp *workerPool) Start() {
 	if wp.stopCh != nil {
 		panic("BUG: workerPool already started")
@@ -69,6 +70,7 @@ func (wp *workerPool) Start() {
 	}()
 }
 
+// Stop signals all workers to exit and resets the pool state.
 func (wp *workerPool) Stop() {
 	if wp.stopCh == nil {
 		panic("BUG: workerPool wasn't started")
@@ -90,6 +92,7 @@ func (wp *workerPool) Stop() {
 	wp.lock.Unlock()
 }
 
+// getMaxIdleWorkerDuration returns the configured idle timeout or a default.
 func (wp *workerPool) getMaxIdleWorkerDuration() time.Duration {
 	if wp.MaxIdleWorkerDuration <= 0 {
 		return 10 * time.Second
@@ -97,6 +100,7 @@ func (wp *workerPool) getMaxIdleWorkerDuration() time.Duration {
 	return wp.MaxIdleWorkerDuration
 }
 
+// clean tears down workers that have been idle past the threshold.
 func (wp *workerPool) clean(scratch *[]*workerChan) {
 	maxIdleWorkerDuration := wp.getMaxIdleWorkerDuration()
 
@@ -143,6 +147,7 @@ func (wp *workerPool) clean(scratch *[]*workerChan) {
 	}
 }
 
+// Serve hands the context to an available worker.
 func (wp *workerPool) Serve(ctx *udpCtx) bool {
 	ch := wp.getCh()
 	if ch == nil {
@@ -152,6 +157,7 @@ func (wp *workerPool) Serve(ctx *udpCtx) bool {
 	return true
 }
 
+// workerChanCap calculates the optimal channel capacity based on GOMAXPROCS.
 var workerChanCap = func() int {
 	// Use blocking workerChan if GOMAXPROCS=1.
 	// This immediately switches Serve to WorkerFunc, which results
@@ -166,6 +172,7 @@ var workerChanCap = func() int {
 	return 1
 }()
 
+// getCh fetches an idle worker channel or spins up a new worker.
 func (wp *workerPool) getCh() *workerChan {
 	var ch *workerChan
 	createWorker := false
@@ -199,6 +206,7 @@ func (wp *workerPool) getCh() *workerChan {
 	return ch
 }
 
+// release updates the worker timestamp and requeues it if the pool is active.
 func (wp *workerPool) release(ch *workerChan) bool {
 	ch.lastUseTime = time.Now()
 	wp.lock.Lock()
@@ -211,6 +219,7 @@ func (wp *workerPool) release(ch *workerChan) bool {
 	return true
 }
 
+// workerFunc consumes work items from the channel until shutdown.
 func (wp *workerPool) workerFunc(ch *workerChan) {
 	var item workerItem
 

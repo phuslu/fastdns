@@ -16,7 +16,7 @@ type DNSHandler struct {
 	Debug     bool
 }
 
-// ServeDNS implements fastdns.Handler
+// ServeDNS proxies DNS requests to the configured upstream client.
 func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	if h.Debug {
 		slog.Info("serve dns request", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
@@ -52,6 +52,7 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 	_, _ = rw.Write(resp.Raw)
 }
 
+// main runs the DNS-over-HTTPS service entry point.
 func main() {
 	addr := os.Args[1]
 

@@ -275,8 +275,7 @@ func (c *Client) LookupHTTPS(ctx context.Context, host string) (https []NetHTTPS
 	return
 }
 
-// LookupSRV tries to resolve an SRV query of the given service, protocol, and domain name.
-// The proto is "tcp" or "udp". The returned records are sorted by priority and randomized by weight within a priority.
+// LookupSRV resolves SRV records and returns them sorted by priority with weight-based shuffling.
 func (c *Client) LookupSRV(ctx context.Context, service, proto, name string) (target string, srvs []*net.SRV, err error) {
 	if service == "" && proto == "" {
 		target = name
@@ -330,8 +329,7 @@ func (c *Client) LookupSRV(ctx context.Context, service, proto, name string) (ta
 // byPriorityWeight sorts SRV records by ascending priority and weight.
 type byPriorityWeight []*net.SRV
 
-// shuffleByWeight shuffles SRV records by weight using the algorithm
-// described in RFC 2782.
+// shuffleByWeight shuffles SRV records by the RFC 2782 weight algorithm.
 func (addrs byPriorityWeight) shuffleByWeight() {
 	sum := 0
 	for _, addr := range addrs {

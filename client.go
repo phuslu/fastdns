@@ -27,8 +27,7 @@ type Client struct {
 	Dialer Dialer
 }
 
-// Exchange executes a single DNS transaction, returning
-// a Response for the provided Request.
+// Exchange executes a DNS transaction and unmarshals the response into resp.
 func (c *Client) Exchange(ctx context.Context, req, resp *Message) (err error) {
 	err = c.exchange(ctx, req, resp)
 	// if err != nil && os.IsTimeout(err) {
@@ -37,6 +36,7 @@ func (c *Client) Exchange(ctx context.Context, req, resp *Message) (err error) {
 	return err
 }
 
+// exchange performs the transport-level DNS round trip with the configured dialer.
 func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 	dialer := c.Dialer
 	if dialer == nil {

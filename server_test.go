@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// allocAddr picks an available localhost port for testing.
 func allocAddr() string {
 	for i := 20001; i < 50000; i++ {
 		addr := fmt.Sprintf("127.0.0.1:%d", i)
@@ -27,6 +28,7 @@ func allocAddr() string {
 
 type mockServerHandler struct{}
 
+// ServeDNS writes a canned host record for the queried name.
 func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Message) {
 	slog.Info("serve dns request", "remote_addr", rw.RemoteAddr(), "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
 	ips := []netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1})}
@@ -35,6 +37,7 @@ func (h *mockServerHandler) ServeDNS(rw ResponseWriter, req *Message) {
 	_, _ = rw.Write(req.Raw)
 }
 
+// TestServerHost spins up the UDP server and verifies a basic lookup.
 func TestServerHost(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		// On Windows, the resolver always uses C library functions, such as GetAddrInfo and DnsQuery.
@@ -93,6 +96,7 @@ func TestServerHost(t *testing.T) {
 // 	}
 // }
 
+// TestServerParseMessageError ensures malformed packets are handled safely.
 func TestServerParseMessageError(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		// On Windows, the resolver always uses C library functions, such as GetAddrInfo and DnsQuery.
@@ -127,6 +131,7 @@ func TestServerParseMessageError(t *testing.T) {
 	_, _ = conn.Write([]byte{0x00, 0x02, 0x01, 0x00, 0x00, 0x00})
 }
 
+// TestServerForkHost validates the prefork server handles lookups.
 func TestServerForkHost(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		// On Windows, the resolver always uses C library functions, such as GetAddrInfo and DnsQuery.
@@ -171,6 +176,7 @@ func TestServerForkHost(t *testing.T) {
 	}
 }
 
+// TestServerForkParseMessageError checks error handling in the prefork server.
 func TestServerForkParseMessageError(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		// On Windows, the resolver always uses C library functions, such as GetAddrInfo and DnsQuery.
@@ -209,12 +215,16 @@ func TestServerForkParseMessageError(t *testing.T) {
 
 type nilResponseWriter struct{}
 
+// RemoteAddr returns an empty remote address for test doubles.
 func (rw *nilResponseWriter) RemoteAddr() netip.AddrPort { return netip.AddrPort{} }
 
+// LocalAddr returns an empty local address for test doubles.
 func (rw *nilResponseWriter) LocalAddr() netip.AddrPort { return netip.AddrPort{} }
 
+// Write reports that the payload length was consumed.
 func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p), nil }
 
+// mockMessage decodes a canned DNS response for reuse in benchmarks.
 func mockMessage() (msg *Message) {
 	// domain = hk.phus.lu
 	payload, _ := hex.DecodeString("00028180000100010000000002686b0470687573026c750000010001c00c000100010000012b0004771c56be")
@@ -227,6 +237,7 @@ func mockMessage() (msg *Message) {
 	return
 }
 
+// BenchmarkServerHandlerHOST1 measures the single-record append helper.
 func BenchmarkServerHandlerHOST1(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
@@ -239,6 +250,7 @@ func BenchmarkServerHandlerHOST1(b *testing.B) {
 	}
 }
 
+// BenchmarkServerHandlerHOST measures bulk host record appends.
 func BenchmarkServerHandlerHOST(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
@@ -251,6 +263,7 @@ func BenchmarkServerHandlerHOST(b *testing.B) {
 	}
 }
 
+// BenchmarkServerHandlerCNAME measures combined CNAME and address appends.
 func BenchmarkServerHandlerCNAME(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
@@ -264,6 +277,7 @@ func BenchmarkServerHandlerCNAME(b *testing.B) {
 	}
 }
 
+// BenchmarkServerHandlerSRV measures SRV record append throughput.
 func BenchmarkServerHandlerSRV(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
@@ -276,6 +290,7 @@ func BenchmarkServerHandlerSRV(b *testing.B) {
 	}
 }
 
+// BenchmarkServerHandlerNS measures NS record append throughput.
 func BenchmarkServerHandlerNS(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
@@ -288,6 +303,7 @@ func BenchmarkServerHandlerNS(b *testing.B) {
 	}
 }
 
+// BenchmarkServerHandlerSOA measures SOA record append throughput.
 func BenchmarkServerHandlerSOA(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
@@ -301,6 +317,7 @@ func BenchmarkServerHandlerSOA(b *testing.B) {
 	}
 }
 
+// BenchmarkServerHandlerMX measures MX record append throughput.
 func BenchmarkServerHandlerMX(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
@@ -313,6 +330,7 @@ func BenchmarkServerHandlerMX(b *testing.B) {
 	}
 }
 
+// BenchmarkServerHandlerPTR measures PTR record append throughput.
 func BenchmarkServerHandlerPTR(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()
@@ -325,6 +343,7 @@ func BenchmarkServerHandlerPTR(b *testing.B) {
 	}
 }
 
+// BenchmarkServerHandlerTXT measures TXT record append throughput.
 func BenchmarkServerHandlerTXT(b *testing.B) {
 	rw := &nilResponseWriter{}
 	req := mockMessage()

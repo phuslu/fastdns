@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// TestUtilListen validates UDP listen behavior and error handling.
 func TestUtilListen(t *testing.T) {
 	if runtime.GOOS != "linux" {
 		return
@@ -24,6 +25,7 @@ func TestUtilListen(t *testing.T) {
 	}
 }
 
+// TestUtilTastset exercises CPU affinity setting on Linux.
 func TestUtilTastset(t *testing.T) {
 	if runtime.GOOS != "linux" {
 		return

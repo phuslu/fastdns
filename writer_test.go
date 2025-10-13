@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestResponseWriterUDP exercises the UDP response writer using a real socket.
 func TestResponseWriterUDP(t *testing.T) {
 	rw := &udpResponseWriter{
 		AddrPort: netip.AddrPortFrom(netip.AddrFrom4([4]byte{1, 1, 1, 1}), 53),
@@ -27,6 +28,7 @@ func TestResponseWriterUDP(t *testing.T) {
 	}
 }
 
+// TestResponseWriterMem verifies the in-memory response writer behavior.
 func TestResponseWriterMem(t *testing.T) {
 	rw := &MemResponseWriter{
 		Laddr: netip.AddrPortFrom(netip.AddrFrom4([4]byte{1, 1, 1, 1}), 53),

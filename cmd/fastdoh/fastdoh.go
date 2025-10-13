@@ -36,6 +36,7 @@ type DoHHandler struct {
 	DoHStats   fastdns.Stats
 }
 
+// Handler routes incoming requests to DNS-over-HTTPS endpoints or diagnostics.
 func (h *DoHHandler) Handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
 	case h.DNSQuery:
@@ -54,6 +55,7 @@ func (h *DoHHandler) Handler(ctx *fasthttp.RequestCtx) {
 	}
 }
 
+// HandlerMetrics exposes aggregated metrics for DNS and DoH traffic.
 func (h *DoHHandler) HandlerMetrics(ctx *fasthttp.RequestCtx) {
 	b := bytebufferpool.Get()
 	defer bytebufferpool.Put(b)
@@ -71,6 +73,7 @@ func (h *DoHHandler) HandlerMetrics(ctx *fasthttp.RequestCtx) {
 	ctx.Success("text/plain; charset=utf-8", b.B)
 }
 
+// HandlerDoH serves DNS-over-HTTPS transactions using the in-memory context pool.
 func (h *DoHHandler) HandlerDoH(ctx *fasthttp.RequestCtx) {
 	var start time.Time
 	if h.DoHStats != nil {
