@@ -44,48 +44,51 @@ func (h *DNSHandler) ServeDNS(rw fastdns.ResponseWriter, req *fastdns.Message) {
 		slog.Info("serve dns request", "domain", req.Domain, "class", req.Question.Class, "type", req.Question.Type)
 	}
 
+	resp := fastdns.AcquireMessage()
+	defer fastdns.ReleaseMessage(resp)
+
 	switch req.Question.Type {
 	case fastdns.TypeA:
-		req.SetResponseHeader(fastdns.RcodeNoError, 1)
-		req.AppendHOST1(600, netip.AddrFrom4([4]byte{8, 8, 8, 8}))
+		resp.SetResponseHeader(fastdns.RcodeNoError, 1)
+		resp.AppendHOST1(600, netip.AddrFrom4([4]byte{8, 8, 8, 8}))
 	case fastdns.TypeAAAA:
 		ips := []netip.Addr{netip.MustParseAddr("2001:4860:4860::8888")}
-		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(ips)))
-		req.AppendHOST(600, ips)
+		resp.SetResponseHeader(fastdns.RcodeNoError, uint16(len(ips)))
+		resp.AppendHOST(600, ips)
 	case fastdns.TypeCNAME:
 		cnames, ips := []string{"dns.google"}, []netip.Addr{netip.MustParseAddr("8.8.8.8")}
-		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(cnames)+len(ips)))
-		req.AppendCNAME(600, cnames, ips)
+		resp.SetResponseHeader(fastdns.RcodeNoError, uint16(len(cnames)+len(ips)))
+		resp.AppendCNAME(600, cnames, ips)
 	case fastdns.TypeSRV:
 		srvs := []net.SRV{{"www.google.com", 443, 1000, 1000}}
-		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(srvs)))
-		req.AppendSRV(600, srvs)
+		resp.SetResponseHeader(fastdns.RcodeNoError, uint16(len(srvs)))
+		resp.AppendSRV(600, srvs)
 	case fastdns.TypeNS:
 		nameservers := []net.NS{{"ns1.google.com"}, {"ns2.google.com"}}
-		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(nameservers)))
-		req.AppendNS(600, nameservers)
+		resp.SetResponseHeader(fastdns.RcodeNoError, uint16(len(nameservers)))
+		resp.AppendNS(600, nameservers)
 	case fastdns.TypeSOA:
 		mname := net.NS{Host: "ns1.google.com"}
 		rname := net.NS{Host: "dns-admin.google.com"}
-		req.SetResponseHeader(fastdns.RcodeNoError, 1)
-		req.AppendSOA(600, mname, rname, 42, 900, 900, 1800, 60)
+		resp.SetResponseHeader(fastdns.RcodeNoError, 1)
+		resp.AppendSOA(600, mname, rname, 42, 900, 900, 1800, 60)
 	case fastdns.TypeMX:
 		mxs := []net.MX{{"mail.gmail.com", 10}, {"smtp.gmail.com", 10}}
-		req.SetResponseHeader(fastdns.RcodeNoError, uint16(len(mxs)))
-		req.AppendMX(600, mxs)
+		resp.SetResponseHeader(fastdns.RcodeNoError, uint16(len(mxs)))
+		resp.AppendMX(600, mxs)
 	case fastdns.TypePTR:
 		ptr := "ptr.google.com"
-		req.SetResponseHeader(fastdns.RcodeNoError, 1)
-		req.AppendPTR(600, ptr)
+		resp.SetResponseHeader(fastdns.RcodeNoError, 1)
+		resp.AppendPTR(600, ptr)
 	case fastdns.TypeTXT:
 		txt := "iamatxtrecord"
-		req.SetResponseHeader(fastdns.RcodeNoError, 1)
-		req.AppendTXT(600, txt)
+		resp.SetResponseHeader(fastdns.RcodeNoError, 1)
+		resp.AppendTXT(600, txt)
 	default:
-		req.SetResponseHeader(fastdns.RcodeFormErr, 0)
+		resp.SetResponseHeader(fastdns.RcodeFormErr, 0)
 	}
 
-	_, _ = rw.Write(req.Raw)
+	_, _ = rw.Write(resp.Raw)
 }
 
 func main() {
