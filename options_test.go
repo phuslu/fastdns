@@ -45,19 +45,25 @@ func TestMessageParseMessageOptions(t *testing.T) {
 						if err != nil {
 							t.Errorf("msg.Records().AsOptions().Item().AsSubnet() error: %+v", err)
 						}
+						if subnet.String() != "1.2.3.0/24" {
+							t.Errorf("msg.Records().AsOptions().Item().AsSubnet() error: %+v", subnet)
+						}
 						t.Logf("msg.Records().AsOptions().Item().AsSubnet(): %+v", subnet)
 					case OptionCodeCOOKIE:
-						cookie, err := option.AsCookie()
+						cookie, err := option.AsCookie(nil)
 						if err != nil {
 							t.Errorf("msg.Records().AsOptions().Item().AsCookie() error: %+v", err)
 						}
-						t.Logf("msg.Records().AsOptions().Item().AsCookie(): %#v", cookie)
+						if string(cookie) != ":<[\x8c#>\x04[" {
+							t.Errorf("msg.Records().AsOptions().Item().AsSubnet() error: %+v", string(cookie))
+						}
+						t.Logf("msg.Records().AsOptions().Item().AsCookie(): %#v", string(cookie))
 					case OptionCodePadding:
-						padding, err := option.AsPadding()
+						padding, err := option.AsPadding(nil)
 						if err != nil {
 							t.Errorf("msg.Records().AsOptions().Item().AsPadding() error: %+v", err)
 						}
-						t.Logf("msg.Records().AsOptions().Item().AsPadding(): %#v", padding)
+						t.Logf("msg.Records().AsOptions().Item().AsPadding(): %#v", string(padding))
 					}
 				}
 				if err = options.Err(); err != nil {

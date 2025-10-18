@@ -126,22 +126,22 @@ func (o MessageOption) AsSubnet() (netip.Prefix, error) {
 }
 
 // AsCookie decodes a COOKIE option payload.
-func (o MessageOption) AsCookie() (string, error) {
+func (o MessageOption) AsCookie(dst []byte) ([]byte, error) {
 	if o.Code != OptionCodeCOOKIE {
-		return "", ErrInvalidOption
+		return nil, ErrInvalidOption
 	}
 	if n := len(o.Data); !(8 <= n && n <= 40) {
-		return "", ErrInvalidOption
+		return nil, ErrInvalidOption
 	}
-	return string(o.Data), nil
+	return append(dst, o.Data...), nil
 }
 
 // AsPadding returns the padding option payload.
-func (o MessageOption) AsPadding() (string, error) {
+func (o MessageOption) AsPadding(dst []byte) ([]byte, error) {
 	if o.Code != OptionCodePadding {
-		return "", ErrInvalidOption
+		return nil, ErrInvalidOption
 	}
-	return string(o.Data), nil
+	return append(dst, o.Data...), nil
 }
 
 // OptionsAppender constructs an EDNS options appender for the message.
