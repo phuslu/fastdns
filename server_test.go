@@ -2,7 +2,6 @@ package fastdns
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"net"
@@ -226,8 +225,27 @@ func (rw *nilResponseWriter) Write(p []byte) (n int, err error) { return len(p),
 
 // mockMessage decodes a canned DNS response for reuse in benchmarks.
 func mockMessage() (msg *Message) {
-	// domain = hk.phus.lu
-	payload, _ := hex.DecodeString("00028180000100010000000002686b0470687573026c750000010001c00c000100010000012b0004771c56be")
+	// domain = ip.phus.lu
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x81, 0x80, // Flags: standard response
+		0x00, 0x01, // Questions
+		0x00, 0x01, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x01, // TYPE A
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x01, 0x2b, // TTL 299s
+		0x00, 0x04, // RDLENGTH 4
+		0x77, 0x1c, 0x56, 0xbe, // Address 119.28.86.190
+	}
 	msg = AcquireMessage()
 	err := ParseMessage(msg, payload, true)
 	if err != nil {

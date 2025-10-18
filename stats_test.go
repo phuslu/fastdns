@@ -1,7 +1,6 @@
 package fastdns
 
 import (
-	"encoding/hex"
 	"net/netip"
 	"testing"
 	"time"
@@ -9,7 +8,35 @@ import (
 
 // BenchmarkServerUpdateStats measures the bookkeeping for incoming requests.
 func BenchmarkServerUpdateStats(b *testing.B) {
-	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
+	payload := []byte{
+		0x8e, 0x52, // Transaction ID
+		0x81, 0x80, // Flags: standard response
+		0x00, 0x01, // Questions
+		0x00, 0x02, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x04, 'p', 'h', 'u', 's',
+		0x03, 'c', 'o', 'm',
+		0x00,
+		0x00, 0x02, // QTYPE NS
+		0x00, 0x01, // QCLASS IN
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x02, // TYPE NS
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x54, 0x5f, // TTL 0x545f
+		0x00, 0x14, // RDLENGTH 20
+		0x03, 's', 'u', 'e',
+		0x02, 'n', 's',
+		0x0a, 'c', 'l', 'o', 'u', 'd', 'f', 'l', 'a', 'r', 'e',
+		0xc0, 0x11, // pointer to label "com"
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x02, // TYPE NS
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x54, 0x5f, // TTL 0x545f
+		0x00, 0x07, // RDLENGTH 7
+		0x04, 'j', 'a', 'k', 'e',
+		0xc0, 0x2a, // pointer to "ns.cloudflare.com"
+	}
 
 	resp := AcquireMessage()
 	defer ReleaseMessage(resp)
@@ -37,7 +64,35 @@ func BenchmarkServerUpdateStats(b *testing.B) {
 
 // BenchmarkServerAppendOpenMetrics measures metrics rendering throughput.
 func BenchmarkServerAppendOpenMetrics(b *testing.B) {
-	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
+	payload := []byte{
+		0x8e, 0x52, // Transaction ID
+		0x81, 0x80, // Flags: standard response
+		0x00, 0x01, // Questions
+		0x00, 0x02, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x04, 'p', 'h', 'u', 's',
+		0x03, 'c', 'o', 'm',
+		0x00,
+		0x00, 0x02, // QTYPE NS
+		0x00, 0x01, // QCLASS IN
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x02, // TYPE NS
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x54, 0x5f, // TTL 0x545f
+		0x00, 0x14, // RDLENGTH 20
+		0x03, 's', 'u', 'e',
+		0x02, 'n', 's',
+		0x0a, 'c', 'l', 'o', 'u', 'd', 'f', 'l', 'a', 'r', 'e',
+		0xc0, 0x11, // pointer to label "com"
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x02, // TYPE NS
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x54, 0x5f, // TTL 0x545f
+		0x00, 0x07, // RDLENGTH 7
+		0x04, 'j', 'a', 'k', 'e',
+		0xc0, 0x2a, // pointer to "ns.cloudflare.com"
+	}
 
 	resp := AcquireMessage()
 	defer ReleaseMessage(resp)

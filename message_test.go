@@ -35,7 +35,23 @@ func TestMessageParseMessageOK(t *testing.T) {
 		            Type: PTR (domain name PoinTeR) (12)
 		            Class: IN (0x0001)
 	*/
-	cases[0].Raw, _ = hex.DecodeString("0001010000010000000000000131023530033136380331393207696e2d61646472046172706100000c0001")
+	cases[0].Raw = []byte{
+		0x00, 0x01, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x01, '1',
+		0x02, '5', '0',
+		0x03, '1', '6', '8',
+		0x03, '1', '9', '2',
+		0x07, 'i', 'n', '-', 'a', 'd', 'd', 'r',
+		0x04, 'a', 'r', 'p', 'a',
+		0x00,
+		0x00, 0x0c, // QTYPE PTR
+		0x00, 0x01, // QCLASS IN
+	}
 	cases[0].Message = AcquireMessage()
 	cases[0].Message.Raw = cases[0].Raw
 	cases[0].Message.Domain = []byte("1.50.168.192.in-addr.arpa")
@@ -64,24 +80,37 @@ func TestMessageParseMessageOK(t *testing.T) {
 		    Authority RRs: 0
 		    Additional RRs: 0
 		    Queries
-		        hk.phus.lu: type A, class IN
-		            Name: hk.phus.lu
+		        ip.phus.lu: type A, class IN
+		            Name: ip.phus.lu
 		            [Name Length: 10]
 		            [Label Count: 3]
 		            Type: A (Host Address) (1)
 		            Class: IN (0x0001)
 	*/
-	cases[1].Raw, _ = hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	cases[1].Raw = []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	cases[1].Message = AcquireMessage()
 	cases[1].Message.Raw = cases[1].Raw
-	cases[1].Message.Domain = []byte("hk.phus.lu")
+	cases[1].Message.Domain = []byte("ip.phus.lu")
 	cases[1].Message.Header.ID = 0x0002
 	cases[1].Message.Header.Flags = 0b0000000100000000
 	cases[1].Message.Header.QDCount = 0x01
 	cases[1].Message.Header.ANCount = 0x00
 	cases[1].Message.Header.NSCount = 0x00
 	cases[1].Message.Header.ARCount = 0x00
-	cases[1].Message.Question.Name = []byte("\x02hk\x04phus\x02lu\x00")
+	cases[1].Message.Question.Name = []byte("\x02ip\x04phus\x02lu\x00")
 	cases[1].Message.Question.Type = TypeA
 	cases[1].Message.Question.Class = ClassINET
 
@@ -198,7 +227,35 @@ func TestMessageSetQuestion(t *testing.T) {
 
 // TestMessageDecodeName follows compression pointers back to the canon name.
 func TestMessageDecodeName(t *testing.T) {
-	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
+	payload := []byte{
+		0x8e, 0x52, // Transaction ID
+		0x81, 0x80, // Flags: standard response
+		0x00, 0x01, // Questions
+		0x00, 0x02, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x04, 'p', 'h', 'u', 's',
+		0x03, 'c', 'o', 'm',
+		0x00,
+		0x00, 0x02, // QTYPE NS
+		0x00, 0x01, // QCLASS IN
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x02, // TYPE NS
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x54, 0x5f, // TTL 0x545f
+		0x00, 0x14, // RDLENGTH 20
+		0x03, 's', 'u', 'e',
+		0x02, 'n', 's',
+		0x0a, 'c', 'l', 'o', 'u', 'd', 'f', 'l', 'a', 'r', 'e',
+		0xc0, 0x11, // pointer to label "com"
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x02, // TYPE NS
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x54, 0x5f, // TTL 0x545f
+		0x00, 0x07, // RDLENGTH 7
+		0x04, 'j', 'a', 'k', 'e',
+		0xc0, 0x2a, // pointer to "ns.cloudflare.com"
+	}
 
 	resp := AcquireMessage()
 	defer ReleaseMessage(resp)
@@ -215,7 +272,20 @@ func TestMessageDecodeName(t *testing.T) {
 
 // BenchmarkMessageParseMessage measures ParseMessage throughput.
 func BenchmarkMessageParseMessage(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	var msg Message
 
 	for i := 0; i < b.N; i++ {
@@ -229,7 +299,7 @@ func BenchmarkMessageParseMessage(b *testing.B) {
 func BenchmarkMessageEncodeDomain(b *testing.B) {
 	dst := make([]byte, 0, 256)
 	for i := 0; i < b.N; i++ {
-		dst = EncodeDomain(dst[:0], "hk.phus.lu")
+		dst = EncodeDomain(dst[:0], "ip.phus.lu")
 	}
 }
 
@@ -257,7 +327,35 @@ func BenchmarkMessageSetResponseHeader(b *testing.B) {
 
 // BenchmarkMessageDecodeName measures compressed name decoding speed.
 func BenchmarkMessageDecodeName(b *testing.B) {
-	payload, _ := hex.DecodeString("8e5281800001000200000000047632657803636f6d0000020001c00c000200010000545f0014036b696d026e730a636c6f7564666c617265c011c00c000200010000545f000704746f6464c02a")
+	payload := []byte{
+		0x8e, 0x52, // Transaction ID
+		0x81, 0x80, // Flags: standard response
+		0x00, 0x01, // Questions
+		0x00, 0x02, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x04, 'p', 'h', 'u', 's',
+		0x03, 'c', 'o', 'm',
+		0x00,
+		0x00, 0x02, // QTYPE NS
+		0x00, 0x01, // QCLASS IN
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x02, // TYPE NS
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x54, 0x5f, // TTL 0x545f
+		0x00, 0x14, // RDLENGTH 20
+		0x03, 's', 'u', 'e',
+		0x02, 'n', 's',
+		0x0a, 'c', 'l', 'o', 'u', 'd', 'f', 'l', 'a', 'r', 'e',
+		0xc0, 0x11, // pointer to label "com"
+		0xc0, 0x0c, // NAME pointer to question
+		0x00, 0x02, // TYPE NS
+		0x00, 0x01, // CLASS IN
+		0x00, 0x00, 0x54, 0x5f, // TTL 0x545f
+		0x00, 0x07, // RDLENGTH 7
+		0x04, 'j', 'a', 'k', 'e',
+		0xc0, 0x2a, // pointer to "ns.cloudflare.com"
+	}
 
 	resp := AcquireMessage()
 	defer ReleaseMessage(resp)

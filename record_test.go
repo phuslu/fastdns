@@ -269,7 +269,20 @@ func TestMessageAppendTXT(t *testing.T) {
 
 // BenchmarkMessageAppendHOST measures host record serialization speed.
 func BenchmarkMessageAppendHOST(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	req := new(Message)
 
 	if err := ParseMessage(req, payload, false); err != nil {
@@ -286,7 +299,20 @@ func BenchmarkMessageAppendHOST(b *testing.B) {
 
 // BenchmarkMessageAppendCNAME measures CNAME serialization speed.
 func BenchmarkMessageAppendCNAME(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	req := new(Message)
 
 	if err := ParseMessage(req, payload, false); err != nil {
@@ -303,7 +329,20 @@ func BenchmarkMessageAppendCNAME(b *testing.B) {
 
 // BenchmarkMessageAppendSRV measures SRV serialization speed.
 func BenchmarkMessageAppendSRV(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	req := new(Message)
 
 	if err := ParseMessage(req, payload, false); err != nil {
@@ -320,7 +359,20 @@ func BenchmarkMessageAppendSRV(b *testing.B) {
 
 // BenchmarkMessageAppendNS measures NS serialization speed.
 func BenchmarkMessageAppendNS(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	req := new(Message)
 
 	if err := ParseMessage(req, payload, false); err != nil {
@@ -337,7 +389,20 @@ func BenchmarkMessageAppendNS(b *testing.B) {
 
 // BenchmarkMessageAppendSOA measures SOA serialization speed.
 func BenchmarkMessageAppendSOA(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	req := new(Message)
 
 	if err := ParseMessage(req, payload, false); err != nil {
@@ -353,7 +418,20 @@ func BenchmarkMessageAppendSOA(b *testing.B) {
 
 // BenchmarkMessageAppendPTR measures PTR serialization speed.
 func BenchmarkMessageAppendPTR(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	req := new(Message)
 
 	if err := ParseMessage(req, payload, false); err != nil {
@@ -370,7 +448,20 @@ func BenchmarkMessageAppendPTR(b *testing.B) {
 
 // BenchmarkMessageAppendMX measures MX serialization speed.
 func BenchmarkMessageAppendMX(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	req := new(Message)
 
 	if err := ParseMessage(req, payload, false); err != nil {
@@ -387,7 +478,20 @@ func BenchmarkMessageAppendMX(b *testing.B) {
 
 // BenchmarkMessageAppendTXT measures TXT serialization speed.
 func BenchmarkMessageAppendTXT(b *testing.B) {
-	payload, _ := hex.DecodeString("00020100000100000000000002686b0470687573026c750000010001")
+	payload := []byte{
+		0x00, 0x02, // Transaction ID
+		0x01, 0x00, // Flags: recursion desired
+		0x00, 0x01, // Questions
+		0x00, 0x00, // Answer RRs
+		0x00, 0x00, // Authority RRs
+		0x00, 0x00, // Additional RRs
+		0x02, 'i', 'p',
+		0x04, 'p', 'h', 'u', 's',
+		0x02, 'l', 'u',
+		0x00,
+		0x00, 0x01, // QTYPE A
+		0x00, 0x01, // QCLASS IN
+	}
 	req := new(Message)
 
 	if err := ParseMessage(req, payload, false); err != nil {
