@@ -38,7 +38,7 @@ func TestClientExchange(t *testing.T) {
 		Class  Class
 		Type   Type
 	}{
-		{"hk2cn.phus.lu", ClassINET, TypeA},
+		{"sg2cn.phus.lu", ClassINET, TypeA},
 	}
 
 	client := &Client{

@@ -1,7 +1,6 @@
 package fastdns
 
 import (
-	"encoding/hex"
 	"reflect"
 	"testing"
 )
@@ -130,32 +129,61 @@ func TestMessageParseMessageOK(t *testing.T) {
 // TestMessageParseMessageError validates parser failures for malformed inputs.
 func TestMessageParseMessageError(t *testing.T) {
 	var cases = []struct {
-		Hex   string
+		Raw   []byte
 		Error error
 	}{
 		{
-			"0001010000010000000000",
-			ErrInvalidHeader,
+			Raw: []byte{
+				0x00, 0x01, // Transaction ID
+				0x01, 0x00, // Flags: recursion desired
+				0x00, 0x01, // Questions
+				0x00, 0x00, // Answer RRs
+				0x00, 0x00, // Authority RRs
+				0x00, // Truncated Additional RRs field
+			},
+			Error: ErrInvalidHeader,
 		},
 		{
-			"00020100000000000000000002686b0470687573026c7500000100",
-			ErrInvalidHeader,
+			Raw: []byte{
+				0x00, 0x02, // Transaction ID
+				0x01, 0x00, // Flags: recursion desired
+				0x00, 0x00, // Questions
+				0x00, 0x00, // Answer RRs
+				0x00, 0x00, // Authority RRs
+				0x00, 0x00, // Additional RRs
+				0x02, 'i', 'p',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+				0x00, 0x01, // QTYPE A
+				0x00, // Truncated QCLASS (missing low byte)
+			},
+			Error: ErrInvalidHeader,
 		},
 		{
-			"00020100000100000000000002686b0470687573026c7500000100",
-			ErrInvalidQuestion,
+			Raw: []byte{
+				0x00, 0x02, // Transaction ID
+				0x01, 0x00, // Flags: recursion desired
+				0x00, 0x01, // Questions
+				0x00, 0x00, // Answer RRs
+				0x00, 0x00, // Authority RRs
+				0x00, 0x00, // Additional RRs
+				0x02, 'i', 'p',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+				0x00, 0x01, // QTYPE A
+				0x00, // Truncated QCLASS (missing low byte)
+			},
+			Error: ErrInvalidQuestion,
 		},
 	}
 
 	for _, c := range cases {
-		payload, err := hex.DecodeString(c.Hex)
-		if err != nil {
-			t.Errorf("hex.DecodeString(%v) error: %+v", c.Hex, err)
-		}
 		var msg Message
-		err = ParseMessage(&msg, payload, true)
+		err := ParseMessage(&msg, c.Raw, true)
 		if err != c.Error {
-			t.Errorf("ParseMessage(%x) should error: %+v", payload, c.Error)
+			t.Errorf("ParseMessage(%x) should error: %+v", c.Raw, c.Error)
 		}
 	}
 }

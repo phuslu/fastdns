@@ -1,29 +1,51 @@
 package fastdns
 
 import (
-	"encoding/hex"
 	"testing"
 )
 
 // TestMessageParseMessageOptions parses an OPT record and decodes its options.
 func TestMessageParseMessageOptions(t *testing.T) {
 	var cases = []struct {
-		Hex string
+		Raw []byte
 	}{
 		{
-			"42140120000100000000000107312d322d332d340269700470687573026c75000001000100002904d00000000000170008000700011800010203000a00083a3c5b8c233e045b",
+			Raw: []byte{
+				0x42, 0x14, // Transaction ID
+				0x01, 0x20, // Flags: recursion desired + EDNS
+				0x00, 0x01, // Questions
+				0x00, 0x00, // Answer RRs
+				0x00, 0x00, // Authority RRs
+				0x00, 0x01, // Additional RRs
+				0x07, '1', '-', '2', '-', '3', '-', '4',
+				0x02, 'i', 'p',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+				0x00, 0x01, // QTYPE A
+				0x00, 0x01, // QCLASS IN
+				0x00, 0x00, // NAME (root) for OPT
+				0x00, 0x29, // TYPE OPT
+				0x04, 0xd0, // UDP payload size 1232
+				0x00, 0x00, // Higher bits / extended RCODE
+				0x00, 0x00, // Version, DO bit
+				0x00, 0x17, // RDLENGTH 23
+				0x00, 0x08, // OPTION: ECS (code 8)
+				0x00, 0x07, // OPTION-LENGTH 7
+				0x00, 0x01, 0x18, // FAMILY 1, SOURCE PREFIX 24
+				0x00, 0x01, 0x02, 0x03, // ADDRESS 1.2.3.0/24
+				0x00, 0x0a, // OPTION: COOKIE (code 10)
+				0x00, 0x08, // OPTION-LENGTH 8
+				0x3a, 0x3c, 0x5b, 0x8c, 0x23, 0x3e, 0x04, 0x5b, // COOKIE value
+			},
 		},
 	}
 
 	for _, c := range cases {
-		payload, err := hex.DecodeString(c.Hex)
-		if err != nil {
-			t.Errorf("hex.DecodeString(%v) error: %+v\n", c.Hex, err)
-		}
 		msg := AcquireMessage()
-		err = ParseMessage(msg, payload, true)
+		err := ParseMessage(msg, c.Raw, true)
 		if err != nil {
-			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+			t.Errorf("ParseMessage(%x) error: %+v\n", c.Raw, err)
 		}
 		t.Logf("msg.Header=%+v, msg.Domain=%s\n", msg.Header, msg.Domain)
 		records := msg.Records()
@@ -33,7 +55,7 @@ func TestMessageParseMessageOptions(t *testing.T) {
 			if record.Type == TypeOPT {
 				options, err := record.AsOptions()
 				if err != nil {
-					t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+					t.Errorf("ParseMessage(%x) error: %+v\n", c.Raw, err)
 				}
 				t.Logf("msg.Records().AsOptions()=%+v\n", options)
 				for options.Next() {
@@ -67,12 +89,12 @@ func TestMessageParseMessageOptions(t *testing.T) {
 					}
 				}
 				if err = options.Err(); err != nil {
-					t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+					t.Errorf("ParseMessage(%x) error: %+v\n", c.Raw, err)
 				}
 			}
 		}
 		if err = records.Err(); err != nil {
-			t.Errorf("ParseMessage(%x) error: %+v\n", payload, err)
+			t.Errorf("ParseMessage(%x) error: %+v\n", c.Raw, err)
 		}
 	}
 }

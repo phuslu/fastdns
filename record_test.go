@@ -1,7 +1,7 @@
 package fastdns
 
 import (
-	"encoding/hex"
+	"bytes"
 	"net"
 	"net/netip"
 	"strings"
@@ -11,19 +11,60 @@ import (
 // TestMessageAppendHOST serializes A and AAAA answers into the message buffer.
 func TestMessageAppendHOST(t *testing.T) {
 	cases := []struct {
-		Hex string
+		Raw []byte
 		IPs []netip.Addr
 		TTL uint32
 	}{
 		{
-			"c00c000100010000012c000401010101c00c000100010000012c000408080808c00c000100010000012c00047b2d064e",
-			[]netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1}), netip.AddrFrom4([4]byte{8, 8, 8, 8}), netip.AddrFrom4([4]byte{123, 45, 6, 78})},
-			300,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x01, // TYPE A
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x04, // RDLENGTH
+				0x01, 0x01, 0x01, 0x01, // RDATA 1.1.1.1
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x01, // TYPE A
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x04, // RDLENGTH
+				0x08, 0x08, 0x08, 0x08, // RDATA 8.8.8.8
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x01, // TYPE A
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x04, // RDLENGTH
+				0x7b, 0x2d, 0x06, 0x4e, // RDATA 123.45.6.78
+			},
+			IPs: []netip.Addr{
+				netip.AddrFrom4([4]byte{1, 1, 1, 1}),
+				netip.AddrFrom4([4]byte{8, 8, 8, 8}),
+				netip.AddrFrom4([4]byte{123, 45, 6, 78}),
+			},
+			TTL: 300,
 		},
 		{
-			"c00c001c00010000012c001000000000000000000000000000000001c00c001c00010000012c001020014860486000000000000000008888",
-			[]netip.Addr{netip.MustParseAddr("::1"), netip.MustParseAddr("2001:4860:4860::8888")},
-			300,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x1c, // TYPE AAAA
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x10, // RDLENGTH
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // RDATA ::1
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x1c, // TYPE AAAA
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x10, // RDLENGTH
+				0x20, 0x01, 0x48, 0x60, 0x48, 0x60, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88, // RDATA 2001:4860:4860::8888
+			},
+			IPs: []netip.Addr{
+				netip.MustParseAddr("::1"),
+				netip.MustParseAddr("2001:4860:4860::8888"),
+			},
+			TTL: 300,
 		},
 	}
 
@@ -31,7 +72,7 @@ func TestMessageAppendHOST(t *testing.T) {
 		req := new(Message)
 		req.Question.Class = ClassINET
 		req.AppendHOST(c.TTL, c.IPs)
-		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
+		if got, want := req.Raw, c.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendHOST(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
@@ -41,28 +82,86 @@ func TestMessageAppendHOST(t *testing.T) {
 // TestMessageAppendCNAME emits CNAME chains and optional address records.
 func TestMessageAppendCNAME(t *testing.T) {
 	cases := []struct {
-		Hex    string
+		Raw    []byte
 		CNAMEs []string
 		IPs    []netip.Addr
 		TTL    uint32
 	}{
 		{
-			"c00c000500010000012c00090470687573026c7500",
-			[]string{"phus.lu"},
-			nil,
-			300,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x05, // TYPE CNAME
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x09, // RDLENGTH
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+			},
+			CNAMEs: []string{"phus.lu"},
+			IPs:    nil,
+			TTL:    300,
 		},
 		{
-			"c00c000500010000012c00090470687573026c7500c028001c00010000012c001020014860486000000000000000008888",
-			[]string{"phus.lu"},
-			[]netip.Addr{netip.MustParseAddr("2001:4860:4860::8888")},
-			300,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x05, // TYPE CNAME
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x09, // RDLENGTH
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+				0xc0, 0x28, // NAME: pointer to first CNAME (offset 40)
+				0x00, 0x1c, // TYPE AAAA
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x10, // RDLENGTH
+				0x20, 0x01, 0x48, 0x60, 0x48, 0x60, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88, // RDATA 2001:4860:4860::8888
+			},
+			CNAMEs: []string{"phus.lu"},
+			IPs:    []netip.Addr{netip.MustParseAddr("2001:4860:4860::8888")},
+			TTL:    300,
 		},
 		{
-			"c00c000500010000012c00090470687573026c7500c028000500010000012c000c02686b0470687573026c7500c040000100010000012c000401010101c040000100010000012c000408080808",
-			[]string{"phus.lu", "hk.phus.lu"},
-			[]netip.Addr{netip.AddrFrom4([4]byte{1, 1, 1, 1}), netip.AddrFrom4([4]byte{8, 8, 8, 8})},
-			300,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x05, // TYPE CNAME
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x09, // RDLENGTH
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+				0xc0, 0x28, // NAME: pointer to first CNAME (offset 40)
+				0x00, 0x05, // TYPE CNAME
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x0c, // RDLENGTH
+				0x02, 'i', 'p',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+				0xc0, 0x40, // NAME: pointer to second CNAME (offset 64)
+				0x00, 0x01, // TYPE A
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x04, // RDLENGTH
+				0x01, 0x01, 0x01, 0x01, // RDATA 1.1.1.1
+				0xc0, 0x40, // NAME: pointer to second CNAME (offset 64)
+				0x00, 0x01, // TYPE A
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x04, // RDLENGTH
+				0x08, 0x08, 0x08, 0x08, // RDATA 8.8.8.8
+			},
+			CNAMEs: []string{"phus.lu", "ip.phus.lu"},
+			IPs: []netip.Addr{
+				netip.AddrFrom4([4]byte{1, 1, 1, 1}),
+				netip.AddrFrom4([4]byte{8, 8, 8, 8}),
+			},
+			TTL: 300,
 		},
 	}
 
@@ -71,7 +170,7 @@ func TestMessageAppendCNAME(t *testing.T) {
 		req.Question.Name = EncodeDomain(nil, "ip.phus.lu")
 		req.Question.Class = ClassINET
 		req.AppendCNAME(c.TTL, c.CNAMEs, c.IPs)
-		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
+		if got, want := req.Raw, c.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendCNAME(%v) error got=%#v want=%#v", c.IPs, got, want)
 		}
 	}
@@ -81,19 +180,45 @@ func TestMessageAppendCNAME(t *testing.T) {
 // TestMessageAppendSRV writes SRV records with varying priorities.
 func TestMessageAppendSRV(t *testing.T) {
 	cases := []struct {
-		Hex string
+		Raw []byte
 		TTL uint32
 		SRV net.SRV
 	}{
 		{
-			"c00c002100010000012c001203e803e8005002686b0470687573026c7500",
-			300,
-			net.SRV{Target: "hk.phus.lu", Port: 80, Priority: 1000, Weight: 1000},
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x21, // TYPE SRV
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x12, // RDLENGTH
+				0x03, 0xe8, // PRIORITY 1000
+				0x03, 0xe8, // WEIGHT 1000
+				0x00, 0x50, // PORT 80
+				0x02, 'i', 'p',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+			},
+			TTL: 300,
+			SRV: net.SRV{Target: "ip.phus.lu", Port: 80, Priority: 1000, Weight: 1000},
 		},
 		{
-			"c00c002100010000012c00120400040001bb0273670470687573026c7500",
-			300,
-			net.SRV{Target: "sg.phus.lu", Port: 443, Priority: 1024, Weight: 1024},
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x21, // TYPE SRV
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x12, // RDLENGTH
+				0x04, 0x00, // PRIORITY 1024
+				0x04, 0x00, // WEIGHT 1024
+				0x01, 0xbb, // PORT 443
+				0x02, 's', 'g',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+			},
+			TTL: 300,
+			SRV: net.SRV{Target: "sg.phus.lu", Port: 443, Priority: 1024, Weight: 1024},
 		},
 	}
 
@@ -101,7 +226,7 @@ func TestMessageAppendSRV(t *testing.T) {
 		req := new(Message)
 		req.Question.Class = ClassINET
 		req.AppendSRV(c.TTL, []net.SRV{c.SRV})
-		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
+		if got, want := req.Raw, c.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendSRV(%v) error got=%#v want=%#v", c.SRV, got, want)
 		}
 	}
@@ -111,19 +236,48 @@ func TestMessageAppendSRV(t *testing.T) {
 // TestMessageAppendNS writes NS records for different zones.
 func TestMessageAppendNS(t *testing.T) {
 	cases := []struct {
-		Hex         string
+		Raw         []byte
 		TTL         uint32
 		Nameservers []net.NS
 	}{
 		{
-			"c00c000200010000012c0010036e733106676f6f676c6503636f6d00",
-			300,
-			[]net.NS{{Host: "ns1.google.com"}},
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x02, // TYPE NS
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x10, // RDLENGTH
+				0x03, 'n', 's', '1',
+				0x06, 'g', 'o', 'o', 'g', 'l', 'e',
+				0x03, 'c', 'o', 'm',
+				0x00,
+			},
+			TTL:         300,
+			Nameservers: []net.NS{{Host: "ns1.google.com"}},
 		},
 		{
-			"c00c000200010000012c0010036e733106676f6f676c6503636f6d00c00c000200010000012c0010036e733206676f6f676c6503636f6d00",
-			300,
-			[]net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}},
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x02, // TYPE NS
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x10, // RDLENGTH
+				0x03, 'n', 's', '1',
+				0x06, 'g', 'o', 'o', 'g', 'l', 'e',
+				0x03, 'c', 'o', 'm',
+				0x00,
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x02, // TYPE NS
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x10, // RDLENGTH
+				0x03, 'n', 's', '2',
+				0x06, 'g', 'o', 'o', 'g', 'l', 'e',
+				0x03, 'c', 'o', 'm',
+				0x00,
+			},
+			TTL:         300,
+			Nameservers: []net.NS{{Host: "ns1.google.com"}, {Host: "ns2.google.com"}},
 		},
 	}
 
@@ -132,7 +286,7 @@ func TestMessageAppendNS(t *testing.T) {
 		req.Question.Name = EncodeDomain(nil, "ip.phus.lu")
 		req.Question.Class = ClassINET
 		req.AppendNS(c.TTL, c.Nameservers)
-		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
+		if got, want := req.Raw, c.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendNS(%v) error got=%#v want=%#v", c.Nameservers, got, want)
 		}
 	}
@@ -142,7 +296,7 @@ func TestMessageAppendNS(t *testing.T) {
 // TestMessageAppendSOA emits an SOA record with expected fields.
 func TestMessageAppendSOA(t *testing.T) {
 	cases := []struct {
-		Hex     string
+		Raw     []byte
 		TTL     uint32
 		MName   net.NS
 		RName   net.NS
@@ -153,15 +307,34 @@ func TestMessageAppendSOA(t *testing.T) {
 		Minimum uint32
 	}{
 		{
-			"c00c000600010000012c003a036e733106676f6f676c6503636f6d0009646e732d61646d696e06676f6f676c6503636f6d00400000000000038400000384000007080000003c",
-			300,
-			net.NS{Host: "ns1.google.com"},
-			net.NS{Host: "dns-admin.google.com"},
-			1073741824,
-			900,
-			900,
-			1800,
-			60,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x06, // TYPE SOA
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x3a, // RDLENGTH
+				0x03, 'n', 's', '1',
+				0x06, 'g', 'o', 'o', 'g', 'l', 'e',
+				0x03, 'c', 'o', 'm',
+				0x00,
+				0x09, 'd', 'n', 's', '-', 'a', 'd', 'm', 'i', 'n',
+				0x06, 'g', 'o', 'o', 'g', 'l', 'e',
+				0x03, 'c', 'o', 'm',
+				0x00,
+				0x40, 0x00, 0x00, 0x00, // SERIAL 1073741824
+				0x00, 0x00, 0x03, 0x84, // REFRESH 900
+				0x00, 0x00, 0x03, 0x84, // RETRY 900
+				0x00, 0x00, 0x07, 0x08, // EXPIRE 1800
+				0x00, 0x00, 0x00, 0x3c, // MINIMUM 60
+			},
+			TTL:     300,
+			MName:   net.NS{Host: "ns1.google.com"},
+			RName:   net.NS{Host: "dns-admin.google.com"},
+			Serial:  1073741824,
+			Refresh: 900,
+			Retry:   900,
+			Expire:  1800,
+			Minimum: 60,
 		},
 	}
 
@@ -170,7 +343,7 @@ func TestMessageAppendSOA(t *testing.T) {
 		req.Question.Name = EncodeDomain(nil, "www.google.com")
 		req.Question.Class = ClassINET
 		req.AppendSOA(c.TTL, c.MName, c.RName, c.Serial, c.Refresh, c.Retry, c.Expire, c.Minimum)
-		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
+		if got, want := req.Raw, c.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendSOA(%v) error got=%#v want=%#v", c.MName, got, want)
 		}
 	}
@@ -180,19 +353,41 @@ func TestMessageAppendSOA(t *testing.T) {
 // TestMessageAppendMX serializes MX answers with priorities.
 func TestMessageAppendMX(t *testing.T) {
 	cases := []struct {
-		Hex string
+		Raw []byte
 		TTL uint32
 		MX  net.MX
 	}{
 		{
-			"c00c000f00010000012c000e000a02686b0470687573026c7500",
-			300,
-			net.MX{Host: "hk.phus.lu", Pref: 10},
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x0f, // TYPE MX
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x0e, // RDLENGTH
+				0x00, 0x0a, // PREF 10
+				0x02, 'i', 'p',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+			},
+			TTL: 300,
+			MX:  net.MX{Host: "ip.phus.lu", Pref: 10},
 		},
 		{
-			"c00c000f00010000012c000e000a0273670470687573026c7500",
-			300,
-			net.MX{Host: "sg.phus.lu", Pref: 10},
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x0f, // TYPE MX
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x0e, // RDLENGTH
+				0x00, 0x0a, // PREF 10
+				0x02, 's', 'g',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+			},
+			TTL: 300,
+			MX:  net.MX{Host: "sg.phus.lu", Pref: 10},
 		},
 	}
 
@@ -200,7 +395,7 @@ func TestMessageAppendMX(t *testing.T) {
 		req := new(Message)
 		req.Question.Class = ClassINET
 		req.AppendMX(c.TTL, []net.MX{c.MX})
-		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
+		if got, want := req.Raw, c.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendMX(%v) error got=%#v want=%#v", c.MX, got, want)
 		}
 	}
@@ -210,19 +405,39 @@ func TestMessageAppendMX(t *testing.T) {
 // TestMessageAppendPTR assembles PTR responses for reverse lookups.
 func TestMessageAppendPTR(t *testing.T) {
 	cases := []struct {
-		Hex string
+		Raw []byte
 		PTR string
 		TTL uint32
 	}{
 		{
-			"c00c000c00010000012c000c02686b0470687573026c7500",
-			"hk.phus.lu",
-			300,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x0c, // TYPE PTR
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x0c, // RDLENGTH
+				0x02, 'i', 'p',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+			},
+			PTR: "ip.phus.lu",
+			TTL: 300,
 		},
 		{
-			"c00c000c00010000012c000c0273670470687573026c7500",
-			"sg.phus.lu",
-			300,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x0c, // TYPE PTR
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x0c, // RDLENGTH
+				0x02, 's', 'g',
+				0x04, 'p', 'h', 'u', 's',
+				0x02, 'l', 'u',
+				0x00,
+			},
+			PTR: "sg.phus.lu",
+			TTL: 300,
 		},
 	}
 
@@ -230,7 +445,7 @@ func TestMessageAppendPTR(t *testing.T) {
 		req := new(Message)
 		req.Question.Class = ClassINET
 		req.AppendPTR(c.TTL, c.PTR)
-		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
+		if got, want := req.Raw, c.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendPTR(%v) error got=%#v want=%#v", c.PTR, got, want)
 		}
 	}
@@ -240,19 +455,42 @@ func TestMessageAppendPTR(t *testing.T) {
 // TestMessageAppendTXT builds TXT records including multi-chunk payloads.
 func TestMessageAppendTXT(t *testing.T) {
 	cases := []struct {
-		Hex string
+		Raw []byte
 		TXT string
 		TTL uint32
 	}{
 		{
-			"c00c001000010000012c000e0d69616d617478747265636f7264",
-			"iamatxtrecord",
-			300,
+			Raw: []byte{
+				0xc0, 0x0c, // NAME: pointer to question (offset 12)
+				0x00, 0x10, // TYPE TXT
+				0x00, 0x01, // CLASS IN
+				0x00, 0x00, 0x01, 0x2c, // TTL 300s
+				0x00, 0x0e, // RDLENGTH
+				0x0d, // TXT length 13
+				'i', 'a', 'm', 'a', 't', 'x', 't', 'r', 'e', 'c', 'o', 'r', 'd',
+			},
+			TXT: "iamatxtrecord",
+			TTL: 300,
 		},
 		{
-			"c00c001000010000012c010fff3030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030300e3069616d617478747265636f7264",
-			strings.Repeat("0", 256) + "iamatxtrecord",
-			300,
+			Raw: func() []byte {
+				payload := []byte{
+					0xc0, 0x0c, // NAME: pointer to question (offset 12)
+					0x00, 0x10, // TYPE TXT
+					0x00, 0x01, // CLASS IN
+					0x00, 0x00, 0x01, 0x2c, // TTL 300s
+					0x01, 0x0f, // RDLENGTH 271 bytes
+					0xff, // chunk length 255
+				}
+				payload = append(payload, bytes.Repeat([]byte{'0'}, 255)...)
+				payload = append(payload,
+					0x0e, // remaining chunk length 14
+					'0', 'i', 'a', 'm', 'a', 't', 'x', 't', 'r', 'e', 'c', 'o', 'r', 'd',
+				)
+				return payload
+			}(),
+			TXT: strings.Repeat("0", 256) + "iamatxtrecord",
+			TTL: 300,
 		},
 	}
 
@@ -260,7 +498,7 @@ func TestMessageAppendTXT(t *testing.T) {
 		req := new(Message)
 		req.Question.Class = ClassINET
 		req.AppendTXT(c.TTL, c.TXT)
-		if got, want := hex.EncodeToString(req.Raw), c.Hex; got != want {
+		if got, want := req.Raw, c.Raw; !bytes.Equal(got, want) {
 			t.Errorf("AppendTXT(%v) error got=%#v want=%#v", c.TXT, got, want)
 		}
 	}
