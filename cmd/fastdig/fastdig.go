@@ -145,16 +145,16 @@ func short(resp *fastdns.Message) {
 		case fastdns.TypeA, fastdns.TypeAAAA:
 			v, _ = netip.AddrFromSlice(r.Data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
-			v = fmt.Sprintf("%s.", resp.DecodeName(nil, r.Data))
+			v = fmt.Sprintf("%s.", decodename(resp, r.Data))
 		case fastdns.TypeMX:
-			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(r.Data), resp.DecodeName(nil, r.Data[2:]))
+			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(r.Data), decodename(resp, r.Data[2:]))
 		case fastdns.TypeTXT:
 			v = fmt.Sprintf("\"%s\"", r.Data[1:])
 		case fastdns.TypeSRV:
 			priority := binary.BigEndian.Uint16(r.Data)
 			weight := binary.BigEndian.Uint16(r.Data[2:])
 			port := binary.BigEndian.Uint16(r.Data[4:])
-			target := resp.DecodeName(nil, r.Data[6:])
+			target := decodename(resp, r.Data[6:])
 			v = fmt.Sprintf("%d %d %d %s.", priority, weight, port, target)
 		case fastdns.TypeSOA:
 			var mname []byte
@@ -167,8 +167,8 @@ func short(resp *fastdns.Message) {
 					break
 				}
 			}
-			nname := resp.DecodeName(nil, r.Data[len(mname):len(r.Data)-20])
-			mname = resp.DecodeName(nil, mname)
+			nname := decodename(resp, r.Data[len(mname):len(r.Data)-20])
+			mname = []byte(decodename(resp, mname))
 			serial := binary.BigEndian.Uint32(r.Data[len(r.Data)-20:])
 			refresh := binary.BigEndian.Uint32(r.Data[len(r.Data)-16:])
 			retry := binary.BigEndian.Uint32(r.Data[len(r.Data)-12:])
@@ -239,16 +239,16 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		case fastdns.TypeA, fastdns.TypeAAAA:
 			v, _ = netip.AddrFromSlice(data)
 		case fastdns.TypeCNAME, fastdns.TypeNS:
-			v = fmt.Sprintf("%s.", resp.DecodeName(nil, data))
+			v = fmt.Sprintf("%s.", decodename(resp, data))
 		case fastdns.TypeMX:
-			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(data), resp.DecodeName(nil, data[2:]))
+			v = fmt.Sprintf("%d %s.", binary.BigEndian.Uint16(data), decodename(resp, data[2:]))
 		case fastdns.TypeTXT:
 			v = fmt.Sprintf("\"%s\"", data[1:])
 		case fastdns.TypeSRV:
 			priority := binary.BigEndian.Uint16(data)
 			weight := binary.BigEndian.Uint16(data[2:])
 			port := binary.BigEndian.Uint16(data[4:])
-			target := resp.DecodeName(nil, data[6:])
+			target := decodename(resp, data[6:])
 			v = fmt.Sprintf("%d %d %d %s.", priority, weight, port, target)
 		case fastdns.TypeSOA:
 			var mname []byte
@@ -261,8 +261,8 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 					break
 				}
 			}
-			nname := resp.DecodeName(nil, data[len(mname):len(data)-20])
-			mname = resp.DecodeName(nil, mname)
+			nname := decodename(resp, data[len(mname):len(data)-20])
+			mname = []byte(decodename(resp, mname))
 			serial := binary.BigEndian.Uint32(data[len(data)-20:])
 			refresh := binary.BigEndian.Uint32(data[len(data)-16:])
 			retry := binary.BigEndian.Uint32(data[len(data)-12:])
@@ -348,7 +348,7 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 		default:
 			v = fmt.Sprintf("%x", data)
 		}
-		fmt.Printf("%s.	%d	%s	%s	%s\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, v)
+		fmt.Printf("%s.	%d	%s	%s	%s\n", decodename(resp, r.Name), r.TTL, r.Class, r.Type, v)
 	}
 
 	fmt.Printf("\n")
@@ -357,4 +357,12 @@ func cmd(req, resp *fastdns.Message, server string, start, end time.Time) {
 	fmt.Printf(";; WHEN: %s\n", start.Format("Mon Jan 02 15:04:05 MST 2006"))
 	fmt.Printf(";; MSG SIZE  rcvd: %d\n", len(resp.Raw))
 	fmt.Printf("\n")
+}
+
+func decodename(resp *fastdns.Message, name []byte) string {
+	data, err := resp.DecodeName(nil, name)
+	if err != nil {
+		return "<invalid>"
+	}
+	return string(data)
 }

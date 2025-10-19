@@ -96,6 +96,8 @@ var (
 	ErrInvalidQuestion = errors.New("dns message does not have the expected question size")
 	// ErrInvalidAnswer is returned when dns message does not have the expected answer size.
 	ErrInvalidAnswer = errors.New("dns message does not have the expected answer size")
+	// ErrInvalidName is returned when dns message does not have the expected name size.
+	ErrInvalidName = errors.New("dns message does not have the expected name size")
 )
 
 // ParseMessage parses dns request from payload into dst and returns the error.
@@ -161,14 +163,14 @@ func ParseMessage(dst *Message, payload []byte, copying bool) error {
 }
 
 // DecodeName decodes dns labels to dst.
-func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
+func (msg *Message) DecodeName(dst []byte, name []byte) ([]byte, error) {
 	if len(name) < 2 {
-		return dst
+		return dst, ErrInvalidName
 	}
 
 	// fast path for domain pointer
 	if name[1] == 12 && name[0] == 0b11000000 {
-		return append(dst, msg.Domain...)
+		return append(dst, msg.Domain...), nil
 	}
 
 	pos := len(dst)
@@ -183,7 +185,7 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 	rawsize := len(msg.Raw)
 	for offset != 0 {
 		if offset >= rawsize {
-			return dst
+			return dst, ErrInvalidName
 		}
 		for i := offset; i < rawsize; {
 			b := int(msg.Raw[i])
@@ -193,17 +195,17 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 				break
 			} else if b&0b11000000 == 0b11000000 {
 				if i+1 >= rawsize {
-					return dst
+					return dst, ErrInvalidName
 				}
 				n := int(b&0b00111111)<<8 + int(msg.Raw[i+1])
 				if n >= offset {
-					return dst
+					return dst, ErrInvalidName
 				}
 				offset = n
 				break
 			} else {
 				if i+b >= rawsize {
-					return dst
+					return dst, ErrInvalidName
 				}
 				dst = append(dst, msg.Raw[i:i+b+1]...)
 				i += b + 1
@@ -228,7 +230,7 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 		dst = append(dst[:n], dst[n+1:len(dst)-1]...)
 	}
 
-	return dst
+	return dst, nil
 }
 
 type MessageRecord struct {

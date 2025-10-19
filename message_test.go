@@ -5,6 +5,14 @@ import (
 	"testing"
 )
 
+func decodename(resp *Message, name []byte) string {
+	data, err := resp.DecodeName(nil, name)
+	if err != nil {
+		return "<invalid>"
+	}
+	return string(data)
+}
+
 // TestMessageParseMessageOK ensures valid wire payloads round-trip into Message.
 func TestMessageParseMessageOK(t *testing.T) {
 	var cases = [2]struct {
@@ -293,7 +301,7 @@ func TestMessageDecodeName(t *testing.T) {
 		t.Errorf("ParseMessage(%+v) error: %+v", payload, err)
 	}
 
-	if got, want := string(resp.DecodeName(nil, []byte("\x04todd\xc0\x2a"))), "todd.ns.cloudflare.com"; got != want {
+	if got, want := decodename(resp, []byte("\x04todd\xc0\x2a")), "todd.ns.cloudflare.com"; got != want {
 		t.Errorf("DecodeName(0xc02a) got=%s want=%s", got, want)
 	}
 }
@@ -340,7 +348,7 @@ func TestMessageDecodeNameError(t *testing.T) {
 		item := records.Item()
 		switch item.Type {
 		case TypeA, TypeAAAA:
-			t.Logf("records.Next().Item()=%#v, Name=%#v\n", item, string(resp.DecodeName(nil, item.Name)))
+			t.Logf("records.Next().Item()=%#v, Name=%#v\n", item, decodename(resp, item.Name))
 		default:
 			t.Errorf("records.Next().Item()=%#v Invalid Type: %s\n", item, item.Type)
 		}
@@ -445,6 +453,6 @@ func BenchmarkMessageDecodeName(b *testing.B) {
 	var dst [256]byte
 	name := []byte("\x04todd\xc0\x2a")
 	for i := 0; i < b.N; i++ {
-		resp.DecodeName(dst[:0], name)
+		_, _ = resp.DecodeName(dst[:0], name)
 	}
 }

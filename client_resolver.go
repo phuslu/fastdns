@@ -61,7 +61,11 @@ func (c *Client) AppendLookupNetIP(dst []netip.Addr, ctx context.Context, networ
 	}
 
 	if cname != nil && len(dst) == 0 {
-		b := resp.DecodeName(make([]byte, 0, 64), cname)
+		var b []byte
+		b, err = resp.DecodeName(make([]byte, 0, 64), cname)
+		if err != nil {
+			return dst, err
+		}
 		dst, err = c.AppendLookupNetIP(dst, ctx, network, b2s(b))
 	}
 
@@ -86,12 +90,18 @@ func (c *Client) LookupCNAME(ctx context.Context, host string) (cname string, er
 		return
 	}
 
+	var data []byte
+
 	records := resp.Records()
 	for records.Next() {
 		r := records.Item()
 		switch r.Type {
 		case TypeCNAME:
-			cname = string(resp.DecodeName(nil, r.Data))
+			data, err = resp.DecodeName(nil, r.Data)
+			if err != nil {
+				return
+			}
+			cname = string(data)
 		default:
 			err = ErrInvalidAnswer
 		}
@@ -117,15 +127,23 @@ func (c *Client) LookupNS(ctx context.Context, name string) (ns []*net.NS, err e
 	}
 
 	soa := make([]byte, 0, 64)
+	var data []byte
 
 	records := resp.Records()
 	for records.Next() {
 		r := records.Item()
 		switch r.Type {
 		case TypeSOA:
-			soa = resp.DecodeName(soa[:0], r.Name)
+			soa, err = resp.DecodeName(soa[:0], r.Name)
+			if err != nil {
+				return
+			}
 		case TypeNS:
-			ns = append(ns, &net.NS{Host: string(resp.DecodeName(nil, r.Data))})
+			data, err = resp.DecodeName(nil, r.Data)
+			if err != nil {
+				return
+			}
+			ns = append(ns, &net.NS{Host: string(data)})
 		default:
 			err = ErrInvalidAnswer
 		}
@@ -188,12 +206,18 @@ func (c *Client) LookupMX(ctx context.Context, host string) (mx []*net.MX, err e
 		return
 	}
 
+	var data []byte
+
 	records := resp.Records()
 	for records.Next() {
 		r := records.Item()
 		if r.Type == TypeMX {
+			data, err = resp.DecodeName(nil, r.Data[2:])
+			if err != nil {
+				return
+			}
 			mx = append(mx, &net.MX{
-				Host: string(resp.DecodeName(nil, r.Data[2:])),
+				Host: string(data),
 				Pref: binary.BigEndian.Uint16(r.Data),
 			})
 		}
@@ -295,6 +319,8 @@ func (c *Client) LookupSRV(ctx context.Context, service, proto, name string) (ta
 	}
 
 	var buf [256]byte
+	var data []byte
+
 	records := resp.Records()
 	for records.Next() {
 		r := records.Item()
@@ -304,8 +330,12 @@ func (c *Client) LookupSRV(ctx context.Context, service, proto, name string) (ta
 				err = ErrInvalidAnswer
 				break
 			}
+			data, err = resp.DecodeName(buf[:0], r.Data[6:])
+			if err != nil {
+				return
+			}
 			srvs = append(srvs, &net.SRV{
-				Target:   string(resp.DecodeName(buf[:0], r.Data[6:])),
+				Target:   string(data),
 				Port:     binary.BigEndian.Uint16(r.Data[4:]),
 				Priority: binary.BigEndian.Uint16(r.Data[0:]),
 				Weight:   binary.BigEndian.Uint16(r.Data[2:]),

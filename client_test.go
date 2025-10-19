@@ -59,11 +59,11 @@ func TestClientExchange(t *testing.T) {
 			r := records.Item()
 			switch r.Type {
 			case TypeCNAME:
-				t.Logf("%s.\t%d\t%s\t%s\t%s.\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, resp.DecodeName(nil, r.Data))
+				t.Logf("%s.\t%d\t%s\t%s\t%s.\n", decodename(resp, r.Name), r.TTL, r.Class, r.Type, decodename(resp, r.Data))
 			case TypeA:
-				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, netip.AddrFrom4(*(*[4]byte)(r.Data)))
+				t.Logf("%s.\t%d\t%s\t%s\t%s\n", decodename(resp, r.Name), r.TTL, r.Class, r.Type, netip.AddrFrom4(*(*[4]byte)(r.Data)))
 			case TypeAAAA:
-				t.Logf("%s.\t%d\t%s\t%s\t%s\n", resp.DecodeName(nil, r.Name), r.TTL, r.Class, r.Type, netip.AddrFrom16(*(*[16]byte)(r.Data)))
+				t.Logf("%s.\t%d\t%s\t%s\t%s\n", decodename(resp, r.Name), r.TTL, r.Class, r.Type, netip.AddrFrom16(*(*[16]byte)(r.Data)))
 			}
 		}
 	}
