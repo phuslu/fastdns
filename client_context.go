@@ -31,6 +31,6 @@ func WithClientCookie(ctx context.Context, cookie string) context.Context {
 }
 
 // WithClientPadding returns a context carrying the padded EDNS option.
-func WithClientPadding(ctx context.Context, padding string) context.Context {
+func WithClientPadding(ctx context.Context, padding uint16) context.Context {
 	return context.WithValue(ctx, ClientPaddingContextKey, padding)
 }
