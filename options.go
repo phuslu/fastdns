@@ -1,13 +1,7 @@
 package fastdns
 
 import (
-	"errors"
 	"net/netip"
-)
-
-var (
-	// ErrInvalidOption is returned when dns message does not have the expected option size.
-	ErrInvalidOption = errors.New("dns message does not have the expected option size")
 )
 
 // AsOptions converts an OPT record into message options.

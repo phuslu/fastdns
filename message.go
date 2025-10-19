@@ -91,13 +91,15 @@ type Message struct {
 
 var (
 	// ErrInvalidHeader is returned when dns message does not have the expected header size.
-	ErrInvalidHeader = errors.New("dns message does not have the expected header size")
+	ErrInvalidHeader = errors.New("ErrInvalidHeader")
 	// ErrInvalidQuestion is returned when dns message does not have the expected question size.
-	ErrInvalidQuestion = errors.New("dns message does not have the expected question size")
+	ErrInvalidQuestion = errors.New("ErrInvalidQuestion")
 	// ErrInvalidAnswer is returned when dns message does not have the expected answer size.
-	ErrInvalidAnswer = errors.New("dns message does not have the expected answer size")
+	ErrInvalidAnswer = errors.New("ErrInvalidAnswer")
 	// ErrInvalidName is returned when dns message does not have the expected name size.
-	ErrInvalidName = errors.New("dns message does not have the expected name size")
+	ErrInvalidName = errors.New("ErrInvalidName")
+	// ErrInvalidOption is returned when dns message does not have the expected option size.
+	ErrInvalidOption = errors.New("ErrInvalidOption")
 )
 
 // ParseMessage parses dns request from payload into dst and returns the error.
