@@ -191,8 +191,8 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 	d.once.Do(func() {
 		if d.Header == nil {
 			d.Header = http.Header{
-				"content-type": {"application/dns-message"},
-				"user-agent":   {"fastdns/1.0"},
+				"content-type": []string{"application/dns-message"},
+				"user-agent":   []string{"fastdns/1.0"},
 			}
 		}
 		d.pool = sync.Pool{
@@ -271,7 +271,7 @@ func (c *httpConn) Write(b []byte) (n int, err error) {
 	if err != nil {
 		return 0, fmt.Errorf("fastdns: roundtrip %s error: %w", c.dialer.Endpoint, err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() // nolint:errcheck
 
 	_, err = io.Copy(c.writer, resp.Body)
 	if err != nil {

@@ -21,5 +21,5 @@ jobs:
           go test -v -cover
           go build -v -race
           (cd cmd/fastdig && go build -v)
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.61.0
-          ./bin/golangci-lint run
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.5.0
+          $(go env GOPATH)/bin/golangci-lint run

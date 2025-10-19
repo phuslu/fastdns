@@ -124,7 +124,7 @@ func (o MessageOption) AsCookie(dst []byte) ([]byte, error) {
 	if o.Code != OptionCodeCOOKIE {
 		return nil, ErrInvalidOption
 	}
-	if n := len(o.Data); !(8 <= n && n <= 40) {
+	if n := len(o.Data); n < 8 || n > 40 {
 		return nil, ErrInvalidOption
 	}
 	return append(dst, o.Data...), nil

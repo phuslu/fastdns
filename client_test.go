@@ -382,8 +382,8 @@ func BenchmarkResolverFastdnsHTTP(b *testing.B) {
 		Dialer: &HTTPDialer{
 			Endpoint: func() (u *url.URL) { u, _ = url.Parse("https://" + server + "/dns-query"); return }(),
 			Header: http.Header{
-				"content-type": {"application/dns-message"},
-				"user-agent":   {"fastdns/1.0"},
+				"content-type": []string{"application/dns-message"},
+				"user-agent":   []string{"fastdns/1.0"},
 			},
 			Transport: &http.Transport{
 				ForceAttemptHTTP2:   true,

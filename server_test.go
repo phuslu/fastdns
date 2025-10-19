@@ -18,7 +18,7 @@ func allocAddr() string {
 		addr := fmt.Sprintf("127.0.0.1:%d", i)
 		conn, err := net.Listen("tcp", addr)
 		if err == nil {
-			conn.Close()
+			_ = conn.Close()
 			return addr
 		}
 	}
@@ -137,7 +137,7 @@ func TestServerForkHost(t *testing.T) {
 		return
 	}
 
-	os.Setenv("FASTDNS_CHILD_INDEX", "1")
+	_ = os.Setenv("FASTDNS_CHILD_INDEX", "1")
 
 	s := &ForkServer{
 		Handler:  &mockServerHandler{},
@@ -182,7 +182,7 @@ func TestServerForkParseMessageError(t *testing.T) {
 		return
 	}
 
-	os.Setenv("FASTDNS_CHILD_INDEX", "1")
+	_ = os.Setenv("FASTDNS_CHILD_INDEX", "1")
 
 	s := &ForkServer{
 		Handler:  &mockServerHandler{},

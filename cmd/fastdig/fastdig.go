@@ -34,8 +34,8 @@ func main() {
 		client.Dialer = &fastdns.HTTPDialer{
 			Endpoint: endpoint,
 			Header: http.Header{
-				"content-type": {"application/dns-message"},
-				"user-agent":   {"fastdns/1.0"},
+				"content-type": []string{"application/dns-message"},
+				"user-agent":   []string{"fastdns/1.0"},
 			},
 		}
 	}
