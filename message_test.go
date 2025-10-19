@@ -298,6 +298,55 @@ func TestMessageDecodeName(t *testing.T) {
 	}
 }
 
+func TestMessageDecodeNameError(t *testing.T) {
+	payload := []byte{
+		// ---- Header ----
+		0x12, 0x34, // Transaction ID
+		0x81, 0x80, // Flags: standard response, recursion available
+		0x00, 0x01, // Questions = 1
+		0x00, 0x01, // Answer RRs = 1
+		0x00, 0x00, // Authority RRs = 0
+		0x00, 0x00, // Additional RRs = 0
+		0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e', // "example"
+		0x03, 'c', 'o', 'm', // "com"
+		0x00,       // end of QNAME
+		0x00, 0x01, // QTYPE = A
+		0x00, 0x01, // QCLASS = IN
+		// NAME field using a forward pointer (invalid per RFC)
+		0xc0, 0x2a, // pointer to offset 0x002A (points forward!)
+		0x00, 0x01, // TYPE = A
+		0x00, 0x01, // CLASS = IN
+		0x00, 0x00, 0x00, 0x3c, // TTL = 60
+		0x00, 0x04, // RDLENGTH = 4
+		0x7f, 0x00, 0x00, 0x01, // RDATA = 127.0.0.1
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // filler bytes
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // filler bytes
+		0x00, 0x00, 0x00, 0x00, // filler bytes
+		0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
+		0x03, 'c', 'o', 'm',
+		0x00,
+	}
+
+	resp := AcquireMessage()
+	defer ReleaseMessage(resp)
+
+	err := ParseMessage(resp, payload, true)
+	if err != nil {
+		t.Errorf("ParseMessage(%+v) error: %+v", payload, err)
+	}
+
+	records := resp.Records()
+	for records.Next() {
+		item := records.Item()
+		switch item.Type {
+		case TypeA, TypeAAAA:
+			t.Logf("records.Next().Item()=%#v, Name=%#v\n", item, string(resp.DecodeName(nil, item.Name)))
+		default:
+			t.Errorf("records.Next().Item()=%#v Invalid Type: %s\n", item, item.Type)
+		}
+	}
+}
+
 // BenchmarkMessageParseMessage measures ParseMessage throughput.
 func BenchmarkMessageParseMessage(b *testing.B) {
 	payload := []byte{

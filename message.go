@@ -180,17 +180,31 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 		offset = int(name[len(name)-2]&0b00111111)<<8 + int(name[len(name)-1])
 	}
 
+	rawsize := len(msg.Raw)
 	for offset != 0 {
-		for i := offset; i < len(msg.Raw); {
+		if offset >= rawsize {
+			return dst
+		}
+		for i := offset; i < rawsize; {
 			b := int(msg.Raw[i])
 			if b == 0 {
 				offset = 0
 				dst = append(dst, 0)
 				break
 			} else if b&0b11000000 == 0b11000000 {
-				offset = int(b&0b00111111)<<8 + int(msg.Raw[i+1])
+				if i+1 >= rawsize {
+					return dst
+				}
+				n := int(b&0b00111111)<<8 + int(msg.Raw[i+1])
+				if n >= offset {
+					return dst
+				}
+				offset = n
 				break
 			} else {
+				if i+b >= rawsize {
+					return dst
+				}
 				dst = append(dst, msg.Raw[i:i+b+1]...)
 				i += b + 1
 			}
@@ -205,7 +219,11 @@ func (msg *Message) DecodeName(dst []byte, name []byte) []byte {
 	}
 
 	if n == 0 {
-		dst = dst[1 : len(dst)-1]
+		if pos := len(dst) - 1; pos > 0 {
+			dst = dst[1:pos]
+		} else {
+			dst = dst[0:pos]
+		}
 	} else {
 		dst = append(dst[:n], dst[n+1:len(dst)-1]...)
 	}
