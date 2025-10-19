@@ -13,7 +13,7 @@ func (r *MessageRecord) AsOptions() (options MessageOptions, err error) {
 	options.Type = TypeOPT
 	options.UDPSize = uint16(r.Class)
 	options.Rcode = Rcode(r.TTL >> 24)
-	options.Version = byte(r.TTL >> 16 & 0xff)
+	options.Version = byte(r.TTL >> 16)
 	options.Flags = uint16(r.TTL)
 	options.data = r.Data
 	return
@@ -152,7 +152,7 @@ type MessageOptionsAppender struct {
 func (a *MessageOptionsAppender) init() {
 	a.msg.Header.ARCount++
 	a.msg.Raw[10] = byte(a.msg.Header.ARCount >> 8)
-	a.msg.Raw[11] = byte(a.msg.Header.ARCount & 0xff)
+	a.msg.Raw[11] = byte(a.msg.Header.ARCount)
 	a.msg.Raw = append(a.msg.Raw,
 		0x00,       // Name
 		0x00, 0x29, // OPT
@@ -196,7 +196,7 @@ func (a *MessageOptionsAppender) AppendSubnet(prefix netip.Prefix) {
 	), ip...)
 	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 4 + 4 + uint16(count)
 	a.msg.Raw[a.offset] = byte(length >> 8)
-	a.msg.Raw[a.offset+1] = byte(length & 0xff)
+	a.msg.Raw[a.offset+1] = byte(length)
 }
 
 // AppendCookie adds a COOKIE option to the message.
@@ -206,11 +206,11 @@ func (a *MessageOptionsAppender) AppendCookie(cookie string) {
 	}
 	a.msg.Raw = append(append(a.msg.Raw,
 		0x00, 0x0a, // Option Code: COOKIE
-		byte(len(cookie)>>8), byte(len(cookie)&0xff), // Option Length
+		byte(len(cookie)>>8), byte(len(cookie)), // Option Length
 	), cookie...)
 	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 2 + 2 + uint16(len(cookie))
 	a.msg.Raw[a.offset] = byte(length >> 8)
-	a.msg.Raw[a.offset+1] = byte(length & 0xff)
+	a.msg.Raw[a.offset+1] = byte(length)
 }
 
 // AppendPadding grows the message with a padding option.
@@ -221,10 +221,10 @@ func (a *MessageOptionsAppender) AppendPadding(padding uint16) {
 	padding = (uint16(len(a.msg.Raw)) + padding - 1) / padding * padding
 	a.msg.Raw = append(append(a.msg.Raw,
 		0x00, 0x0c, // Option Code: PADDING
-		byte(padding>>8), byte(padding&0xff), // Option Length
+		byte(padding>>8), byte(padding), // Option Length
 		// Padding
 	), make([]byte, padding)...)
 	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 2 + 2 + padding
 	a.msg.Raw[a.offset] = byte(length >> 8)
-	a.msg.Raw[a.offset+1] = byte(length & 0xff)
+	a.msg.Raw[a.offset+1] = byte(length)
 }
