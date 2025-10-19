@@ -112,7 +112,7 @@ func main() {
 }
 ```
 
-### DoH Client
+### DoH/eDNS Client
 ```go
 package main
 
@@ -121,6 +121,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"time"
 
@@ -128,15 +129,15 @@ import (
 )
 
 func main() {
-	endpoint, _ := url.Parse("https://1.1.1.1/dns-query")
+	endpoint, _ := url.Parse("https://8.8.8.8/dns-query")
 
 	client := &fastdns.Client{
 		Addr: endpoint.String(),
 		Dialer: &fastdns.HTTPDialer{
 			Endpoint:  endpoint,
 			Header: http.Header{
-				"content-type": {"application/dns-message"},
-				"user-agent":   {"fastdns/1.0"},
+				"content-type": []string{"application/dns-message"},
+				"user-agent":   []string{"fastdns/1.0"},
 			},
 			Transport: &http.Transport{
 				ForceAttemptHTTP2:   true,
@@ -156,7 +157,10 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	fmt.Println(client.LookupHTTPS(ctx, "cloud.phus.lu"))
+	ctx = fastdns.WithClientSubnet(ctx, netip.MustParsePrefix("1.2.4.8/24"))
+
+	fmt.Println(client.LookupNetIP(ctx, "ip4", "www.google.com"))
+	fmt.Println(client.LookupHTTPS(ctx, "phus.lu"))
 }
 ```
 
