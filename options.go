@@ -219,16 +219,22 @@ func (a *MessageOptionsAppender) AppendCookie(cookie string) {
 
 // AppendPadding grows the message with a padding option.
 func (a *MessageOptionsAppender) AppendPadding(padding uint16) {
+	if padding == 0 || uint16(len(a.msg.Raw))%padding == 0 {
+		return
+	}
 	if a.offset == 0 {
 		a.init()
 	}
-	padding = (uint16(len(a.msg.Raw)) + padding - 1) / padding * padding
+	pad := padding - (uint16(len(a.msg.Raw)) % padding)
+	if pad < 4 {
+		pad += padding
+	}
 	a.msg.Raw = append(append(a.msg.Raw,
 		0x00, 0x0c, // Option Code: PADDING
-		byte(padding>>8), byte(padding), // Option Length
+		byte(pad>>8), byte(pad), // Option Length
 		// Padding
-	), make([]byte, padding)...)
-	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + 2 + 2 + padding
+	), make([]byte, pad-2-2)...)
+	length := (uint16(a.msg.Raw[a.offset])<<8 | uint16(a.msg.Raw[a.offset+1])) + pad
 	a.msg.Raw[a.offset] = byte(length >> 8)
 	a.msg.Raw[a.offset+1] = byte(length)
 }
