@@ -177,12 +177,16 @@ func (a *MessageOptionsAppender) AppendSubnet(prefix netip.Prefix) {
 	bits := prefix.Bits()
 	count := (bits + 8 - 1) / 8
 	var family byte
-	if prefix.Addr().Is4() {
+	var ip []byte
+	if addr := prefix.Addr(); addr.Is4() {
 		family = 0x01
+		b := addr.As4()
+		ip = b[:]
 	} else {
 		family = 0x02
+		b := addr.As16()
+		ip = b[:]
 	}
-	ip := prefix.Addr().AsSlice()
 	if n := len(ip); count < n {
 		ip = ip[:count]
 	}
