@@ -156,7 +156,7 @@ func (a *MessageOptionsAppender) init() {
 	a.msg.Raw = append(a.msg.Raw,
 		0x00,       // Name
 		0x00, 0x29, // OPT
-		0x04, 0xd0, // UDP payload size: 1232
+		byte(MaxUDPSize>>8), byte(MaxUDPSize), // UDP payload size: MaxUDPSize
 		0x00,       // Extended RCODE
 		0x00,       // EDNS0 version
 		0x00, 0x00, // Z flags
