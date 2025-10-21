@@ -3,7 +3,6 @@ package fastdns
 import (
 	"context"
 	"net"
-	"net/netip"
 	"time"
 )
 
@@ -55,18 +54,20 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		}
 	}
 
-	roa, err := req.OptionsAppender()
-	if err != nil {
-		return err
-	}
-	if prefix, ok := ctx.Value(ClientSubnetContextKey).(netip.Prefix); ok {
-		roa.AppendSubnet(prefix)
-	}
-	if cookie, ok := ctx.Value(ClientCookieContextKey).(string); ok {
-		roa.AppendCookie(cookie)
-	}
-	if padding, ok := ctx.Value(ClientPaddingContextKey).(uint16); ok {
-		roa.AppendPadding(padding)
+	if options, ok := ctx.Value(clientOptionsContextKey).(*clientOptionsContextValue); ok {
+		roa, err := req.OptionsAppender()
+		if err != nil {
+			return err
+		}
+		if options.prefix.IsValid() {
+			roa.AppendSubnet(options.prefix)
+		}
+		if options.cookie != "" {
+			roa.AppendCookie(options.cookie)
+		}
+		if options.padding != 0 {
+			roa.AppendPadding(options.padding)
+		}
 	}
 
 	_, err = conn.Write(req.Raw)
