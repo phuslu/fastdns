@@ -43,7 +43,7 @@ func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (conn
 func (d *UDPDialer) get() (_ net.Conn, err error) {
 	d.once.Do(func() {
 		if d.MaxConns == 0 {
-			d.MaxConns = 64
+			d.MaxConns = 16
 		}
 		d.conns = make(chan net.Conn, d.MaxConns)
 		for range d.MaxConns {
