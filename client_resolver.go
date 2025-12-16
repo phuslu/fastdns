@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"encoding/binary"
+	"fmt"
 	"net"
 	"net/netip"
 	"slices"
@@ -154,6 +155,61 @@ func (c *Client) LookupNS(ctx context.Context, name string) (ns []*net.NS, err e
 
 	if len(soa) != 0 {
 		ns, err = c.LookupNS(ctx, b2s(soa))
+	}
+
+	return
+}
+
+// LookupPTR returns the Reverse DNS record for the given ip.
+func (c *Client) LookupPTR(ctx context.Context, ip string) (ptr string, err error) {
+	addr, err := netip.ParseAddr(ip)
+	if err != nil {
+		return "", err
+	}
+
+	if addr.Is4In6() {
+		addr = addr.Unmap()
+	}
+
+	var qname string
+	if addr.Is4() {
+		v := addr.As4()
+		qname = fmt.Sprintf("%d.%d.%d.%d.in-addr.arpa", v[3], v[2], v[1], v[0])
+	} else {
+		v := addr.As16()
+		qname = fmt.Sprintf("%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.%d.ip6.arpa",
+			v[15], v[14], v[13], v[12], v[11], v[10], v[9], v[8], v[7], v[6], v[5], v[4], v[3], v[2], v[1], v[0])
+	}
+
+	req, resp := AcquireMessage(), AcquireMessage()
+	defer ReleaseMessage(resp)
+	defer ReleaseMessage(req)
+
+	req.SetRequestQuestion(qname, TypePTR, ClassINET)
+
+	err = c.Exchange(ctx, req, resp)
+	if err != nil {
+		return
+	}
+
+	var data []byte
+
+	records := resp.Records()
+	for records.Next() {
+		r := records.Item()
+		switch r.Type {
+		case TypePTR:
+			data, err = resp.DecodeName(nil, r.Data)
+			if err != nil {
+				return
+			}
+			ptr = string(data)
+		default:
+			err = ErrInvalidAnswer
+		}
+	}
+	if err = records.Err(); err != nil {
+		return
 	}
 
 	return

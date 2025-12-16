@@ -103,6 +103,7 @@ func TestClientLookup(t *testing.T) {
 		{"phus.lu", TypeTXT},
 		{"phus.lu", TypeNS},
 		{"phus.lu", TypeMX},
+		{"1.1.1.1", TypePTR},
 	}
 
 	clients := []*Client{
@@ -160,6 +161,8 @@ func TestClientLookup(t *testing.T) {
 				result, err = client.LookupNS(ctx, c.Host)
 			case TypeMX:
 				result, err = client.LookupMX(ctx, c.Host)
+			case TypePTR:
+				result, err = client.LookupPTR(ctx, c.Host)
 			default:
 				t.Errorf("fastdns client lookup is unsupported type(%s)", c.Type)
 			}
@@ -217,6 +220,20 @@ func TestClientLookupSRV(t *testing.T) {
 		t.Errorf("dns_server=%+v LookupSRV(\"_xmpp-client._tcp.jabber.org\") error: %+v\n", client.Addr, err)
 	}
 	t.Logf("dns_server=%+v LookupSRV(\"_xmpp-client._tcp.jabber.org\") return %+v %+v", client.Addr, cname, deref(ips))
+}
+
+// TestClientLookupPTR verifies PTR lookups and result decoding.
+func TestClientLookupPTR(t *testing.T) {
+	client := &Client{
+		Addr:    "1.1.1.1:53",
+		Timeout: 1 * time.Second,
+	}
+
+	ptr, err := client.LookupPTR(context.Background(), "1.1.1.1")
+	if err != nil {
+		t.Errorf("dns_server=%+v LookupPTR(\"1.1.1.1\") error: %+v\n", client.Addr, err)
+	}
+	t.Logf("dns_server=%+v LookupPTR(\"1.1.1.1\") return %+v", client.Addr, ptr)
 }
 
 // BenchmarkResolverPureGo measures the standard library resolver performance.
