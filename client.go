@@ -47,7 +47,7 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		return err
 	}
 
-	if c.Timeout > 0 && c.Dialer == nil {
+	if c.Timeout > 0 {
 		err = conn.SetDeadline(time.Now().Add(c.Timeout))
 		if err != nil {
 			return err
