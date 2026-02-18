@@ -21,10 +21,6 @@ type UDPDialer struct {
 	// Addr specifies the remote UDP address that the dialer will connect to.
 	Addr *net.UDPAddr
 
-	// Timeout specifies the maximum duration for a query to complete.
-	// If a query exceeds this duration, it will result in a timeout error.
-	Timeout time.Duration
-
 	// MaxConns limits the maximum number of UDP connections that can be created
 	// and reused. Once this limit is reached, no new connections will be made.
 	// If not set, use 64 as default.
