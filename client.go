@@ -52,7 +52,7 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		if err != nil {
 			return err
 		}
-		defer conn.SetDeadline(time.Time{})
+		defer conn.SetDeadline(time.Time{}) // nolint:errcheck
 	}
 
 	if options, ok := ctx.Value(clientOptionsContextKey).(*clientOptionsContextValue); ok {
