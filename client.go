@@ -2,6 +2,7 @@ package fastdns
 
 import (
 	"context"
+	"errors"
 	"net"
 	"time"
 )
@@ -49,7 +50,7 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 
 	if c.Timeout > 0 {
 		err = conn.SetDeadline(time.Now().Add(c.Timeout))
-		if err != nil {
+		if err != nil && err != errors.ErrUnsupported {
 			return err
 		}
 		defer conn.SetDeadline(time.Time{}) // nolint:errcheck

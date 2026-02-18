@@ -3,6 +3,7 @@ package fastdns
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -298,17 +299,17 @@ func (c *httpConn) RemoteAddr() net.Addr {
 
 // SetDeadline is a stub to satisfy the net.Conn interface.
 func (c *httpConn) SetDeadline(t time.Time) error {
-	return nil
+	return errors.ErrUnsupported
 }
 
 // SetReadDeadline is a stub to satisfy the net.Conn interface.
 func (c *httpConn) SetReadDeadline(t time.Time) error {
-	return nil
+	return errors.ErrUnsupported
 }
 
 // SetWriteDeadline is a stub to satisfy the net.Conn interface.
 func (c *httpConn) SetWriteDeadline(t time.Time) error {
-	return nil
+	return errors.ErrUnsupported
 }
 
 var httpctxoffset = func() uintptr {
