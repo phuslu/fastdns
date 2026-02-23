@@ -38,12 +38,14 @@ func (c *Client) Exchange(ctx context.Context, req, resp *Message) (err error) {
 
 // exchange performs the transport-level DNS round trip with the configured dialer.
 func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
-	dialer := c.Dialer
-	if dialer == nil {
-		dialer = &net.Dialer{Timeout: c.Timeout}
-	}
+	var err error
+	var conn net.Conn
 
-	conn, err := dialer.DialContext(ctx, "udp", c.Addr)
+	if c.Dialer != nil {
+		conn, err = c.Dialer.DialContext(ctx, "udp", c.Addr)
+	} else {
+		conn, err = net.Dial("udp", c.Addr)
+	}
 	if err != nil {
 		return err
 	}
@@ -93,6 +95,10 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		Put(c net.Conn)
 	}); d != nil {
 		d.Put(conn)
+	}
+
+	if c.Dialer == nil {
+		_ = conn.Close()
 	}
 
 	return nil
