@@ -334,6 +334,28 @@ func (b *bufferwriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+// ReadFrom reads all data from r into the buffer.
+func (b *bufferwriter) ReadFrom(r io.Reader) (int64, error) {
+	var total int64
+	for {
+		if cap(b.B)-len(b.B) < 512 {
+			newCap := cap(b.B) + 4096
+			grown := make([]byte, len(b.B), newCap)
+			copy(grown, b.B)
+			b.B = grown
+		}
+		n, err := r.Read(b.B[len(b.B):cap(b.B)])
+		b.B = b.B[:len(b.B)+n]
+		total += int64(n)
+		if err != nil {
+			if err == io.EOF {
+				return total, nil
+			}
+			return total, err
+		}
+	}
+}
+
 type bufferreader struct {
 	B []byte
 }
@@ -367,5 +389,6 @@ func (r *bufferreader) WriteTo(w io.Writer) (int64, error) {
 }
 
 var _ io.Writer = (*bufferwriter)(nil)
+var _ io.ReaderFrom = (*bufferwriter)(nil)
 var _ io.ReadCloser = (*bufferreader)(nil)
 var _ io.WriterTo = (*bufferreader)(nil)
