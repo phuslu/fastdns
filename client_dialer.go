@@ -27,43 +27,52 @@ type UDPDialer struct {
 	// If not set, use 64 as default.
 	MaxConns uint16
 
-	once  sync.Once
-	conns chan net.Conn
+	once    sync.Once
+	conns   chan net.Conn
+	initErr error
 }
 
-// DialContext returns a pooled UDP connection for the requested network.
-func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
-	return d.get()
-}
-
-// get initializes the UDP pool on first use and returns a connection handle.
-func (d *UDPDialer) get() (_ net.Conn, err error) {
-	d.once.Do(func() {
-		if d.MaxConns == 0 {
-			d.MaxConns = 16
-		}
-		d.conns = make(chan net.Conn, d.MaxConns)
-		for range d.MaxConns {
-			var c *net.UDPConn
-			c, err = net.DialUDP("udp", nil, d.Addr)
-			if err != nil {
-				break
-			}
-			d.conns <- c
-		}
-	})
-
-	if err != nil {
-		return
+// DialContext returns a pooled UDP connection, waiting until one is available
+// or the context is done.
+func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
+	d.once.Do(d.init)
+	if d.initErr != nil {
+		return nil, d.initErr
 	}
+	select {
+	case conn := <-d.conns:
+		return conn, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
 
-	c := <-d.conns
-
-	return c, nil
+// init fills the connection pool on first use. Any error is stored on the dialer
+// so that later calls fail fast instead of blocking on a partially filled pool.
+func (d *UDPDialer) init() {
+	if d.MaxConns == 0 {
+		d.MaxConns = 16
+	}
+	d.conns = make(chan net.Conn, d.MaxConns)
+	for range d.MaxConns {
+		conn, err := net.DialUDP("udp", nil, d.Addr)
+		if err != nil {
+			d.initErr = err
+			return
+		}
+		d.conns <- conn
+	}
 }
 
 // Put returns the UDP connection to the pool for reuse.
 func (d *UDPDialer) Put(conn net.Conn) {
+	d.release(conn, nil)
+}
+
+// release returns the UDP socket to the pool. A datagram socket stays usable
+// after a timeout, so it is always reused once the caller has cleared its
+// deadline, keeping the pool at full capacity even after repeated failures.
+func (d *UDPDialer) release(conn net.Conn, err error) {
 	d.conns <- conn
 }
 
@@ -91,34 +100,44 @@ type TCPDialer struct {
 	conns chan net.Conn
 }
 
-// DialContext returns a pooled TCP or TLS connection based on the dialer settings.
-func (d *TCPDialer) DialContext(ctx context.Context, network, addr string) (conn net.Conn, err error) {
-	return d.get()
+// DialContext returns a pooled TCP or TLS connection, waiting until one is
+// available or the context is done.
+func (d *TCPDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
+	d.once.Do(d.init)
+	select {
+	case conn := <-d.conns:
+		return conn, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
-// get initializes the TCP pool on first use and returns a wrapped connection.
-func (d *TCPDialer) get() (_ net.Conn, err error) {
-	d.once.Do(func() {
-		if d.MaxConns == 0 {
-			d.MaxConns = 8
-		}
-		d.conns = make(chan net.Conn, d.MaxConns)
-		for range d.MaxConns {
-			d.conns <- &tcpConn{nil, d, make([]byte, 0, 1024)}
-		}
-	})
-
-	if err != nil {
-		return
+// init fills the pool with lazily-connected wrappers on first use.
+func (d *TCPDialer) init() {
+	if d.MaxConns == 0 {
+		d.MaxConns = 8
 	}
-
-	c := <-d.conns
-
-	return c, nil
+	d.conns = make(chan net.Conn, d.MaxConns)
+	for range d.MaxConns {
+		d.conns <- &tcpConn{nil, d, make([]byte, 0, 1024)}
+	}
 }
 
 // Put returns the TCP connection wrapper to the pool.
 func (d *TCPDialer) Put(conn net.Conn) {
+	d.release(conn, nil)
+}
+
+// release returns the wrapper to the pool. When the exchange failed the
+// underlying stream may be in an undefined state (idle timeout, EOF, protocol
+// error), so it is closed and cleared; the next Write transparently reconnects.
+func (d *TCPDialer) release(conn net.Conn, err error) {
+	if err != nil {
+		if c, _ := conn.(*tcpConn); c != nil && c.Conn != nil {
+			_ = c.Conn.Close()
+			c.Conn = nil
+		}
+	}
 	d.conns <- conn
 }
 
@@ -219,6 +238,12 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 
 // Put releases the HTTP connection wrapper back to the pool.
 func (d *HTTPDialer) Put(conn net.Conn) {
+	d.release(conn, nil)
+}
+
+// release returns the wrapper to the pool. Its buffers are reset on the next
+// DialContext, so it is safe to reuse even after a failed exchange.
+func (d *HTTPDialer) release(conn net.Conn, err error) {
 	if c, _ := conn.(*httpConn); c != nil {
 		d.pool.Put(c)
 	}
