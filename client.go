@@ -37,8 +37,7 @@ func (c *Client) Exchange(ctx context.Context, req, resp *Message) (err error) {
 }
 
 // exchange performs the transport-level DNS round trip with the configured dialer.
-func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
-	var err error
+func (c *Client) exchange(ctx context.Context, req, resp *Message) (err error) {
 	var conn net.Conn
 
 	if c.Dialer != nil {
@@ -50,18 +49,29 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		return err
 	}
 
-	if c.Timeout > 0 {
-		err = conn.SetDeadline(time.Now().Add(c.Timeout))
-		if err != nil && err != errors.ErrUnsupported {
-			return err
-		}
-		defer conn.SetDeadline(time.Time{}) // nolint:errcheck
+	// Release the connection on every return path, so a failed exchange can
+	// never permanently remove a slot from a pooled dialer. Registered first,
+	// so it runs last: after the deadline reset installed below.
+	switch d := c.Dialer.(type) {
+	case nil:
+		defer conn.Close() // nolint:errcheck
+	case interface{ release(net.Conn, error) }:
+		defer func() { d.release(conn, err) }()
+	case interface{ Put(net.Conn) }:
+		// Backward compatibility for third-party pooled dialers.
+		defer func() {
+			if err == nil {
+				d.Put(conn)
+			} else {
+				_ = conn.Close()
+			}
+		}()
 	}
 
 	if options, ok := ctx.Value(clientOptionsContextKey).(*clientOptionsContextValue); ok {
-		roa, err := req.OptionsAppender()
-		if err != nil {
-			return err
+		roa, e := req.OptionsAppender()
+		if e != nil {
+			return e
 		}
 		if options.prefix.IsValid() {
 			roa.AppendSubnet(options.prefix)
@@ -79,6 +89,44 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 		return err
 	}
 
+	// Bound the response Read by the earlier of Client.Timeout and the context
+	// deadline. The Write above establishes the pooled connection, so deadline
+	// handling always runs on a live socket; DNS payloads are small, so bounding
+	// the Read is what keeps an unanswered query from blocking forever.
+	deadline := time.Time{}
+	if c.Timeout > 0 {
+		deadline = time.Now().Add(c.Timeout)
+	}
+	if t, ok := ctx.Deadline(); ok && (deadline.IsZero() || t.Before(deadline)) {
+		deadline = t
+	}
+	if !deadline.IsZero() {
+		if e := conn.SetDeadline(deadline); e != nil && e != errors.ErrUnsupported {
+			return e
+		}
+	}
+
+	// Cancel a blocked Read when the context is done, and always clear the
+	// deadline before the connection returns to the pool. Registered after the
+	// release above, so it runs first.
+	if !deadline.IsZero() || ctx.Done() != nil {
+		var callbackDone chan struct{}
+		var stop func() bool
+		if ctx.Done() != nil {
+			callbackDone = make(chan struct{})
+			stop = context.AfterFunc(ctx, func() {
+				_ = conn.SetDeadline(time.Now())
+				close(callbackDone)
+			})
+		}
+		defer func() {
+			if stop != nil && !stop() {
+				<-callbackDone
+			}
+			_ = conn.SetDeadline(time.Time{}) // nolint:errcheck
+		}()
+	}
+
 	resp.Raw = resp.Raw[:cap(resp.Raw)]
 	n, err := conn.Read(resp.Raw)
 	if err != nil {
@@ -87,19 +135,5 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) error {
 
 	resp.Raw = resp.Raw[:n]
 	err = ParseMessage(resp, resp.Raw, false)
-	if err != nil {
-		return err
-	}
-
-	if d, _ := c.Dialer.(interface {
-		Put(c net.Conn)
-	}); d != nil {
-		d.Put(conn)
-	}
-
-	if c.Dialer == nil {
-		_ = conn.Close()
-	}
-
-	return nil
+	return err
 }
