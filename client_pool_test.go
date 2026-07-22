@@ -155,6 +155,65 @@ func TestUDPDialerPoolSurvivesTimeouts(t *testing.T) {
 	}
 }
 
+// TestClientExchangeDiscardsStaleResponse verifies that a late answer to a
+// previous timed-out query on a reused UDP socket is not delivered as the
+// answer to the next query: responses must echo the request ID.
+func TestClientExchangeDiscardsStaleResponse(t *testing.T) {
+	server, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	if err != nil {
+		t.Fatalf("listen udp: %v", err)
+	}
+	defer server.Close()
+
+	// The server holds the answer to the first query until the second query
+	// arrives, then answers both: the stale answer first, the real one second.
+	go func() {
+		buf := make([]byte, 512)
+		var pending []byte
+		for {
+			n, addr, err := server.ReadFromUDP(buf)
+			if err != nil {
+				return
+			}
+			q := append([]byte(nil), buf[:n]...)
+			if pending == nil {
+				pending = q // let the first query time out
+				continue
+			}
+			for _, raw := range [][]byte{pending, q} {
+				var msg Message
+				if ParseMessage(&msg, raw, true) != nil {
+					continue
+				}
+				msg.SetResponseHeader(RcodeNoError, 0)
+				_, _ = server.WriteToUDP(msg.Raw, addr)
+			}
+		}
+	}()
+
+	client := &Client{
+		Timeout: 100 * time.Millisecond,
+		Dialer:  &UDPDialer{Addr: server.LocalAddr().(*net.UDPAddr), MaxConns: 1},
+	}
+
+	// First query times out; its answer is still queued on the server side.
+	if err := doExchange(client, context.Background()); err == nil {
+		t.Fatal("first exchange: expected a timeout error")
+	}
+
+	// Second query receives the stale answer first and must skip it.
+	req, resp := AcquireMessage(), AcquireMessage()
+	defer ReleaseMessage(req)
+	defer ReleaseMessage(resp)
+	req.SetRequestQuestion("example.test", TypeA, ClassINET)
+	if err := client.Exchange(context.Background(), req, resp); err != nil {
+		t.Fatalf("second exchange: %v", err)
+	}
+	if resp.Header.ID != req.Header.ID {
+		t.Fatalf("response ID = %d, want request ID %d", resp.Header.ID, req.Header.ID)
+	}
+}
+
 // TestTCPDialerReconnectsAfterFailure verifies that a broken pooled TCP
 // connection is closed and cleared instead of being reused as-is, so the next
 // query reconnects rather than deadlocking or replaying the error.

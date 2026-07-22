@@ -42,6 +42,11 @@ func (d *UDPDialer) DialContext(ctx context.Context, network, addr string) (net.
 	select {
 	case conn := <-d.conns:
 		return conn, nil
+	default:
+	}
+	select {
+	case conn := <-d.conns:
+		return conn, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -66,7 +71,7 @@ func (d *UDPDialer) init() {
 
 // Put returns the UDP connection to the pool for reuse.
 func (d *UDPDialer) Put(conn net.Conn) {
-	d.release(conn, nil)
+	d.conns <- conn
 }
 
 // release returns the UDP socket to the pool. A datagram socket stays usable
@@ -107,6 +112,11 @@ func (d *TCPDialer) DialContext(ctx context.Context, network, addr string) (net.
 	select {
 	case conn := <-d.conns:
 		return conn, nil
+	default:
+	}
+	select {
+	case conn := <-d.conns:
+		return conn, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -125,7 +135,7 @@ func (d *TCPDialer) init() {
 
 // Put returns the TCP connection wrapper to the pool.
 func (d *TCPDialer) Put(conn net.Conn) {
-	d.release(conn, nil)
+	d.conns <- conn
 }
 
 // release returns the wrapper to the pool. When the exchange failed the
@@ -238,15 +248,15 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 
 // Put releases the HTTP connection wrapper back to the pool.
 func (d *HTTPDialer) Put(conn net.Conn) {
-	d.release(conn, nil)
+	if c, _ := conn.(*httpConn); c != nil {
+		d.pool.Put(c)
+	}
 }
 
 // release returns the wrapper to the pool. Its buffers are reset on the next
 // DialContext, so it is safe to reuse even after a failed exchange.
 func (d *HTTPDialer) release(conn net.Conn, err error) {
-	if c, _ := conn.(*httpConn); c != nil {
-		d.pool.Put(c)
-	}
+	d.Put(conn)
 }
 
 type httpConn struct {
