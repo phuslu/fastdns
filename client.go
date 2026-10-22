@@ -85,15 +85,8 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) (err error) {
 		}
 	}
 
-	_, err = conn.Write(req.Raw)
-	if err != nil {
-		return err
-	}
-
-	// Bound the response Read by the earlier of Client.Timeout and the context
-	// deadline. This runs after Write because pooled TCP connections connect
-	// lazily there; DNS payloads are small, so bounding the Read is what keeps
-	// an unanswered query from blocking forever.
+	// The query deadline is the earlier of Client.Timeout and the context
+	// deadline.
 	var deadline time.Time
 	if c.Timeout > 0 {
 		deadline = time.Now().Add(c.Timeout)
@@ -101,6 +94,21 @@ func (c *Client) exchange(ctx context.Context, req, resp *Message) (err error) {
 	if t, ok := ctx.Deadline(); ok && (deadline.IsZero() || t.Before(deadline)) {
 		deadline = t
 	}
+
+	// DoH performs the whole round trip inside Write, so the deadline must be
+	// handed to it before Write; conn deadlines cannot bound an HTTP request.
+	if hc, ok := conn.(*httpConn); ok {
+		hc.deadline = deadline
+	}
+
+	_, err = conn.Write(req.Raw)
+	if err != nil {
+		return err
+	}
+
+	// Bound the response Read by the deadline. This runs after Write because
+	// pooled TCP connections connect lazily there; DNS payloads are small, so
+	// bounding the Read is what keeps an unanswered query from blocking forever.
 	if done := ctx.Done(); !deadline.IsZero() || done != nil {
 		if !deadline.IsZero() {
 			if e := conn.SetReadDeadline(deadline); e != nil && e != errors.ErrUnsupported {

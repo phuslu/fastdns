@@ -240,6 +240,7 @@ func (d *HTTPDialer) DialContext(ctx context.Context, network, addr string) (net
 	c := d.pool.Get().(*httpConn)
 	c.dialer = d
 	c.ctx = ctx
+	c.deadline = time.Time{}
 	c.writer.B = c.writer.B[:0]
 	c.reader.B = nil
 	c.resp = nil
@@ -260,12 +261,13 @@ func (d *HTTPDialer) release(conn net.Conn, err error) {
 }
 
 type httpConn struct {
-	dialer *HTTPDialer
-	ctx    context.Context
-	req    *http.Request
-	reader *bufferreader
-	writer *bufferwriter
-	resp   []byte
+	dialer   *HTTPDialer
+	ctx      context.Context
+	deadline time.Time
+	req      *http.Request
+	reader   *bufferreader
+	writer   *bufferwriter
+	resp     []byte
 }
 
 // Read copies buffered HTTP response bytes into b.
@@ -296,8 +298,19 @@ func (c *httpConn) Write(b []byte) (n int, err error) {
 	c.req.Body = c.reader
 	c.req.ContentLength = int64(len(b))
 
-	// c.req.ctx = c.ctx
-	*(*context.Context)(unsafe.Pointer(uintptr(unsafe.Pointer(c.req)) + httpctxoffset)) = c.ctx
+	// Bound the round trip by the query deadline, since net/http only honors
+	// the request context.
+	ctx := c.ctx
+	if !c.deadline.IsZero() {
+		if t, ok := ctx.Deadline(); !ok || c.deadline.Before(t) {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithDeadline(ctx, c.deadline)
+			defer cancel()
+		}
+	}
+
+	// c.req.ctx = ctx
+	*(*context.Context)(unsafe.Pointer(uintptr(unsafe.Pointer(c.req)) + httpctxoffset)) = ctx
 
 	resp, err := tr.RoundTrip(c.req)
 	if err != nil {
