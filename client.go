@@ -23,7 +23,8 @@ type Client struct {
 	Timeout time.Duration
 
 	// Dialer allows for customizing the way connections are established.
-	// If set, Addr and Timeout will be ignore.
+	// If set, connections are obtained from it instead of dialing Addr, and
+	// Timeout still bounds each query.
 	Dialer Dialer
 }
 
