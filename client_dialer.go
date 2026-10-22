@@ -109,17 +109,20 @@ type TCPDialer struct {
 // available or the context is done.
 func (d *TCPDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
 	d.once.Do(d.init)
+	var conn net.Conn
 	select {
-	case conn := <-d.conns:
-		return conn, nil
+	case conn = <-d.conns:
 	default:
+		select {
+		case conn = <-d.conns:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
 	}
-	select {
-	case conn := <-d.conns:
-		return conn, nil
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	if c, _ := conn.(*tcpConn); c != nil {
+		c.ctx = ctx
 	}
+	return conn, nil
 }
 
 // init fills the pool with lazily-connected wrappers on first use.
@@ -129,12 +132,15 @@ func (d *TCPDialer) init() {
 	}
 	d.conns = make(chan net.Conn, d.MaxConns)
 	for range d.MaxConns {
-		d.conns <- &tcpConn{nil, d, make([]byte, 0, 1024)}
+		d.conns <- &tcpConn{dialer: d, buffer: make([]byte, 0, 1024)}
 	}
 }
 
 // Put returns the TCP connection wrapper to the pool.
 func (d *TCPDialer) Put(conn net.Conn) {
+	if c, _ := conn.(*tcpConn); c != nil {
+		c.ctx = nil
+	}
 	d.conns <- conn
 }
 
@@ -148,11 +154,12 @@ func (d *TCPDialer) release(conn net.Conn, err error) {
 			c.Conn = nil
 		}
 	}
-	d.conns <- conn
+	d.Put(conn)
 }
 
 type tcpConn struct {
 	net.Conn
+	ctx    context.Context
 	dialer *TCPDialer
 	buffer []byte
 }
@@ -160,11 +167,16 @@ type tcpConn struct {
 // Write ensures the underlying TCP or TLS connection is ready and sends the framed payload.
 func (c *tcpConn) Write(b []byte) (int, error) {
 	if c.Conn == nil {
+		// Dial with the query context so cancellation interrupts the lazy connect.
+		ctx := c.ctx
+		if ctx == nil {
+			ctx = context.Background()
+		}
 		var err error
 		if c.dialer.TLSConfig != nil {
-			c.Conn, err = tls.DialWithDialer(&net.Dialer{Timeout: c.dialer.Timeout}, "tcp", c.dialer.Addr.String(), c.dialer.TLSConfig)
+			c.Conn, err = (&tls.Dialer{NetDialer: &net.Dialer{Timeout: c.dialer.Timeout}, Config: c.dialer.TLSConfig}).DialContext(ctx, "tcp", c.dialer.Addr.String())
 		} else {
-			c.Conn, err = (&net.Dialer{Timeout: c.dialer.Timeout}).Dial("tcp", c.dialer.Addr.String())
+			c.Conn, err = (&net.Dialer{Timeout: c.dialer.Timeout}).DialContext(ctx, "tcp", c.dialer.Addr.String())
 		}
 		if err != nil {
 			return 0, err
